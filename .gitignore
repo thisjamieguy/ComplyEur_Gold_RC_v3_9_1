@@ -6,6 +6,9 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 *.log
+*.tmp
+dist/
+build/
 instance/
 uploads/
 testenv/
@@ -29,3 +32,7 @@ Thumbs.db
 backups/
 exports/
 logs/
+
+# Test artifacts
+.coverage
+pytest_cache/
