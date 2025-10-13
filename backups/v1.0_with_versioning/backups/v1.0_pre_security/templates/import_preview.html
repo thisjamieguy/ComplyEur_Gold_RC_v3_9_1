@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Import Preview - EU Trip Tracker{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <h1 class="content-title">👀 Import Preview</h1>
+            <p class="content-subtitle">Review the data before importing to your database</p>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <a href="{{ url_for('import_excel') }}" class="btn btn-outline">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                </svg>
+                Back to Import
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="content-body">
+    <!-- Summary Stats -->
+    <div class="grid grid-3">
+        <div class="card text-center">
+            <div style="font-size: 36px; font-weight: 700; color: #10b981; margin-bottom: 8px;">
+                {{ valid_trips|length }}
+            </div>
+            <div class="text-muted" style="font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
+                Valid Trips
+            </div>
+            <div style="margin-top: 12px; font-size: 14px; color: #10b981;">
+                Ready to import
+            </div>
+        </div>
+        
+        <div class="card text-center">
+            <div style="font-size: 36px; font-weight: 700; color: #ef4444; margin-bottom: 8px;">
+                {{ errors|length }}
+            </div>
+            <div class="text-muted" style="font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
+                Errors Found
+            </div>
+            <div style="margin-top: 12px; font-size: 14px; color: #ef4444;">
+                Need attention
+            </div>
+        </div>
+        
+        <div class="card text-center">
+            <div style="font-size: 36px; font-weight: 700; color: #6b7280; margin-bottom: 8px;">
+                {{ valid_trips|length + errors|length }}
+            </div>
+            <div class="text-muted" style="font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
+                Total Rows
+            </div>
+            <div style="margin-top: 12px; font-size: 14px; color: #6b7280;">
+                Processed
+            </div>
+        </div>
+    </div>
+
+    <!-- Valid Trips -->
+    {% if valid_trips %}
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">✅ Valid Trips ({{ valid_trips|length }})</h2>
+        </div>
+        
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Country</th>
+                        <th>Entry Date</th>
+                        <th>Exit Date</th>
+                        <th>Duration</th>
+                        <th>Row</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for trip in valid_trips %}
+                    <tr>
+                        <td style="font-weight: 500;">{{ trip.employee_name }}</td>
+                        <td>{{ trip.country }}</td>
+                        <td>{{ trip.entry_date }}</td>
+                        <td>{{ trip.exit_date }}</td>
+                        <td>{{ trip.duration }} day{% if trip.duration != 1 %}s{% endif %}</td>
+                        <td class="text-center">{{ trip.row }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Errors -->
+    {% if errors %}
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">❌ Errors Found ({{ errors|length }})</h2>
+        </div>
+        
+        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #ef4444;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                </svg>
+                <span style="font-weight: 600; color: #991b1b;">The following issues were found:</span>
+            </div>
+            
+            <div style="max-height: 300px; overflow-y: auto;">
+                {% for error in errors %}
+                <div style="padding: 8px 0; border-bottom: 1px solid #fecaca; color: #991b1b; font-size: 14px;">
+                    {{ error }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Action Buttons -->
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div>
+                <h3 style="color: #1f2937; font-weight: 600; margin-bottom: 4px;">Ready to Import?</h3>
+                <p style="color: #6b7280; margin: 0; font-size: 14px;">
+                    {% if valid_trips %}
+                        {{ valid_trips|length }} trip{{ 's' if valid_trips|length != 1 else '' }} will be imported
+                        {% if errors %}
+                            ({{ errors|length }} error{{ 's' if errors|length != 1 else '' }} will be skipped)
+                        {% endif %}
+                    {% else %}
+                        No valid trips to import
+                    {% endif %}
+                </p>
+            </div>
+            
+            <div style="display: flex; gap: 12px;">
+                <form method="POST" action="{{ url_for('cancel_import') }}" style="display: inline;">
+                    <button type="submit" class="btn btn-secondary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                        Cancel Import
+                    </button>
+                </form>
+                
+                {% if valid_trips %}
+                <form method="POST" action="{{ url_for('confirm_import') }}" style="display: inline;">
+                    <button type="submit" class="btn btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20,6 9,17 4,12"></polyline>
+                        </svg>
+                        Import {{ valid_trips|length }} Trip{{ 's' if valid_trips|length != 1 else '' }}
+                    </button>
+                </form>
+                {% else %}
+                <button type="button" class="btn btn-primary" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20,6 9,17 4,12"></polyline>
+                    </svg>
+                    No Trips to Import
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

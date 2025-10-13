@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - EU Trip Tracker{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1 class="content-title">🇪🇺 EU Trip Tracker Dashboard</h1>
+    <p class="content-subtitle">Monitor employee travel compliance with the 90/180 day rule</p>
+</div>
+
+<div class="content-body">
+    <!-- Add Employee Section -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">➕ Add New Employee</h2>
+            <div style="display: flex; gap: 12px;">
+                <a href="{{ url_for('bulk_add_trip') }}" class="btn btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <line x1="20" y1="8" x2="20" y2="14"></line>
+                        <line x1="23" y1="11" x2="17" y2="11"></line>
+                    </svg>
+                    Bulk Add Trip
+                </a>
+                <a href="{{ url_for('import_excel') }}" class="btn btn-success">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14,2 14,8 20,8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg>
+                    Import Excel
+                </a>
+            </div>
+        </div>
+        <form method="POST" action="{{ url_for('add_employee') }}" class="form-inline">
+            <div class="form-group">
+                <input type="text" name="name" class="form-input" placeholder="Employee name" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Employee</button>
+        </form>
+    </div>
+
+    {% if employees %}
+    <!-- Employee Overview Section -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">👥 Employee Overview</h2>
+            <div style="display: flex; gap: 12px;">
+                <button onclick="showTableView()" id="tableBtn" class="btn btn-primary btn-sm">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    Table View
+                </button>
+                <button onclick="showCardView()" id="cardsBtn" class="btn btn-outline btn-sm">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <rect x="7" y="7" width="3" height="3"></rect>
+                        <rect x="14" y="7" width="3" height="3"></rect>
+                        <rect x="14" y="14" width="3" height="3"></rect>
+                        <rect x="7" y="14" width="3" height="3"></rect>
+                    </svg>
+                    Card View
+                </button>
+            </div>
+        </div>
+
+        <!-- Table View -->
+        <div id="tableView" class="table-container">
+            <table id="employeeTable" class="table">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable(0)" style="cursor: pointer;">
+                            Name 
+                            <span class="sort-arrow">↕️</span>
+                        </th>
+                        <th onclick="sortTable(1)" style="cursor: pointer;">
+                            Trips 
+                            <span class="sort-arrow">↕️</span>
+                        </th>
+                        <th onclick="sortTable(2)" style="cursor: pointer;">
+                            Days Used 
+                            <span class="sort-arrow">↕️</span>
+                        </th>
+                        <th onclick="sortTable(3)" style="cursor: pointer;">
+                            Next Trip 
+                            <span class="sort-arrow">↕️</span>
+                        </th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in employees %}
+                    <tr>
+                        <td style="font-weight: 600;">{{ emp.name }}</td>
+                        <td class="text-center">{{ emp.trip_count }}</td>
+                        <td class="text-center">
+                            <span style="font-weight: 700; color: {% if emp.days_used > 80 %}#ef4444{% elif emp.days_used > 60 %}#f59e0b{% else %}#10b981{% endif %};">
+                                {{ emp.days_used }}/90
+                            </span>
+                        </td>
+                        <td>
+                            {% if emp.next_trip %}
+                                <span class="status-badge status-safe" style="font-size: 12px;">
+                                    {{ emp.next_trip.country|country_name }} - {{ emp.next_trip.entry_date|uk_date }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted" style="font-style: italic;">No upcoming trips</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <span class="status-badge status-{{ emp.status }}">
+                                {% if emp.status == 'safe' %}✓ OK{% elif emp.status == 'warning' %}⚠ Warning{% else %}⚠ Alert{% endif %}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <div style="display: flex; gap: 8px; justify-content: center;">
+                                <a href="{{ url_for('employee_detail', employee_id=emp.id) }}" class="btn btn-primary btn-sm">Details</a>
+                                <a href="{{ url_for('calendar', employee_id=emp.id) }}" class="btn btn-secondary btn-sm">📅</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Card View -->
+        <div id="cardView" class="grid grid-2" style="display: none;">
+            {% for emp in employees %}
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                    <h3 style="margin: 0; font-size: 18px; font-weight: 600;">{{ emp.name }}</h3>
+                    <span class="status-badge status-{{ emp.status }}">
+                        {% if emp.status == 'safe' %}✓ OK{% elif emp.status == 'warning' %}⚠ Warning{% else %}⚠ Alert{% endif %}
+                    </span>
+                </div>
+                
+                <div style="background: #f9fafb; padding: 16px; border-radius: 8px; border-left: 4px solid #f97316; margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>Days used (180d):</span>
+                        <span style="font-weight: 600; font-size: 18px;">{{ emp.days_used }}/90</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ (emp.days_used / 90 * 100)|round }}%; background: {% if emp.days_used > 80 %}#ef4444{% elif emp.days_used > 60 %}#f59e0b{% else %}#10b981{% endif %}"></div>
+                    </div>
+                </div>
+                
+                {% if emp.next_trip %}
+                <div style="margin-bottom: 16px; padding: 12px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                    <div style="font-size: 14px; color: #1e40af; font-weight: 500;">Next Trip</div>
+                    <div style="font-size: 13px; color: #1e40af;">{{ emp.next_trip.country }} - {{ emp.next_trip.entry_date|uk_date }}</div>
+                </div>
+                {% endif %}
+                
+                <div style="display: flex; gap: 8px;">
+                    <a href="{{ url_for('employee_detail', employee_id=emp.id) }}" class="btn btn-primary btn-sm" style="flex: 1;">Details</a>
+                    <a href="{{ url_for('calendar', employee_id=emp.id) }}" class="btn btn-secondary btn-sm" style="flex: 1;">📅 Calendar</a>
+                    <form method="POST" action="{{ url_for('delete_employee', employee_id=emp.id) }}" style="flex: 1;" onsubmit="return confirm('Are you sure you want to delete this employee?');">
+                        <button type="submit" class="btn btn-danger btn-sm" style="width: 100%;">Delete</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="card text-center" style="padding: 60px 24px;">
+        <div style="font-size: 48px; margin-bottom: 16px;">👥</div>
+        <h3 style="color: #1f2937; font-weight: 600; margin-bottom: 8px; font-size: 20px;">No Employees Yet</h3>
+        <p class="text-muted">Add your first employee using the form above</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Initialize table view by default
+document.addEventListener('DOMContentLoaded', function() {
+    showTableView();
+});
+
+function showTableView() {
+    const tableView = document.getElementById('tableView');
+    const cardView = document.getElementById('cardView');
+    const tableBtn = document.getElementById('tableBtn');
+    const cardsBtn = document.getElementById('cardsBtn');
+    
+    if (tableView) tableView.style.display = 'block';
+    if (cardView) cardView.style.display = 'none';
+    if (tableBtn && cardsBtn) {
+        tableBtn.className = 'btn btn-primary btn-sm';
+        cardsBtn.className = 'btn btn-outline btn-sm';
+    }
+}
+
+function showCardView() {
+    const tableView = document.getElementById('tableView');
+    const cardView = document.getElementById('cardView');
+    const tableBtn = document.getElementById('tableBtn');
+    const cardsBtn = document.getElementById('cardsBtn');
+    
+    if (tableView) tableView.style.display = 'none';
+    if (cardView) cardView.style.display = 'grid';
+    if (tableBtn && cardsBtn) {
+        tableBtn.className = 'btn btn-outline btn-sm';
+        cardsBtn.className = 'btn btn-primary btn-sm';
+    }
+}
+</script>
+{% endblock %}

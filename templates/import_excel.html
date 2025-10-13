@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block title %}Import Excel - EU Trip Tracker{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <h1 class="content-title">Import Excel Data</h1>
+            <p class="content-subtitle">Upload Excel files to import trip data for multiple employees</p>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                </svg>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="content-body">
+    <div class="grid grid-2">
+        <!-- Upload Section -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Upload File</h2>
+                <form method="POST" action="{{ url_for('clear_imported_data') }}" onsubmit="return confirm('WARNING: This will delete ALL employees and trips from the database. This action cannot be undone. Are you sure you want to continue?');" style="margin-left: auto;">
+                    <button type="submit" class="btn btn-outline" style="color: #dc2626; border-color: #dc2626;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3,6 5,6 21,6"></polyline>
+                            <path d="M19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                        Clear All Data
+                    </button>
+                </form>
+            </div>
+            
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="error-message" style="margin-bottom: 24px;">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <form method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label class="form-label">Excel File (.xlsx or .xls)</label>
+                    <input type="file" name="excel_file" accept=".xlsx,.xls" class="form-input" required>
+                    <div style="font-size: 14px; color: #6b7280; margin-top: 8px;">
+                        Supported formats: Excel files (.xlsx, .xls)
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7,10 12,15 17,10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Upload and Process
+                </button>
+            </form>
+        </div>
+        
+        <!-- Instructions Section -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">📋 Import Instructions</h2>
+            </div>
+            
+            <div>
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: #1f2937; font-weight: 600; margin-bottom: 8px; font-size: 16px;">Standard Format</h4>
+                    <p style="color: #6b7280; margin-bottom: 12px; font-size: 14px;">
+                        Create an Excel file with the following columns:
+                    </p>
+                    <div style="background: #f9fafb; padding: 16px; border-radius: 8px; font-family: monospace; font-size: 13px; color: #374151;">
+                        <div>Name | Country | Entry Date | Exit Date</div>
+                        <div>John Doe | France | 2024-01-15 | 2024-01-20</div>
+                        <div>Jane Smith | Germany | 2024-02-01 | 2024-02-10</div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: #1f2937; font-weight: 600; margin-bottom: 8px; font-size: 16px;">Work Schedule Format</h4>
+                    <p style="color: #6b7280; margin-bottom: 12px; font-size: 14px;">
+                        The system can parse work schedule Excel files with:
+                    </p>
+                    <ul style="color: #6b7280; font-size: 14px; margin-left: 20px;">
+                        <li>Employee names in column A (starting from row 10)</li>
+                        <li>Dates in row 3 (starting from column B)</li>
+                        <li>Country codes in assignment cells (e.g., "tr/FR", "DE", "IT")</li>
+                        <li>Travel days marked with "tr/" prefix</li>
+                        <li>Consecutive days automatically aggregated into trip blocks</li>
+                    </ul>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: #1f2937; font-weight: 600; margin-bottom: 8px; font-size: 16px;">Country Codes</h4>
+                    <p style="color: #6b7280; font-size: 14px;">
+                        Use standard 2-letter country codes (AT, BE, BG, HR, CY, CZ, DK, EE, FI, FR, DE, GR, HU, IS, IE, IT, LV, LI, LT, LU, MT, NL, NO, PL, PT, RO, SK, SI, ES, SE, CH)
+                    </p>
+                </div>
+                
+                <div style="background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px; padding: 16px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #0ea5e9;">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                        </svg>
+                        <span style="font-weight: 600; color: #0c4a6e;">Auto-Import</span>
+                    </div>
+                    <p style="color: #0c4a6e; font-size: 14px; margin: 0;">
+                        The system will automatically parse your Excel file, aggregate consecutive days into trip blocks, and import all valid trips directly to your database.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        {% if import_summary %}
+        <!-- Summary Section -->
+        <div class="card" style="grid-column: 1 / -1;">
+            <div class="card-header">
+                <h2 class="card-title">Import Summary</h2>
+            </div>
+            <div>
+                <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px;">
+                    <div class="stat-tile">
+                        <div class="stat-value">{{ import_summary.trips_added }}</div>
+                        <div class="stat-label">Trips Added</div>
+                    </div>
+                    <div class="stat-tile">
+                        <div class="stat-value">{{ import_summary.duplicates_skipped }}</div>
+                        <div class="stat-label">Duplicates Skipped</div>
+                    </div>
+                    <div class="stat-tile">
+                        <div class="stat-value">{{ import_summary.uk_jobs_skipped }}</div>
+                        <div class="stat-label">UK Jobs Ignored</div>
+                    </div>
+                    <div class="stat-tile">
+                        <div class="stat-value">{{ import_summary.empty_cells_skipped }}</div>
+                        <div class="stat-label">Empty/Non-trip Cells</div>
+                    </div>
+                </div>
+
+                {% if import_summary.errors and import_summary.errors|length > 0 %}
+                <div class="error-message" style="margin-bottom: 16px;">
+                    <strong>Errors:</strong>
+                    <ul style="margin: 8px 0 0 18px;">
+                        {% for err in import_summary.errors %}
+                        <li>{{ err }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if import_summary.trips and import_summary.trips|length > 0 %}
+                <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 16px; gap: 8px;">
+                    <label style="font-size: 14px; color: #6b7280; font-weight: 500;">Sort by:</label>
+                    <select id="sortSelect" onchange="sortImportedTrips()" style="padding: 6px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; background: var(--base-bg);">
+                        <option value="employee">Employee Name</option>
+                        <option value="country">Country</option>
+                        <option value="entry_date">Entry Date</option>
+                        <option value="exit_date">Exit Date</option>
+                        <option value="total_days">Total Days</option>
+                    </select>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="table" id="importedTripsTable">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Country</th>
+                                <th>Entry Date</th>
+                                <th>Exit Date</th>
+                                <th>Travel Days</th>
+                                <th>Total Days</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for t in import_summary.trips %}
+                            <tr>
+                                <td>{{ t.employee }}</td>
+                                <td>{{ t.country|country_name }}</td>
+                                <td>{{ t.entry_date|uk_date }}</td>
+                                <td>{{ t.exit_date|uk_date }}</td>
+                                <td>{{ t.travel_days }}</td>
+                                <td>{{ t.total_days }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function sortImportedTrips() {
+    const table = document.getElementById('importedTripsTable');
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const sortBy = document.getElementById('sortSelect').value;
+    
+    // Column indices
+    const columns = {
+        'employee': 0,
+        'country': 1,
+        'entry_date': 2,
+        'exit_date': 3,
+        'total_days': 5
+    };
+    
+    const columnIndex = columns[sortBy];
+    
+    rows.sort((a, b) => {
+        let aValue = a.cells[columnIndex].textContent.trim();
+        let bValue = b.cells[columnIndex].textContent.trim();
+        
+        // Handle numeric sorting for total days
+        if (sortBy === 'total_days') {
+            aValue = parseInt(aValue) || 0;
+            bValue = parseInt(bValue) || 0;
+            return bValue - aValue; // Descending order for numbers
+        }
+        
+        // Handle date sorting
+        if (sortBy === 'entry_date' || sortBy === 'exit_date') {
+            // Convert DD/MM/YYYY to comparable format
+            const parseDate = (dateStr) => {
+                const parts = dateStr.split('/');
+                if (parts.length === 3) {
+                    return new Date(parts[2], parts[1] - 1, parts[0]);
+                }
+                return new Date(dateStr);
+            };
+            const aDate = parseDate(aValue);
+            const bDate = parseDate(bValue);
+            return bDate - aDate; // Most recent first
+        }
+        
+        // Alphabetical sorting for employee and country
+        return aValue.localeCompare(bValue);
+    });
+    
+    // Clear and re-append sorted rows
+    tbody.innerHTML = '';
+    rows.forEach(row => tbody.appendChild(row));
+}
+</script>
+{% endblock %}

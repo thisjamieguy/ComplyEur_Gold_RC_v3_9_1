@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk Add Trip - EU Trip Tracker{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <h1 class="content-title">✈️ Bulk Add Trip</h1>
+            <p class="content-subtitle">Add the same trip to multiple employees at once</p>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                </svg>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="content-body">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">📝 Trip Details</h2>
+        </div>
+        
+        {% if error %}
+        <div class="error-message" style="margin-bottom: 24px;">{{ error }}</div>
+        {% endif %}
+        
+        <form method="POST">
+            <div class="form-inline">
+                <div class="form-group">
+                    <label class="form-label">Country</label>
+                    <select name="country_code" class="form-input" required>
+                        <option value="">Select country</option>
+                        <option value="AT">🇦🇹 Austria (AT)</option>
+                        <option value="BE">🇧🇪 Belgium (BE)</option>
+                        <option value="BG">🇧🇬 Bulgaria (BG)</option>
+                        <option value="HR">🇭🇷 Croatia (HR)</option>
+                        <option value="CY">🇨🇾 Cyprus (CY)</option>
+                        <option value="CZ">🇨🇿 Czech Republic (CZ)</option>
+                        <option value="DK">🇩🇰 Denmark (DK)</option>
+                        <option value="EE">🇪🇪 Estonia (EE)</option>
+                        <option value="FI">🇫🇮 Finland (FI)</option>
+                        <option value="FR">🇫🇷 France (FR)</option>
+                        <option value="DE">🇩🇪 Germany (DE)</option>
+                        <option value="GR">🇬🇷 Greece (GR)</option>
+                        <option value="HU">🇭🇺 Hungary (HU)</option>
+                        <option value="IS">🇮🇸 Iceland (IS)</option>
+                        <option value="IE">🇮🇪 Ireland (IE)</option>
+                        <option value="IT">🇮🇹 Italy (IT)</option>
+                        <option value="LV">🇱🇻 Latvia (LV)</option>
+                        <option value="LI">🇱🇮 Liechtenstein (LI)</option>
+                        <option value="LT">🇱🇹 Lithuania (LT)</option>
+                        <option value="LU">🇱🇺 Luxembourg (LU)</option>
+                        <option value="MT">🇲🇹 Malta (MT)</option>
+                        <option value="NL">🇳🇱 Netherlands (NL)</option>
+                        <option value="NO">🇳🇴 Norway (NO)</option>
+                        <option value="PL">🇵🇱 Poland (PL)</option>
+                        <option value="PT">🇵🇹 Portugal (PT)</option>
+                        <option value="RO">🇷🇴 Romania (RO)</option>
+                        <option value="SK">🇸🇰 Slovakia (SK)</option>
+                        <option value="SI">🇸🇮 Slovenia (SI)</option>
+                        <option value="ES">🇪🇸 Spain (ES)</option>
+                        <option value="SE">🇸🇪 Sweden (SE)</option>
+                        <option value="CH">🇨🇭 Switzerland (CH)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Entry Date</label>
+                    <input type="date" name="entry_date" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Exit Date</label>
+                    <input type="date" name="exit_date" class="form-input" required>
+                </div>
+            </div>
+            
+            <div style="margin-top: 32px;">
+                <h3 style="margin-bottom: 16px; color: #1f2937; font-weight: 600;">Select Employees</h3>
+                
+                {% if employees %}
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; margin-bottom: 24px;">
+                    {% for emp in employees %}
+                    <label style="display: flex; align-items: center; gap: 8px; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; cursor: pointer; transition: all 0.2s; background: white;">
+                        <input type="checkbox" name="employee_ids" value="{{ emp.id }}" style="margin: 0;">
+                        <span style="font-weight: 500; color: #1f2937;">{{ emp.name }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+                
+                <div style="display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                    <div>
+                        <button type="button" onclick="selectAll()" class="btn btn-secondary btn-sm">Select All</button>
+                        <button type="button" onclick="selectNone()" class="btn btn-secondary btn-sm">Select None</button>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="8.5" cy="7" r="4"></circle>
+                            <line x1="20" y1="8" x2="20" y2="14"></line>
+                            <line x1="23" y1="11" x2="17" y2="11"></line>
+                        </svg>
+                        Add Trip to Selected Employees
+                    </button>
+                </div>
+                {% else %}
+                <div class="text-center" style="padding: 40px; color: #6b7280;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">👥</div>
+                    <h3 style="color: #1f2937; font-weight: 600; margin-bottom: 8px;">No Employees Found</h3>
+                    <p>Add employees first before bulk adding trips</p>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-primary" style="margin-top: 16px;">Go to Dashboard</a>
+                </div>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function selectAll() {
+    const checkboxes = document.querySelectorAll('input[name="employee_ids"]');
+    checkboxes.forEach(checkbox => checkbox.checked = true);
+}
+
+function selectNone() {
+    const checkboxes = document.querySelectorAll('input[name="employee_ids"]');
+    checkboxes.forEach(checkbox => checkbox.checked = false);
+}
+
+// Set default dates
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date();
+    const nextWeek = new Date(today);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    
+    document.querySelector('input[name="entry_date"]').value = today.toISOString().split('T')[0];
+    document.querySelector('input[name="exit_date"]').value = nextWeek.toISOString().split('T')[0];
+});
+</script>
+{% endblock %}

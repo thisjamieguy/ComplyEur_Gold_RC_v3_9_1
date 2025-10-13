@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Expired Trips - EU Trip Tracker{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1 class="content-title">Trips Pending Deletion</h1>
+    <p class="content-subtitle">Trips older than {{ retention_months }} months from exit date</p>
+</div>
+
+<div class="content-body">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">{{ trips|length }} Trip(s) Past Retention Period</h2>
+        </div>
+        <div class="card-body">
+            {% if trips %}
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f7fafc; border-bottom: 2px solid #cbd5e0;">
+                            <th style="padding: 12px; text-align: left;">Employee</th>
+                            <th style="padding: 12px; text-align: left;">Country</th>
+                            <th style="padding: 12px; text-align: left;">Entry Date</th>
+                            <th style="padding: 12px; text-align: left;">Exit Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for trip in trips %}
+                        <tr style="border-bottom: 1px solid #e2e8f0;">
+                            <td style="padding: 12px;">{{ trip.name }}</td>
+                            <td style="padding: 12px;">{{ trip.country }}</td>
+                            <td style="padding: 12px;">{{ trip.entry_date }}</td>
+                            <td style="padding: 12px;">{{ trip.exit_date }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="text-muted">No trips are past the retention period.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <a href="{{ url_for('admin_privacy_tools') }}" class="btn btn-secondary">Back to Privacy Tools</a>
+    </div>
+</div>
+
+<style>
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-secondary {
+    background: #718096;
+    color: white;
+}
+</style>
+{% endblock %}

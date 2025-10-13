@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy - EU Trip Tracker{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1 class="content-title">Privacy Policy</h1>
+    <p class="content-subtitle">How we process and protect your personal data</p>
+    <div class="card" style="margin-top: 12px;">
+        <div class="text-muted" style="font-size: 13px;">
+            <strong>Last Updated:</strong> {{ current_date }}<br>
+            This Privacy Policy explains how the EU Trip Tracker processes personal data in compliance with the General Data Protection Regulation (GDPR).
+        </div>
+    </div>
+</div>
+
+<div class="content-body">
+    <!-- What We Are -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">1. What is the EU Trip Tracker?</h2>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">
+                The EU Trip Tracker is an internal compliance tool used to monitor employee business travel 
+                to Schengen Area countries and ensure compliance with the 90/180-day rule. It is a local-only 
+                system with minimal data collection and no third-party integrations.
+            </p>
+        </div>
+    </div>
+
+    <!-- Data Controller -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">2. Data Controller</h2>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">
+                The data controller is your organization's administrator who operates this system. 
+                For questions or requests regarding your personal data, please contact your system administrator.
+            </p>
+        </div>
+    </div>
+
+    <!-- Personal Data We Process -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">3. Personal Data We Process</h2>
+        </div>
+        <div class="card-body">
+            <p class="text-muted" style="margin-bottom: 12px;"><strong>We store only the following minimal data:</strong></p>
+            <ul class="text-muted" style="line-height: 1.7;">
+                <li><strong>Employee Name:</strong> Used to identify you in the system</li>
+                <li><strong>Trip Records:</strong>
+                    <ul style="margin-top: 8px;">
+                        <li>Country code (e.g., FR, DE, IT)</li>
+                        <li>Entry date</li>
+                        <li>Exit date</li>
+                        <li>Travel days (calculated)</li>
+                        <li>Record creation timestamp</li>
+                    </ul>
+                </li>
+            </ul>
+            <p class="text-muted" style="margin-top: 16px;">
+                <strong>We do NOT collect or store:</strong>
+            </p>
+            <ul class="text-muted">
+                <li>Email addresses, phone numbers, or contact information</li>
+                <li>Home addresses or location data</li>
+                <li>Financial or payment information</li>
+                <li>Health or biometric data</li>
+                <li>Special category data (race, religion, political opinions, etc.)</li>
+                <li>Employment details beyond your name</li>
+                <li>Any tracking, analytics, or profiling data</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Purpose and Lawful Basis -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">4. Purpose and Lawful Basis</h2>
+        </div>
+        <div class="card-body">
+            <p class="text-muted" style="margin-bottom: 12px;"><strong>Why we process your data:</strong></p>
+            <p class="text-muted">
+                To track compliance with the Schengen 90/180-day rule, which limits non-residents to 90 days 
+                within any 180-day period in the Schengen Area. This helps prevent legal violations and ensures 
+                business travel compliance.
+            </p>
+            
+            <p class="text-muted" style="margin-top: 16px; margin-bottom: 12px;"><strong>Lawful basis:</strong></p>
+            <ul class="text-muted">
+                <li><strong>Employee data:</strong> Legitimate Interests (compliance tracking for business operations)</li>
+                <li><strong>Trip data:</strong> Legal Obligation (compliance with Schengen regulations)</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Storage and Security -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">5. Where and How We Store Your Data</h2>
+        </div>
+        <div class="card-body">
+            <p class="text-muted" style="margin-bottom: 12px;"><strong>Storage location:</strong></p>
+            <p class="text-muted">
+                All data is stored in a local SQLite database file (eu_tracker.db) on the server 
+                where this application runs. There is <strong>no cloud storage</strong> and 
+                <strong>no external data transfers</strong>.
+            </p>
+            
+            <p class="text-muted" style="margin-top: 16px; margin-bottom: 12px;"><strong>Security measures:</strong></p>
+            <ul class="text-muted">
+                <li>Password-protected admin access with strong hashing (Argon2/bcrypt)</li>
+                <li>Session idle timeout ({{ session_timeout_minutes }} minutes)</li>
+                <li>Login rate limiting (max {{ max_login_attempts }} attempts per {{ rate_limit_window }} minutes)</li>
+                <li>HttpOnly and SameSite=Strict session cookies</li>
+                <li>Secure cookie support (when HTTPS is enabled)</li>
+                <li>Audit logging for all administrative actions</li>
+                <li>No external API calls or third-party SDKs</li>
+                <li>Foreign key constraints with CASCADE delete (data integrity)</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Cookies -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">6. Cookies and Tracking</h2>
+        </div>
+        <div class="card-body">
+            <p class="text-muted" style="margin-bottom: 12px;"><strong>Session Cookie (Essential):</strong></p>
+            <p class="text-muted">
+                We use a single, essential session cookie for admin authentication. This cookie:
+            </p>
+            <ul class="text-muted" style="margin-bottom: 16px;">
+                <li>Contains only a random session ID (no personal data)</li>
+                <li>Expires after {{ session_timeout_minutes }} minutes of inactivity</li>
+                <li>Is HttpOnly (not accessible via JavaScript)</li>
+                <li>Uses SameSite=Strict (CSRF protection)</li>
+                <li>Does not require consent (essential for functionality)</li>
+            </ul>
+            
+            <p class="text-muted" style="margin-bottom: 12px;"><strong>No Tracking:</strong></p>
+            <p class="text-muted">
+                We do <strong>not</strong> use:
+            </p>
+            <ul class="text-muted">
+                <li>Analytics cookies (e.g., Google Analytics)</li>
+                <li>Marketing or advertising cookies</li>
+                <li>Social media tracking</li>
+                <li>Cross-site tracking</li>
+                <li>Third-party cookies of any kind</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Data Retention -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">7. Data Retention</h2>
+        </div>
+        <div class="card-body">
+            <p class="text-muted" style="margin-bottom: 12px;"><strong>Retention Policy:</strong></p>
+            <p class="text-muted">
+                Trip records are retained for <strong>{{ retention_months }} months</strong> after the trip exit date. 
+                After this period, trips are automatically deleted during retention purges.
+            </p>
+            <p class="text-muted" style="margin-top: 12px;">
+                Employee records are automatically deleted when they have no remaining trips.
+            </p>
+            
+            <p class="text-muted" style="margin-top: 16px; margin-bottom: 12px;"><strong>Why this retention period?</strong></p>
+            <p class="text-muted">
+                This allows sufficient time for compliance audits and historical reporting while 
+                minimizing data storage. The retention period is configurable by your administrator.
+            </p>
+        </div>
+    </div>
+
+    <!-- Data Sharing -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">8. Data Sharing and Transfers</h2>
+        </div>
+        <div class="card-body">
+            <p class="text-muted" style="margin-bottom: 12px;"><strong>Third-party sharing:</strong> None</p>
+            <p class="text-muted" style="margin-bottom: 12px;"><strong>Cross-border transfers:</strong> None</p>
+            <p class="text-muted" style="margin-bottom: 12px;"><strong>Automated decision-making:</strong> None</p>
+            
+            <p class="text-muted" style="margin-top: 16px;">
+                Your data is stored locally and is <strong>never</strong> shared with third parties, 
+                transferred outside your organization, or used for automated decision-making or profiling.
+            </p>
+        </div>
+    </div>
+
+    <!-- Access Control -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">9. Who Can Access Your Data</h2>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">
+                Only authorized administrators can access the system. There are no public endpoints 
+                (except this privacy policy page). All data access is logged in an audit trail.
+            </p>
+        </div>
+    </div>
+
+    <!-- Your Rights -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">10. Your Rights Under GDPR</h2>
+        </div>
+        <div class="card-body">
+            <p class="text-muted" style="margin-bottom: 16px;">You have the following rights regarding your personal data:</p>
+            
+            <div style="margin-bottom: 16px;">
+                <h4 style="margin-bottom: 8px;">📥 Right to Access</h4>
+                <p class="text-muted">
+                    Request a copy of all your personal data stored in the system. 
+                    Administrators can generate a DSAR (Data Subject Access Request) export as a ZIP file 
+                    containing your employee record (JSON), trip history (CSV), and processing notes (TXT).
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 16px;">
+                <h4 style="margin-bottom: 8px;">✏️ Right to Rectification</h4>
+                <p class="text-muted">
+                    Request correction of inaccurate data. Administrators can update your name 
+                    or modify trip records via the Privacy Tools interface.
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 16px;">
+                <h4 style="margin-bottom: 8px;">🗑️ Right to Erasure ("Right to be Forgotten")</h4>
+                <p class="text-muted">
+                    Request deletion of all your personal data. Administrators can permanently 
+                    delete your employee record and all associated trips via the Privacy Tools interface.
+                    <strong>This action is irreversible.</strong>
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 16px;">
+                <h4 style="margin-bottom: 8px;">🔒 Right to Restriction of Processing</h4>
+                <p class="text-muted">
+                    Request restriction of processing. Administrators can anonymize your record 
+                    (replacing your name with "Employee #XXXX") while keeping aggregate data for compliance.
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 16px;">
+                <h4 style="margin-bottom: 8px;">📤 Right to Data Portability</h4>
+                <p class="text-muted">
+                    Receive your data in a structured, machine-readable format (JSON and CSV). 
+                    This is included in the DSAR export.
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 16px;">
+                <h4 style="margin-bottom: 8px;">⛔ Right to Object</h4>
+                <p class="text-muted">
+                    Object to processing based on legitimate interests. Contact your administrator 
+                    to discuss concerns about data processing.
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 16px;">
+                <h4 style="margin-bottom: 8px;">ℹ️ Right to Be Informed</h4>
+                <p class="text-muted">
+                    This privacy policy fulfills your right to be informed about how your data is processed.
+                    Administrators can also provide a detailed explanation via the Privacy Tools interface.
+                </p>
+            </div>
+            
+            <p class="text-muted" style="margin-top: 20px; font-weight: 500;">
+                To exercise any of these rights, please contact your system administrator.
+            </p>
+        </div>
+    </div>
+
+    <!-- Audit and Compliance -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">11. Audit Logging</h2>
+        </div>
+        <div class="card-body">
+            <p class="text-muted" style="margin-bottom: 12px;">
+                All administrative actions are logged for security and compliance purposes:
+            </p>
+            <ul class="text-muted">
+                <li>Login attempts (success and failure)</li>
+                <li>Data exports (DSAR requests)</li>
+                <li>Data deletions</li>
+                <li>Data rectifications</li>
+                <li>Retention purges</li>
+                <li>Settings changes</li>
+            </ul>
+            <p class="text-muted" style="margin-top: 12px;">
+                Audit logs contain timestamps, action types, and masked administrator identifiers. 
+                <strong>No passwords or sensitive personal data are logged.</strong>
+            </p>
+        </div>
+    </div>
+
+    <!-- Changes to Policy -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">12. Changes to This Privacy Policy</h2>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">
+                We may update this privacy policy from time to time to reflect changes in 
+                functionality or legal requirements. The "Last Updated" date at the top of 
+                this page will be revised accordingly.
+            </p>
+        </div>
+    </div>
+
+    <!-- Contact -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">13. Contact & Complaints</h2>
+        </div>
+        <div class="card-body">
+            <p class="text-muted" style="margin-bottom: 12px;">
+                <strong>For data requests or questions:</strong><br>
+                Contact your system administrator.
+            </p>
+            <p class="text-muted" style="margin-bottom: 12px;">
+                <strong>To lodge a complaint:</strong><br>
+                You have the right to lodge a complaint with your local data protection authority 
+                if you believe your data protection rights have been violated.
+            </p>
+            <p class="text-muted">
+                For EU/EEA residents, find your local authority at: 
+                <a href="https://edpb.europa.eu/about-edpb/board/members_en" target="_blank" rel="noopener">
+                    https://edpb.europa.eu/about-edpb/board/members_en
+                </a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="card" style="background: #edf2f7; border-left: 4px solid #3182ce;">
+        <div class="card-body">
+            <h3 style="margin-bottom: 12px;">📋 Summary</h3>
+            <ul class="text-muted" style="line-height: 1.8;">
+                <li>✅ Minimal data (name + trip dates only)</li>
+                <li>✅ Local storage (no cloud, no third parties)</li>
+                <li>✅ Secure access (password-protected, rate-limited)</li>
+                <li>✅ Automatic retention ({{ retention_months }} months, then deleted)</li>
+                <li>✅ Full GDPR rights (access, rectify, delete, export)</li>
+                <li>✅ No tracking, analytics, or profiling</li>
+                <li>✅ Audit logging for transparency</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+

@@ -1,0 +1,114 @@
+{
+  "page_title": "Help & User Guide",
+  "page_subtitle": "Learn how to use the IES 90/180 EU Travel Tracker",
+  "sections": [
+    {
+      "id": "getting-started",
+      "icon": "rocket",
+      "title": "Getting Started",
+      "content": "The EU Trip Tracker helps you monitor employee compliance with the Schengen 90/180 day rule. This rule states that non-EU nationals can spend a maximum of 90 days within any 180-day period in the Schengen Area.",
+      "expanded": true
+    },
+    {
+      "id": "dashboard",
+      "icon": "grid",
+      "title": "Understanding the Dashboard",
+      "content": "The dashboard displays all employees with their current EU travel status. Each employee card shows:\n\n• **Days Used**: Number of days spent in Schengen countries within the last 180 days\n• **Days Remaining**: How many days are left before reaching the 90-day limit\n• **Risk Level**: Color-coded indicator (Green = Safe, Amber = Caution, Red = At Risk)\n• **Next Trip**: Upcoming planned travel to the EU\n\n**Color Codes:**\n• 🟢 Green (30+ days remaining): Safe to travel\n• 🟡 Amber (10-29 days remaining): Caution advised\n• 🔴 Red (<10 days or over limit): Travel restricted",
+      "expanded": false
+    },
+    {
+      "id": "90-180-rule",
+      "icon": "calendar",
+      "title": "The 90/180 Day Rule Explained",
+      "content": "The 90/180 rule is a rolling calculation:\n\n• **90 days**: Maximum allowed in Schengen Area\n• **180 days**: The rolling window to check (approximately 6 months)\n• **Rolling**: The window moves every day, always looking back 180 days\n\n**Example**: If an employee enters the EU today, the system checks how many days they've spent in the Schengen Area over the past 180 days. If they've used 70 days, they have 20 days remaining.\n\n**Important**: Ireland is NOT part of the Schengen Area and doesn't count toward the 90-day limit.",
+      "expanded": false
+    },
+    {
+      "id": "adding-trips",
+      "icon": "plus",
+      "title": "Adding Employee Trips",
+      "content": "There are three ways to add trips:\n\n**1. Individual Trip** (Employee Detail page)\n• Navigate to an employee's detail page\n• Use the 'Add New Trip' form\n• Enter country code (e.g., DE, FR, ES), entry date, and exit date\n• Click 'Add Trip'\n\n**2. Bulk Add Trip** (Add multiple employees to same trip)\n• Go to 'Add Trips' in the sidebar\n• Select multiple employees using checkboxes\n• Enter trip details (country, dates)\n• All selected employees will have the same trip added\n\n**3. Excel Import** (Import schedule)\n• Go to 'Import Data' in the sidebar\n• Upload an Excel file with employee schedules\n• The system automatically detects trip dates based on country codes",
+      "expanded": false
+    },
+    {
+      "id": "excel-import",
+      "icon": "upload",
+      "title": "Excel Import Guide",
+      "content": "The Excel import supports two formats:\n\n**Standard Format** (Columns: Name, Country, Entry Date, Exit Date)\n• First row should contain headers\n• Dates can be YYYY-MM-DD or DD/MM/YYYY\n• Use 2-letter country codes (AT, BE, DE, FR, etc.)\n\n**Schedule Format** (Work schedule with dates across top)\n• Row 3: Dates across columns\n• Rows 10-67: Employee names in column 1\n• Cells contain country codes where employees are assigned\n• System automatically detects consecutive days in same country\n\n**Tips:**\n• UK jobs and Ireland trips are automatically identified and handled\n• Duplicate trips are skipped\n• Review the import summary before confirming",
+      "expanded": false
+    },
+    {
+      "id": "calendar-view",
+      "icon": "calendar-check",
+      "title": "Using the Calendar View",
+      "content": "The calendar provides a visual overview of all employee trips:\n\n• **Color Coding**: Green (safe), Yellow (warning), Red (over limit)\n• **Trip Details**: Hover over any trip to see employee name, country, duration, and days used\n• **Filtering**: Use the dropdown to view specific employees or all\n• **Date Range**: Shows past 6 months and future 2 months\n\n**Forecasting**: The color indicates the risk level AT THE END of each trip, helping you plan future travel.",
+      "expanded": false
+    },
+    {
+      "id": "forecast",
+      "icon": "trending-up",
+      "title": "Trip Forecasting",
+      "content": "Before booking a trip, use the forecast tool on the employee detail page:\n\n1. Scroll to 'Forecast Trip' section\n2. Enter planned entry and exit dates\n3. Select destination country\n4. Click 'Calculate Forecast'\n\nThe system shows:\n• Current days used\n• Days the planned trip will add\n• **Total days after trip**\n• Warning if limit will be exceeded\n\n**Use this before confirming any EU travel to avoid compliance issues.**",
+      "expanded": false
+    },
+    {
+      "id": "exports",
+      "icon": "download",
+      "title": "Exporting Data",
+      "content": "Export options available:\n\n**CSV Export**\n• Download all trip data in spreadsheet format\n• Available from employee detail pages\n• Includes all trip information\n\n**PDF Reports**\n• Individual employee reports (from employee detail page)\n• Compliance summary for all employees (from dashboard)\n• Professional format for management reporting\n\n**DSAR Export** (Privacy Tools)\n• Full data export for GDPR compliance\n• Includes all personal data and trip history\n• Delivered as downloadable ZIP file",
+      "expanded": false
+    },
+    {
+      "id": "privacy-tools",
+      "icon": "shield",
+      "title": "Privacy & Data Management",
+      "content": "Access Privacy Tools from the sidebar for GDPR compliance:\n\n**Data Subject Access Requests (DSAR)**\n• Export employee data\n• Delete employee records\n• Rectify (update) employee names\n• Anonymize records\n\n**Retention Management**\n• View trips older than retention period\n• Purge expired data\n• Automated cleanup based on configured retention policy\n\n**All actions are logged in the audit trail for compliance.**",
+      "expanded": false
+    },
+    {
+      "id": "settings",
+      "icon": "settings",
+      "title": "System Settings",
+      "content": "Configure the system in Settings:\n\n• **Retention Period**: How long to keep trip data (default: 36 months)\n• **Session Timeout**: Auto-logout after inactivity (default: 30 minutes)\n• **Risk Thresholds**: Customize amber/red warning levels\n• **Security**: Password requirements and session settings\n\n**Note**: Changes to retention policy affect when data is automatically purged.",
+      "expanded": false
+    },
+    {
+      "id": "country-codes",
+      "icon": "globe",
+      "title": "Schengen Country Codes",
+      "content": "Use these 2-letter codes when adding trips:\n\n**Schengen Countries:**\nAT (Austria), BE (Belgium), BG (Bulgaria), HR (Croatia), CY (Cyprus), CZ (Czech Republic), DK (Denmark), EE (Estonia), FI (Finland), FR (France), DE (Germany), GR (Greece), HU (Hungary), IS (Iceland), IT (Italy), LV (Latvia), LI (Liechtenstein), LT (Lithuania), LU (Luxembourg), MT (Malta), NL (Netherlands), NO (Norway), PL (Poland), PT (Portugal), RO (Romania), SK (Slovakia), SI (Slovenia), ES (Spain), SE (Sweden), CH (Switzerland)\n\n**Non-Schengen (doesn't count):**\nIE (Ireland) - Tracked but excluded from 90-day calculation",
+      "expanded": false
+    },
+    {
+      "id": "troubleshooting",
+      "icon": "help-circle",
+      "title": "Troubleshooting & FAQ",
+      "content": "**Q: Why is my employee showing red when they haven't traveled recently?**\nA: The 90/180 rule is rolling. Past trips within the last 180 days still count.\n\n**Q: Can I delete a trip?**\nA: Yes, go to the employee detail page and click the delete button next to any trip.\n\n**Q: What if an employee goes to Ireland?**\nA: Add the trip normally with code 'IE'. Ireland trips are tracked but don't count toward the 90-day limit.\n\n**Q: How do I change the admin password?**\nA: Click 'Change Password' in the sidebar navigation.\n\n**Q: What happens to old trip data?**\nA: Data older than your retention period can be purged from Privacy Tools. Check Settings for current retention period.",
+      "expanded": false
+    }
+  ],
+  "tutorial_steps": [],
+  "quick_tips": [
+    {
+      "icon": "lightbulb",
+      "title": "Use the Forecast Tool",
+      "text": "Always check the forecast before booking EU travel to avoid exceeding the 90-day limit."
+    },
+    {
+      "icon": "alert-triangle",
+      "title": "Watch the Rolling Window",
+      "text": "The 90/180 rule looks back 180 days from today. Old trips still affect current availability."
+    },
+    {
+      "icon": "file-text",
+      "title": "Export for Reports",
+      "text": "Generate PDF compliance summaries for management - available from the dashboard."
+    },
+    {
+      "icon": "shield-check",
+      "title": "GDPR Compliant",
+      "text": "All data is stored locally. Use Privacy Tools for data subject requests and retention management."
+    }
+  ]
+}
+

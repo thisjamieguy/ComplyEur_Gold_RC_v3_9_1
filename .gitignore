@@ -1,0 +1,23 @@
+# macOS
+.DS_Store
+
+# Python / Flask
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.env
+instance/
+*.sqlite
+*.sqlite-journal
+*.log
+*.tmp
+
+# Virtual environments
+.venv/
+venv/
+
+# IDEs
+.vscode/
+.idea/

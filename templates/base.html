@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>{% block title %}EU Trip Tracker{% endblock %}</title>
+    
+    <!-- Global stylesheet should load first -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}?v=3.0">
+    <!-- Component/theme styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/hubspot-style.css') }}?v=3.0">
+    
+    <!-- Using system Helvetica Neue stack; removed external font imports -->
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    {% if not is_login_page %}
+    <div class="layout-container">
+        <!-- Mobile Overlay -->
+        <div class="mobile-overlay"></div>
+        
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="logo-icon">🇪🇺</div>
+                    <span class="logo-text">EU Tracker</span>
+                </div>
+                <button class="sidebar-toggle" title="Toggle Sidebar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="sidebar-nav">
+                <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+                
+                <a href="{{ url_for('bulk_add_trip') }}" class="nav-item {% if request.endpoint == 'bulk_add_trip' %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <line x1="20" y1="8" x2="20" y2="14"></line>
+                        <line x1="23" y1="11" x2="17" y2="11"></line>
+                    </svg>
+                    <span>Add Trips</span>
+                </a>
+                
+                <a href="{{ url_for('import_excel') }}" class="nav-item {% if request.endpoint == 'import_excel' %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14,2 14,8 20,8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10,9 9,9 8,9"></polyline>
+                    </svg>
+                    <span>Import Data</span>
+                </a>
+
+                <a href="{{ url_for('calendar_view') }}" class="nav-item {% if request.endpoint == 'calendar_view' %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <span>Calendar</span>
+                </a>
+                
+                <!-- TEMPORARY TEST LINK - REMOVE WHEN TESTING COMPLETE -->
+                <a href="{{ url_for('test_overview.test_overview') }}" class="nav-item {% if request.endpoint == 'test_overview.test_overview' %}active{% endif %}" style="background: #fef3c7; border-left: 3px solid #f59e0b;">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        <path d="M9 12h6m-6 4h6"></path>
+                    </svg>
+                    <span>🧪 Test Overview</span>
+                </a>
+                <!-- END TEMPORARY TEST LINK -->
+                
+                <div class="nav-item" style="margin-top: 16px; padding: 8px 16px; color: #9ca3af; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <span>Administration</span>
+                </div>
+                
+                <a href="{{ url_for('admin_privacy_tools') }}" class="nav-item {% if request.endpoint == 'admin_privacy_tools' %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                    <span>Privacy Tools</span>
+                </a>
+                
+                <a href="{{ url_for('admin_settings') }}" class="nav-item {% if request.endpoint == 'admin_settings' %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3"></path>
+                    </svg>
+                    <span>Settings</span>
+                </a>
+                
+                <div class="nav-item" style="margin-top: 16px; padding: 8px 16px; color: #9ca3af; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <span>Support</span>
+                </div>
+                
+                <a href="{{ url_for('entry_requirements') }}" class="nav-item {% if request.endpoint == 'entry_requirements' %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                    </svg>
+                    <span>EU Entry Requirements</span>
+                </a>
+                
+                <a href="{{ url_for('help_page') }}" class="nav-item {% if request.endpoint == 'help_page' %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <span>Help & Tutorial</span>
+                </a>
+                
+                <button class="nav-item" onclick="openModal('passwordModal')" style="background: none; border: none; cursor: pointer;">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <circle cx="12" cy="16" r="1"></circle>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <span>Change Password</span>
+                </button>
+                
+                <a href="{{ url_for('logout') }}" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16,17 21,12 16,7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </nav>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Bar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="mobile-menu-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    
+                    <div class="search-bar" id="globalSearchContainer">
+                        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="M21 21l-4.35-4.35"></path>
+                        </svg>
+                        <input type="text" id="globalSearchInput" placeholder="Search employees..." autocomplete="off">
+                        <button class="search-clear" id="globalSearchClear" style="display: none;">×</button>
+                        <div class="search-loading" id="globalSearchLoading" style="display: none;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10" opacity="0.25"></circle>
+                                <path d="M12 2 A 10 10 0 0 1 22 12" opacity="0.75"></path>
+                            </svg>
+                        </div>
+                        <div class="search-dropdown" id="globalSearchDropdown"></div>
+                    </div>
+                </div>
+                
+                <div class="topbar-right">
+                    <a href="{{ url_for('help_page') }}" class="btn btn-outline" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 14px;" title="Help & Tutorial">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                        <span class="help-text">Help</span>
+                    </a>
+                    <div class="user-menu">
+                        <div class="user-avatar">EU</div>
+                        <span style="font-weight: 500; font-size: 14px;">Admin</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6,9 12,15 18,9"></polyline>
+                        </svg>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Content -->
+            <main>
+                {% block content %}{% endblock %}
+            </main>
+            <footer style="margin-top: 24px; padding: 16px 0; color: #6b7280; font-size: 12px; border-top: 1px solid #e5e7eb;">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;">
+                    <div>
+                        <a href="{{ url_for('privacy') }}" class="nav-item" style="padding: 0; color: #6b7280; text-decoration: underline; background: none;">Privacy Policy</a>
+                    </div>
+                    <div style="color: #9ca3af;">
+                        Version {{ app_version }}
+                    </div>
+                </div>
+                <div style="padding: 8px 12px; background: #f3f4f6; border-radius: 6px; font-size: 11px; color: #4b5563;">
+                    <strong>GDPR Compliant:</strong> All data is processed and stored locally on this server. 
+                    No personal data is transmitted externally or stored in third-party services. 
+                    Only essential trip information (employee name, country, dates) is stored for EU travel compliance tracking.
+                </div>
+            </footer>
+        </div>
+    </div>
+    
+    <!-- Change Password Modal -->
+    <div id="passwordModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Change Admin Password</h3>
+            </div>
+            <form method="POST" action="{{ url_for('change_password') }}">
+                <div class="form-group">
+                    <label class="form-label">New Password (minimum 6 characters)</label>
+                    <input type="password" name="new_password" class="form-input" minlength="6" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('passwordModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    {% else %}
+    <!-- Login page content -->
+    {% block login_content %}{% endblock %}
+    {% endif %}
+    
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/hubspot-style.js') }}"></script>
+    
+    <script>
+    // Debug: Check if password modal is being opened automatically
+    document.addEventListener('DOMContentLoaded', function() {
+        const passwordModal = document.getElementById('passwordModal');
+        if (passwordModal) {
+            console.log('Password modal found:', passwordModal);
+            console.log('Modal classes:', passwordModal.className);
+            console.log('Modal style.display:', passwordModal.style.display);
+            console.log('Modal computed display:', window.getComputedStyle(passwordModal).display);
+            
+            // Ensure modal is hidden on page load
+            passwordModal.style.display = 'none';
+            passwordModal.classList.remove('active');
+        }
+        
+        // Initialize global search
+        initGlobalSearch();
+    });
+    
+    // Global Search Functionality
+    function initGlobalSearch() {
+        const searchInput = document.getElementById('globalSearchInput');
+        const searchDropdown = document.getElementById('globalSearchDropdown');
+        const searchClear = document.getElementById('globalSearchClear');
+        const searchLoading = document.getElementById('globalSearchLoading');
+        const searchContainer = document.getElementById('globalSearchContainer');
+        
+        if (!searchInput || !searchDropdown) return;
+        
+        let searchTimeout;
+        let selectedIndex = -1;
+        let searchResults = [];
+        
+        // Input handler with debounce
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const query = this.value.trim();
+            
+            // Show/hide clear button
+            if (searchClear) {
+                searchClear.style.display = query ? 'block' : 'none';
+            }
+            
+            if (!query) {
+                hideDropdown();
+                return;
+            }
+            
+            // Show loading indicator
+            if (searchLoading) {
+                searchLoading.style.display = 'block';
+            }
+            
+            // Debounce search (300ms)
+            searchTimeout = setTimeout(() => {
+                performSearch(query);
+            }, 300);
+        });
+        
+        // Perform search via API
+        async function performSearch(query) {
+            try {
+                const response = await fetch(`/api/employees/search?q=${encodeURIComponent(query)}`);
+                
+                if (searchLoading) {
+                    searchLoading.style.display = 'none';
+                }
+                
+                if (!response.ok) {
+                    showError('Search failed');
+                    return;
+                }
+                
+                const data = await response.json();
+                searchResults = data.employees || [];
+                displayResults(searchResults, query);
+            } catch (error) {
+                if (searchLoading) {
+                    searchLoading.style.display = 'none';
+                }
+                showError('Network error');
+            }
+        }
+        
+        // Display search results
+        function displayResults(results, query) {
+            selectedIndex = -1;
+            
+            if (results.length === 0) {
+                searchDropdown.innerHTML = `
+                    <div class="search-dropdown-empty">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="M21 21l-4.35-4.35"></path>
+                        </svg>
+                        <p>No employees found</p>
+                    </div>
+                `;
+                searchDropdown.style.display = 'block';
+                return;
+            }
+            
+            const html = results.map((emp, index) => {
+                const highlightedName = highlightMatch(emp.name, query);
+                return `
+                    <div class="search-dropdown-item" data-index="${index}" data-employee-id="${emp.id}">
+                        <div class="search-result-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <div class="search-result-content">
+                            <div class="search-result-name">${highlightedName}</div>
+                            <div class="search-result-meta">${emp.trip_count} trip${emp.trip_count !== 1 ? 's' : ''}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            searchDropdown.innerHTML = html;
+            searchDropdown.style.display = 'block';
+            
+            // Add click handlers
+            searchDropdown.querySelectorAll('.search-dropdown-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const employeeId = this.getAttribute('data-employee-id');
+                    navigateToEmployee(employeeId);
+                });
+            });
+        }
+        
+        // Highlight matching text
+        function highlightMatch(text, query) {
+            const regex = new RegExp(`(${escapeRegex(query)})`, 'gi');
+            return text.replace(regex, '<mark>$1</mark>');
+        }
+        
+        function escapeRegex(str) {
+            return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+        
+        // Navigate to employee detail page
+        function navigateToEmployee(employeeId) {
+            window.location.href = `/employee/${employeeId}`;
+        }
+        
+        // Show error message
+        function showError(message) {
+            searchDropdown.innerHTML = `
+                <div class="search-dropdown-empty">
+                    <p style="color: #ef4444;">${message}</p>
+                </div>
+            `;
+            searchDropdown.style.display = 'block';
+        }
+        
+        // Hide dropdown
+        function hideDropdown() {
+            searchDropdown.style.display = 'none';
+            selectedIndex = -1;
+        }
+        
+        // Clear button
+        if (searchClear) {
+            searchClear.addEventListener('click', function() {
+                searchInput.value = '';
+                searchInput.focus();
+                hideDropdown();
+                searchClear.style.display = 'none';
+            });
+        }
+        
+        // Keyboard navigation
+        searchInput.addEventListener('keydown', function(e) {
+            const items = searchDropdown.querySelectorAll('.search-dropdown-item');
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                updateSelection(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedIndex = Math.max(selectedIndex - 1, -1);
+                updateSelection(items);
+            } else if (e.key === 'Enter' && selectedIndex >= 0 && items[selectedIndex]) {
+                e.preventDefault();
+                const employeeId = items[selectedIndex].getAttribute('data-employee-id');
+                navigateToEmployee(employeeId);
+            } else if (e.key === 'Escape') {
+                hideDropdown();
+                searchInput.blur();
+            }
+        });
+        
+        // Update visual selection
+        function updateSelection(items) {
+            items.forEach((item, index) => {
+                if (index === selectedIndex) {
+                    item.classList.add('selected');
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+        
+        // Click outside to close
+        document.addEventListener('click', function(e) {
+            if (searchContainer && !searchContainer.contains(e.target)) {
+                hideDropdown();
+            }
+        });
+        
+        // Focus handler
+        searchInput.addEventListener('focus', function() {
+            if (this.value.trim() && searchResults.length > 0) {
+                searchDropdown.style.display = 'block';
+            }
+        });
+    }
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+

@@ -1,0 +1,501 @@
+{% extends "base.html" %}
+
+{% block title %}{{ help_content.page_title }} - EU Trip Tracker{% endblock %}
+
+{% block extra_head %}
+<style>
+/* Help Page Specific Styles */
+.help-header {
+    background: linear-gradient(135deg, #4C739F 0%, #5B6C8F 100%);
+    color: white;
+    padding: 48px 24px;
+    border-radius: 12px;
+    margin-bottom: 32px;
+    text-align: center;
+}
+
+.help-header h1 {
+    color: white;
+    margin: 0 0 12px 0;
+    font-size: 36px;
+    font-weight: 600;
+}
+
+.help-header p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 18px;
+    margin: 0;
+}
+
+.help-section {
+    background: var(--base-bg);
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.help-section:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.help-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    cursor: pointer;
+    background: var(--base-bg);
+    transition: background-color 0.2s;
+    user-select: none;
+}
+
+.help-section-header:hover {
+    background: #f9fafb;
+}
+
+.help-section-header.active {
+    background: #f0f9ff;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.help-section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.help-icon {
+    width: 40px;
+    height: 40px;
+    background: #eff6ff;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4C739F;
+    flex-shrink: 0;
+}
+
+.help-section-title h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.help-toggle {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    transition: transform 0.3s ease;
+}
+
+.help-section-header.active .help-toggle {
+    transform: rotate(180deg);
+}
+
+.help-section-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.help-section-content.active {
+    max-height: 2000px;
+    transition: max-height 0.5s ease-in;
+}
+
+.help-section-body {
+    padding: 24px;
+    color: #4b5563;
+    line-height: 1.8;
+    font-size: 15px;
+}
+
+.help-section-body strong {
+    color: #1f2937;
+    font-weight: 600;
+}
+
+.help-section-body ul,
+.help-section-body ol {
+    margin: 16px 0;
+    padding-left: 24px;
+}
+
+.help-section-body li {
+    margin-bottom: 8px;
+}
+
+.quick-tips {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.quick-tip {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 1px solid #fbbf24;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    gap: 16px;
+    align-items: start;
+}
+
+.quick-tip-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--base-bg);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #f59e0b;
+    flex-shrink: 0;
+}
+
+.quick-tip-content h4 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #92400e;
+}
+
+.quick-tip-content p {
+    margin: 0;
+    font-size: 14px;
+    color: #78350f;
+}
+
+.tutorial-banner {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border: 2px solid #4C739F;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.tutorial-banner-content {
+    flex: 1;
+}
+
+.tutorial-banner-content h3 {
+    margin: 0 0 8px 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #1e3a8a;
+}
+
+.tutorial-banner-content p {
+    margin: 0;
+    color: #1e40af;
+    font-size: 15px;
+}
+
+@media (max-width: 768px) {
+    .help-header h1 {
+        font-size: 28px;
+    }
+    
+    .help-header p {
+        font-size: 16px;
+    }
+    
+    .quick-tips {
+        grid-template-columns: 1fr;
+    }
+    
+    .tutorial-banner {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+/* SVG Icons */
+.svg-icon {
+    width: 20px;
+    height: 20px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div class="help-header">
+        <h1>{{ help_content.page_title }}</h1>
+        <p>{{ help_content.page_subtitle }}</p>
+    </div>
+</div>
+
+<div class="content-body">
+    <!-- Tutorial Banner -->
+    <div class="tutorial-banner">
+        <div class="tutorial-banner-content">
+            <h3>🎓 New to the System?</h3>
+            <p>Take a quick guided tour to learn the main features and get started in minutes.</p>
+        </div>
+        <button onclick="startTutorial()" class="btn btn-primary">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polygon points="10,8 16,12 10,16"></polygon>
+            </svg>
+            Start Tutorial
+        </button>
+    </div>
+
+    <!-- Quick Tips -->
+    {% if help_content.quick_tips %}
+    <div class="quick-tips">
+        {% for tip in help_content.quick_tips %}
+        <div class="quick-tip">
+            <div class="quick-tip-icon">
+                {% if tip.icon == 'lightbulb' %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                    <path d="M9 21h6M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"></path>
+                    <circle cx="12" cy="12" r="5"></circle>
+                </svg>
+                {% elif tip.icon == 'alert-triangle' %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                {% elif tip.icon == 'file-text' %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14,2 14,8 20,8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <line x1="10" y1="9" x2="8" y2="9"></line>
+                </svg>
+                {% elif tip.icon == 'shield-check' %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    <polyline points="9,12 11,14 15,10"></polyline>
+                </svg>
+                {% endif %}
+            </div>
+            <div class="quick-tip-content">
+                <h4>{{ tip.title }}</h4>
+                <p>{{ tip.text }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- FAQ Sections -->
+    <div class="help-sections">
+        {% for section in help_content.sections %}
+        <div class="help-section">
+            <div class="help-section-header {% if section.expanded %}active{% endif %}" onclick="toggleSection(this)">
+                <div class="help-section-title">
+                    <div class="help-icon">
+                        {% if section.icon == 'rocket' %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <path d="M16 10a4 4 0 0 1-8 0"></path>
+                        </svg>
+                        {% elif section.icon == 'grid' %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                        {% elif section.icon == 'calendar' %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                        {% elif section.icon == 'plus' %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        {% elif section.icon == 'upload' %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17,8 12,3 7,8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        {% elif section.icon == 'calendar-check' %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                            <polyline points="9,14 11,16 15,12"></polyline>
+                        </svg>
+                        {% elif section.icon == 'trending-up' %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                            <polyline points="23,6 13.5,15.5 8.5,10.5 1,18"></polyline>
+                            <polyline points="17,6 23,6 23,12"></polyline>
+                        </svg>
+                        {% elif section.icon == 'download' %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7,10 12,15 17,10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        {% elif section.icon == 'shield' %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                        {% elif section.icon == 'settings' %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3"></path>
+                        </svg>
+                        {% elif section.icon == 'globe' %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="2" y1="12" x2="22" y2="12"></line>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                        </svg>
+                        {% elif section.icon == 'help-circle' %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                        {% endif %}
+                    </div>
+                    <h3>{{ section.title }}</h3>
+                </div>
+                <div class="help-toggle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                        <polyline points="6,9 12,15 18,9"></polyline>
+                    </svg>
+                </div>
+            </div>
+            <div class="help-section-content {% if section.expanded %}active{% endif %}">
+                <div class="help-section-body">
+                    {{ section.content|replace('\n\n', '</p><p>')|replace('\n', '<br>')|safe }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Toggle FAQ sections
+function toggleSection(header) {
+    const content = header.nextElementSibling;
+    const isActive = header.classList.contains('active');
+    
+    // Toggle active state
+    if (isActive) {
+        header.classList.remove('active');
+        content.classList.remove('active');
+    } else {
+        header.classList.add('active');
+        content.classList.add('active');
+    }
+}
+
+// Simple tutorial functionality - using a series of alerts instead of modal
+function startTutorial() {
+    const tutorialSteps = [
+        {
+            title: "🇪🇺 Welcome to EU Trip Tracker!",
+            message: "This quick tutorial will show you the main features.\n\nClick OK to continue through each step."
+        },
+        {
+            title: "📊 Dashboard",
+            message: "Your main hub showing all employees and their EU travel status.\n\n• Green = Safe (30+ days remaining)\n• Amber = Caution (10-29 days remaining)\n• Red = At Risk (<10 days or over limit)"
+        },
+        {
+            title: "➕ Adding Trips",
+            message: "There are 3 ways to add trips:\n\n1. Individual trips (from employee detail page)\n2. Bulk trips (same trip for multiple employees)\n3. Excel import (upload work schedules)"
+        },
+        {
+            title: "📅 Calendar View",
+            message: "Visual timeline of all employee trips.\n\n• Color-coded by risk level\n• Hover for trip details\n• Shows past 6 months and future 2 months"
+        },
+        {
+            title: "🔍 Quick Search",
+            message: "Type any employee name in the search bar to instantly jump to their detail page.\n\nSuper fast navigation!"
+        },
+        {
+            title: "📋 Key Concepts",
+            message: "• 90/180 Rule: Max 90 days in Schengen Area within any 180-day period\n• Rolling Window: The 180-day period moves every day\n• Ireland: Tracked but doesn't count toward 90-day limit"
+        },
+        {
+            title: "🎯 You're Ready!",
+            message: "Click 'Dashboard' in the sidebar to start using the system.\n\nNeed help anytime? Click the 'Help' button in the top navigation bar.\n\nHappy tracking! 🚀"
+        }
+    ];
+    
+    let currentStep = 0;
+    
+    function showNextStep() {
+        if (currentStep >= tutorialSteps.length) {
+            localStorage.setItem('euTrackerTutorialSeen', 'true');
+            return;
+        }
+        
+        const step = tutorialSteps[currentStep];
+        alert(`${step.title}\n\n${step.message}`);
+        currentStep++;
+        
+        if (currentStep < tutorialSteps.length) {
+            showNextStep();
+        } else {
+            localStorage.setItem('euTrackerTutorialSeen', 'true');
+        }
+    }
+    
+    showNextStep();
+}
+
+// Legacy functions - no longer needed with alert-based tutorial
+
+// Auto-start tutorial for new users
+document.addEventListener('DOMContentLoaded', function() {
+    const tutorialSeen = localStorage.getItem('euTrackerTutorialSeen');
+    const urlParams = new URLSearchParams(window.location.search);
+    const startTutorial = urlParams.get('tutorial');
+    
+    // Only auto-start if never seen before OR explicitly requested via URL
+    if (!tutorialSeen || startTutorial === 'true') {
+        // Small delay to ensure page is fully loaded
+        setTimeout(function() {
+            if (confirm('Welcome! Would you like a quick tour of the EU Trip Tracker?')) {
+                startTutorial();
+            } else {
+                localStorage.setItem('euTrackerTutorialSeen', 'true');
+            }
+        }, 500);
+    }
+});
+
+// Reset tutorial (for testing/admin)
+function resetTutorial() {
+    localStorage.removeItem('euTrackerTutorialSeen');
+    alert('Tutorial reset! Refresh the page to see it again.');
+}
+
+// Make resetTutorial available in console for admins
+window.resetTutorial = resetTutorial;
+</script>
+{% endblock %}
+

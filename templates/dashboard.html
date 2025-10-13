@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - EU Trip Tracker{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1 class="content-title">EU Trip Tracker Dashboard</h1>
+    <p class="content-subtitle">Monitor employee travel compliance with the 90/180 day rule</p>
+</div>
+
+<div class="content-body">
+    <!-- At Risk Alert Section -->
+    {% if at_risk_employees %}
+    <div class="card" style="border: 2px solid #dc2626; background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); margin-bottom: 24px;">
+        <div class="card-header" style="background: #dc2626; color: white;">
+            <h2 class="card-title" style="color: white; display: flex; align-items: center; gap: 8px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                {{ at_risk_employees|length }} Employee{{ 's' if at_risk_employees|length != 1 else '' }} at Risk
+            </h2>
+            <p style="color: #fecaca; margin: 0; font-size: 14px;">
+                These employees have used 76+ days in the EU and have 2 weeks or less remaining
+            </p>
+        </div>
+        <div class="card-body" style="padding: 20px;">
+            <div style="display: grid; gap: 16px;">
+                {% for emp in at_risk_employees %}
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--base-bg); border-radius: 8px; border-left: 4px solid #dc2626; box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);">
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                            <div style="width: 8px; height: 8px; background: #dc2626; border-radius: 50%;"></div>
+                            <h3 style="margin: 0; color: #1f2937; font-size: 16px; font-weight: 600;">{{ emp.name }}</h3>
+                            <span style="background: #dc2626; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">
+                                {{ emp.days_used }}/90 days
+                            </span>
+                        </div>
+                        <div style="display: flex; gap: 24px; font-size: 14px; color: #6b7280;">
+                            <div>
+                                <strong>Days Remaining:</strong> 
+                                <span style="color: #dc2626; font-weight: 600;">{{ emp.days_remaining }}</span>
+                            </div>
+                            <div>
+                                <strong>Next Trip:</strong> 
+                                {% if emp.next_trip %}
+                                    <span style="color: #1f2937;">
+                                        {{ emp.next_trip['country']|country_name }} - {{ emp.next_trip['entry_date']|uk_date }}
+                                        {% if emp.next_trip['country']|is_ireland %}
+                                            <span style="color: #9ca3af; font-size: 11px;">(Non-Schengen)</span>
+                                        {% endif %}
+                                    </span>
+                                {% else %}
+                                    <span style="color: #6b7280;">No upcoming trips</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if emp.days_until_compliant is not none and emp.days_until_compliant > 0 %}
+                        <div style="margin-top: 8px; font-size: 12px; color: #9ca3af;">
+                            <strong>Days Until Compliant:</strong> 
+                            <span style="color: #dc2626; font-weight: 600;">{{ emp.days_until_compliant }}</span>
+                            {% if emp.compliance_date %}
+                                <span style="color: #9ca3af;">({{ emp.compliance_date|uk_date }})</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <a href="{{ url_for('employee_detail', employee_id=emp.id) }}" 
+                           class="btn" 
+                           style="background: #dc2626; color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none; font-size: 14px; font-weight: 500;">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div style="margin-top: 16px; padding: 12px; background: #fef2f2; border-radius: 6px; border: 1px solid #fecaca;">
+                <p style="margin: 0; color: #991b1b; font-size: 14px;">
+                    <strong>Action Required:</strong> These employees have 2 weeks or less remaining in their 90-day EU allowance. 
+                    Immediate planning required for any upcoming EU travel. Click "View Details" for full travel history.
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Add Employee Section -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Add New Employee</h2>
+            <div style="display: flex; gap: 12px;">
+                <a href="{{ url_for('bulk_add_trip') }}" class="btn btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <line x1="20" y1="8" x2="20" y2="14"></line>
+                        <line x1="23" y1="11" x2="17" y2="11"></line>
+                    </svg>
+                    Bulk Add Trip
+                </a>
+                <a href="{{ url_for('import_excel') }}" class="btn btn-success">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14,2 14,8 20,8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg>
+                    Import Excel
+                </a>
+            </div>
+        </div>
+        <form method="POST" action="{{ url_for('add_employee') }}" class="form-inline">
+            <div class="form-group">
+                <input type="text" name="name" class="form-input" placeholder="Employee name" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Employee</button>
+        </form>
+    </div>
+
+    {% if employees %}
+    <!-- Employee Overview Section -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Employee Overview</h2>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <label style="font-size: 14px; color: #6b7280; font-weight: 500;">Sort by:</label>
+                    <select id="sortSelect" onchange="changeSort()" style="padding: 6px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; background: var(--base-bg);">
+                        <option value="first_name" {% if current_sort == 'first_name' %}selected{% endif %}>First Name</option>
+                        <option value="last_name" {% if current_sort == 'last_name' %}selected{% endif %}>Last Name</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button onclick="showTableView()" id="tableBtn" class="btn btn-primary btn-sm">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                        Table View
+                    </button>
+                    <button onclick="showCardView()" id="cardsBtn" class="btn btn-outline btn-sm">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <rect x="7" y="7" width="3" height="3"></rect>
+                            <rect x="14" y="7" width="3" height="3"></rect>
+                            <rect x="14" y="14" width="3" height="3"></rect>
+                            <rect x="7" y="14" width="3" height="3"></rect>
+                        </svg>
+                        Card View
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table View -->
+        <div id="tableView" class="table-container">
+            <table id="employeeTable" class="table">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable(0)" style="cursor: pointer;">
+                            Name 
+                            <span class="sort-arrow">↕️</span>
+                        </th>
+                        <th onclick="sortTable(1)" style="cursor: pointer;">
+                            Trips 
+                            <span class="sort-arrow">↕️</span>
+                        </th>
+                        <th onclick="sortTable(2)" style="cursor: pointer;">
+                            Days Used 
+                            <span class="sort-arrow">↕️</span>
+                        </th>
+                        <th onclick="sortTable(3)" style="cursor: pointer;">
+                            Days Remaining
+                            <span class="sort-arrow">↕️</span>
+                        </th>
+                        <th onclick="sortTable(4)" style="cursor: pointer;">
+                            Next Trip 
+                            <span class="sort-arrow">↕️</span>
+                        </th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in employees %}
+                    <tr>
+                        <td style="font-weight: 600;">
+                            {{ emp.name }}
+                            {% if emp.earliest_safe_entry %}
+                                <br><small class="text-muted" style="font-size: 11px;" title="Earliest safe re-entry date">
+                                    Safe entry: {{ emp.earliest_safe_entry|uk_date }}
+                                </small>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">{{ emp.trip_count }}</td>
+                        <td class="text-center">
+                            <span style="font-weight: 700; color: {% if emp.days_used > 80 %}#ef4444{% elif emp.days_used > 60 %}#f59e0b{% else %}#10b981{% endif %};">
+                                {{ emp.days_used }}/90
+                            </span>
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="flex: 1; min-width: 100px;">
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                        <span style="font-weight: 600; font-size: 14px; {% if emp.risk_level == 'red' %}color: #ef4444;{% elif emp.risk_level == 'amber' %}color: #f59e0b;{% else %}color: #10b981;{% endif %}">
+                                            {{ emp.days_remaining }} days
+                                        </span>
+                                    </div>
+                                    <div style="background: #e5e7eb; height: 8px; border-radius: 4px; overflow: hidden;">
+                                        <div style="height: 100%; width: {{ (emp.days_remaining / 90 * 100)|round|int }}%; background: {% if emp.risk_level == 'red' %}#ef4444{% elif emp.risk_level == 'amber' %}#f59e0b{% else %}#10b981{% endif %}; transition: all 0.3s;" 
+                                             title="{{ emp.days_used }} of 90 days used"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if emp.next_trip %}
+                                <span class="status-badge status-safe" style="font-size: 12px;">
+                                    {{ emp.next_trip.country|country_name }} - {{ emp.next_trip.entry_date|uk_date }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted" style="font-style: italic;">No upcoming trips</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <div style="display: flex; gap: 8px; justify-content: center;">
+                                <a href="{{ url_for('employee_detail', employee_id=emp.id) }}" class="btn btn-primary btn-sm">Details</a>
+                                <a href="{{ url_for('calendar', employee_id=emp.id) }}" class="btn btn-secondary btn-sm">📅</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Card View -->
+        <div id="cardView" class="grid grid-2" style="display: none;">
+            {% for emp in employees %}
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                    <h3 style="margin: 0; font-size: 18px; font-weight: 600;">{{ emp.name }}</h3>
+                    <span class="status-badge" style="background: {% if emp.risk_level == 'red' %}#fef2f2; color: #991b1b;{% elif emp.risk_level == 'amber' %}#fffbeb; color: #92400e;{% else %}#f0fdf4; color: #166534;{% endif %}">
+                        {{ emp.days_remaining }} days left
+                    </span>
+                </div>
+                
+                <div style="background: #f9fafb; padding: 16px; border-radius: 8px; border-left: 4px solid {% if emp.risk_level == 'red' %}#ef4444{% elif emp.risk_level == 'amber' %}#f59e0b{% else %}#10b981{% endif %}; margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>Days used (180d):</span>
+                        <span style="font-weight: 600; font-size: 18px;">{{ emp.days_used }}/90</span>
+                    </div>
+                    <div style="background: #e5e7eb; height: 10px; border-radius: 5px; overflow: hidden;">
+                        <div style="height: 100%; width: {{ (emp.days_remaining / 90 * 100)|round|int }}%; background: {% if emp.risk_level == 'red' %}#ef4444{% elif emp.risk_level == 'amber' %}#f59e0b{% else %}#10b981{% endif %}; transition: all 0.3s;"></div>
+                    </div>
+                </div>
+                
+                {% if emp.earliest_safe_entry %}
+                <div style="margin-bottom: 16px; padding: 12px; background: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                    <div style="font-size: 14px; color: #92400e; font-weight: 500;">Earliest Safe Entry</div>
+                    <div style="font-size: 13px; color: #92400e;">{{ emp.earliest_safe_entry|uk_date }}</div>
+                </div>
+                {% endif %}
+                
+                {% if emp.next_trip %}
+                <div style="margin-bottom: 16px; padding: 12px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                    <div style="font-size: 14px; color: #1e40af; font-weight: 500;">Next Trip</div>
+                    <div style="font-size: 13px; color: #1e40af;">{{ emp.next_trip.country }} - {{ emp.next_trip.entry_date|uk_date }}</div>
+                </div>
+                {% endif %}
+                
+                <div style="display: flex; gap: 8px;">
+                    <a href="{{ url_for('employee_detail', employee_id=emp.id) }}" class="btn btn-primary btn-sm" style="flex: 1;">Details</a>
+                    <a href="{{ url_for('calendar', employee_id=emp.id) }}" class="btn btn-secondary btn-sm" style="flex: 1;">📅 Calendar</a>
+                    <form method="POST" action="{{ url_for('delete_employee', employee_id=emp.id) }}" style="flex: 1;" onsubmit="return confirm('Are you sure you want to delete this employee?');">
+                        <button type="submit" class="btn btn-danger btn-sm" style="width: 100%;">Delete</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="card text-center" style="padding: 60px 24px;">
+        <h3 style="color: #1f2937; font-weight: 600; margin-bottom: 8px; font-size: 20px;">No Employees Yet</h3>
+        <p class="text-muted">Add your first employee using the form above</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Initialize table view by default
+document.addEventListener('DOMContentLoaded', function() {
+    showTableView();
+});
+
+function showTableView() {
+    const tableView = document.getElementById('tableView');
+    const cardView = document.getElementById('cardView');
+    const tableBtn = document.getElementById('tableBtn');
+    const cardsBtn = document.getElementById('cardsBtn');
+    
+    if (tableView) tableView.style.display = 'block';
+    if (cardView) cardView.style.display = 'none';
+    if (tableBtn && cardsBtn) {
+        tableBtn.className = 'btn btn-primary btn-sm';
+        cardsBtn.className = 'btn btn-outline btn-sm';
+    }
+}
+
+function showCardView() {
+    const tableView = document.getElementById('tableView');
+    const cardView = document.getElementById('cardView');
+    const tableBtn = document.getElementById('tableBtn');
+    const cardsBtn = document.getElementById('cardsBtn');
+    
+    if (tableView) tableView.style.display = 'none';
+    if (cardView) cardView.style.display = 'grid';
+    if (tableBtn && cardsBtn) {
+        tableBtn.className = 'btn btn-outline btn-sm';
+        cardsBtn.className = 'btn btn-primary btn-sm';
+    }
+}
+
+function changeSort() {
+    const sortSelect = document.getElementById('sortSelect');
+    const sortValue = sortSelect.value;
+    
+    // Redirect to dashboard with new sort parameter
+    const url = new URL(window.location);
+    url.searchParams.set('sort', sortValue);
+    window.location.href = url.toString();
+}
+</script>
+{% endblock %}

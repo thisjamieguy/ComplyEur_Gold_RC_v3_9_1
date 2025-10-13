@@ -1,0 +1,69 @@
+import os
+import json
+from datetime import timedelta
+
+
+DEFAULTS = {
+    'RETENTION_MONTHS': 36,
+    'SESSION_IDLE_TIMEOUT_MINUTES': 30,
+    'PASSWORD_HASH_SCHEME': 'argon2',
+    'DSAR_EXPORT_DIR': './exports',
+    'AUDIT_LOG_PATH': './logs/audit.log',
+    'SESSION_COOKIE_SECURE': False,
+    'RISK_THRESHOLDS': {
+        'green': 30,  # >= 30 days remaining = green
+        'amber': 10   # 10-29 days remaining = amber, < 10 = red
+    }
+}
+
+
+SETTINGS_FILE = os.path.join(os.path.dirname(__file__), 'settings.json')
+
+
+def ensure_directories(config: dict) -> None:
+    exports_dir = os.path.abspath(config.get('DSAR_EXPORT_DIR', DEFAULTS['DSAR_EXPORT_DIR']))
+    logs_path = os.path.abspath(config.get('AUDIT_LOG_PATH', DEFAULTS['AUDIT_LOG_PATH']))
+    logs_dir = os.path.dirname(logs_path)
+    compliance_dir = os.path.join(os.path.dirname(__file__), 'compliance')
+    os.makedirs(exports_dir, exist_ok=True)
+    os.makedirs(logs_dir, exist_ok=True)
+    os.makedirs(compliance_dir, exist_ok=True)
+
+
+def load_config() -> dict:
+    config = DEFAULTS.copy()
+    if os.path.exists(SETTINGS_FILE):
+        try:
+            with open(SETTINGS_FILE, 'r') as f:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    config.update(data)
+        except Exception:
+            pass
+    ensure_directories(config)
+    return config
+
+
+def save_config(updated: dict) -> dict:
+    config = load_config()
+    config.update(updated)
+    # normalize types
+    try:
+        config['RETENTION_MONTHS'] = int(config.get('RETENTION_MONTHS', DEFAULTS['RETENTION_MONTHS']))
+        config['SESSION_IDLE_TIMEOUT_MINUTES'] = int(config.get('SESSION_IDLE_TIMEOUT_MINUTES', DEFAULTS['SESSION_IDLE_TIMEOUT_MINUTES']))
+        config['SESSION_COOKIE_SECURE'] = bool(config.get('SESSION_COOKIE_SECURE', DEFAULTS['SESSION_COOKIE_SECURE']))
+    except Exception:
+        pass
+    with open(SETTINGS_FILE, 'w') as f:
+        json.dump(config, f, indent=2)
+    ensure_directories(config)
+    return config
+
+
+def get_session_lifetime(config: dict) -> timedelta:
+    minutes = int(config.get('SESSION_IDLE_TIMEOUT_MINUTES', DEFAULTS['SESSION_IDLE_TIMEOUT_MINUTES']))
+    return timedelta(minutes=minutes)
+
+
+
+
