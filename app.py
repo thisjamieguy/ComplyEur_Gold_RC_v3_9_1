@@ -8,13 +8,13 @@ import re
 import openpyxl
 from werkzeug.utils import secure_filename
 from config import load_config, get_session_lifetime, save_config
-from app.services.hashing import Hasher
-from app.services.audit import write_audit
-from app.services.retention import purge_expired_trips, get_expired_trips, anonymize_employee
-from app.services.dsar import create_dsar_export, delete_employee_data, rectify_employee_name, get_employee_data
-from app.services.exports import export_trips_csv, export_employee_report_pdf, export_all_employees_report_pdf
-from app.services.rolling90 import presence_days, days_used_in_window, earliest_safe_entry, calculate_days_remaining, get_risk_level, days_until_compliant
-from app.services.trip_validator import validate_trip, validate_date_range
+from modules.services.hashing import Hasher
+from modules.services.audit import write_audit
+from modules.services.retention import purge_expired_trips, get_expired_trips, anonymize_employee
+from modules.services.dsar import create_dsar_export, delete_employee_data, rectify_employee_name, get_employee_data
+from modules.services.exports import export_trips_csv, export_employee_report_pdf, export_all_employees_report_pdf
+from modules.services.rolling90 import presence_days, days_used_in_window, earliest_safe_entry, calculate_days_remaining, get_risk_level, days_until_compliant
+from modules.services.trip_validator import validate_trip, validate_date_range
 import io
 import csv
 import zipfile

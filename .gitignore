@@ -5,19 +5,27 @@
 __pycache__/
 *.py[cod]
 *.egg-info/
-dist/
-build/
-.env
-instance/
-*.sqlite
-*.sqlite-journal
 *.log
-*.tmp
-
-# Virtual environments
+instance/
+uploads/
+testenv/
 .venv/
 venv/
+.env
+.env.*
+.env_template.txt
 
-# IDEs
+# Editor / IDE
 .vscode/
 .idea/
+.cursor/
+
+# System
+Thumbs.db
+*.sqlite
+*.sqlite-journal
+
+# Backups / Exports
+backups/
+exports/
+logs/
