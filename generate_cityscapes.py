@@ -1,9 +1,20 @@
-import os, requests
+import os
+import requests
 from PIL import Image
 from io import BytesIO
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # 🔑 Get a free API key from https://www.pexels.com/api/
-PEXELS_API_KEY = "YTYdzNnRc5A5BKwpsvojanYMMGlldGBXWrGi9zm6sHugKIwyfIoIzCtkI
+PEXELS_API_KEY = os.getenv('PEXELS_API_KEY')
+
+if not PEXELS_API_KEY or PEXELS_API_KEY == 'your-pexels-api-key-here':
+    print("❌ ERROR: PEXELS_API_KEY not set in .env file")
+    print("Get a free API key from: https://www.pexels.com/api/")
+    exit(1)
+
 cities = {
     "austria": "Vienna",
     "belgium": "Brussels",

@@ -35,3 +35,7 @@ AUDIT_LOG_PATH=./logs/audit.log
 HOST=127.0.0.1
 PORT=5001
 
+# Pexels API (for cityscape images)
+# IMPORTANT: Get a free API key from: https://www.pexels.com/api/
+PEXELS_API_KEY=your-pexels-api-key-here
+

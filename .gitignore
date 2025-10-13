@@ -16,7 +16,6 @@ testenv/
 venv/
 .env
 .env.*
-.env_template.txt
 
 # Editor / IDE
 .vscode/
@@ -27,6 +26,10 @@ venv/
 Thumbs.db
 *.sqlite
 *.sqlite-journal
+*.db
+
+# Sensitive files
+cookies.txt
 
 # Backups / Exports
 backups/
