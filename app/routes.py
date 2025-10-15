@@ -604,6 +604,7 @@ def delete_trip(trip_id):
         conn.close()
 
 # Additional missing routes
+
 @main_bp.route('/import_excel', methods=['GET', 'POST'])
 @login_required
 def import_excel():
@@ -611,14 +612,7 @@ def import_excel():
     from flask import current_app
     CONFIG = current_app.config['CONFIG']
 
-    logger.info(f"=== IMPORT_EXCEL ROUTE ACCESSED ===")
-    logger.info(f"Method: {request.method}")
-    logger.info(f"URL: {request.url}")
-    logger.info(f"Endpoint: {request.endpoint}")
-    logger.info(f"Session logged_in: {session.get('logged_in')}")
-    logger.info(f"Content-Type: {request.content_type}")
-    logger.info(f"Files in request: {list(request.files.keys())}")
-    logger.info(f"=== END REQUEST INFO ===")
+    logger.info(f"import_excel: {request.method} request")
     
     if request.method == 'POST':
         # Check if file was uploaded

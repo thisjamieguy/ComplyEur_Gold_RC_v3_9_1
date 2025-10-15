@@ -249,11 +249,7 @@ def create_app():
         app.register_blueprint(main_bp)
         logger.info("Blueprint registered successfully")
 
-        # Debug: Log all registered routes
-        logger.info("=== REGISTERED ROUTES ===")
-        for rule in app.url_map.iter_rules():
-            logger.info(f"Route: {rule.rule} | Methods: {list(rule.methods)} | Endpoint: {rule.endpoint}")
-        logger.info("=== END ROUTES ===")
+        logger.info(f"Registered {len(list(app.url_map.iter_rules()))} routes successfully")
     except Exception as e:
         logger.error(f"Failed to register routes: {e}")
         logger.error(traceback.format_exc())
