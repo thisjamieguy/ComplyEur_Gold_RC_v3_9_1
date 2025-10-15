@@ -57,10 +57,10 @@ def create_app():
         return dict(app_version=APP_VERSION)
     
     @app.context_processor
-    def csrf_token():
+    def inject_csrf_token():
         """Generate CSRF token for forms"""
         import secrets
-        return secrets.token_hex(32)
+        return {'csrf_token': secrets.token_hex(32)}
 
     # Session cookie hardening (essential-only cookie)
     app.config.update(
