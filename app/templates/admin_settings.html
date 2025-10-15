@@ -21,7 +21,7 @@
     </div>
     {% endif %}
 
-    <form method="POST" action="{{ url_for('admin_settings') }}">
+    <form method="POST" action="{{ url_for('main.admin_settings') }}">
         <!-- Retention Settings -->
         <div class="card">
             <div class="card-header">
@@ -166,7 +166,7 @@
             <h2 class="card-title">Change Admin Password</h2>
         </div>
         <div class="card-body">
-            <form method="POST" action="{{ url_for('change_password') }}">
+            <form method="POST" action="{{ url_for('main.change_password') }}">
                 <div class="form-group">
                     <label for="new_password">New Password</label>
                     <input type="password" id="new_password" name="new_password" 
@@ -188,7 +188,7 @@
                 <strong>WARNING:</strong> This action will permanently delete ALL employees, trips, and exported files from the system.
                 This cannot be undone. Use only for GDPR compliance or complete system reset.
             </p>
-            <form method="POST" action="{{ url_for('delete_all_data') }}" onsubmit="return confirmDeleteAll()">
+            <form method="POST" action="{{ url_for('main.delete_all_data') }}" onsubmit="return confirmDeleteAll()">
                 <div class="form-group">
                     <label for="confirmation">Type "DELETE ALL DATA" to confirm:</label>
                     <input type="text" id="confirmation" name="confirmation" 

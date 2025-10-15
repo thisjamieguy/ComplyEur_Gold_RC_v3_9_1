@@ -272,7 +272,7 @@
         <div class="header-content">
             <h1>📅 {{ employee.name }} - Calendar Timeline</h1>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <a href="{{ url_for('employee_detail', employee_id=employee.id) }}" class="btn btn-secondary">← Back to Details</a>
+                <a href="{{ url_for('main.employee_detail', employee_id=employee.id) }}" class="btn btn-secondary">← Back to Details</a>
                 <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">Dashboard</a>
             </div>
         </div>
