@@ -118,10 +118,10 @@
                 </div>
             </div>
             <div style="display: flex; gap: 12px; justify-content: center;">
-                <a href="{{ url_for('future_job_alerts') }}" class="btn btn-primary" style="background: #3182ce; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: 500;">
+                <a href="{{ url_for('main.future_job_alerts') }}" class="btn btn-primary" style="background: #3182ce; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: 500;">
                     View All Future Alerts
                 </a>
-                <a href="{{ url_for('what_if_scenario') }}" class="btn btn-outline" style="border: 2px solid #3182ce; color: #3182ce; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: 500; background: white;">
+                <a href="{{ url_for('main.what_if_scenario') }}" class="btn btn-outline" style="border: 2px solid #3182ce; color: #3182ce; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: 500; background: white;">
                     Test What-If Scenario
                 </a>
             </div>
@@ -142,7 +142,7 @@
         <div class="card-header">
             <h2 class="card-title">Add New Employee</h2>
             <div style="display: flex; gap: 12px;">
-                <a href="{{ url_for('bulk_add_trip') }}" class="btn btn-primary">
+                <a href="{{ url_for('main.bulk_add_trip') }}" class="btn btn-primary">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                         <circle cx="8.5" cy="7" r="4"></circle>
