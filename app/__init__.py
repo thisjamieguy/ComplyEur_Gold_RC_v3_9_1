@@ -39,6 +39,16 @@ def create_app():
     # Configure database
     DATABASE = os.path.join(os.path.dirname(__file__), '..', os.getenv('DATABASE_PATH', 'data/eu_tracker.db'))
 
+    # Initialize database tables
+    from .models import init_db
+    try:
+        # Set the database path in app config before calling init_db
+        app.config['DATABASE'] = DATABASE
+        init_db()
+        print("✓ Database initialized successfully")
+    except Exception as e:
+        print(f"Warning: Could not initialize database: {e}")
+
     # Make version available to all templates
     @app.context_processor
     def inject_version():
