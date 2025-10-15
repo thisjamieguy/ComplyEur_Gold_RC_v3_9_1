@@ -6,7 +6,7 @@ from flask import Flask
 from config import load_config, get_session_lifetime
 
 # Application Version
-APP_VERSION = "1.3.0 - Production Ready"
+APP_VERSION = "1.4.0 - Production Ready"
 
 def create_app():
     """Application factory pattern"""
@@ -51,10 +51,16 @@ def create_app():
     except Exception as e:
         print(f"Warning: Could not initialize database: {e}")
 
-    # Make version available to all templates
+    # Make version and CSRF token available to all templates
     @app.context_processor
     def inject_version():
         return dict(app_version=APP_VERSION)
+    
+    @app.context_processor
+    def csrf_token():
+        """Generate CSRF token for forms"""
+        import secrets
+        return secrets.token_hex(32)
 
     # Session cookie hardening (essential-only cookie)
     app.config.update(

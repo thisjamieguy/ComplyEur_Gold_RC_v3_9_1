@@ -36,7 +36,7 @@ A Flask web application for tracking employee travel to EU/Schengen countries an
 
 4. **Run the application**
    ```bash
-   python app.py
+   python run_local.py
    ```
 
 5. **Access the application**
@@ -48,7 +48,7 @@ A Flask web application for tracking employee travel to EU/Schengen countries an
 2. **Create a new Web Service**
 3. **Configure build settings:**
    - Build Command: `pip install -r requirements.txt`
-   - Start Command: `gunicorn app:app`
+   - Start Command: `gunicorn wsgi:app`
 4. **Set environment variables:**
    - `SECRET_KEY`: A secure random string
    - `DATABASE_PATH`: `data/eu_tracker.db` (or your preferred path)

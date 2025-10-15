@@ -46,6 +46,12 @@ def init_db():
         )
     ''')
     
+    # Create indexes for better performance
+    c.execute('CREATE INDEX IF NOT EXISTS idx_trips_employee_id ON trips(employee_id)')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_trips_entry_date ON trips(entry_date)')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_trips_exit_date ON trips(exit_date)')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_trips_dates ON trips(entry_date, exit_date)')
+    
     conn.commit()
     conn.close()
 
