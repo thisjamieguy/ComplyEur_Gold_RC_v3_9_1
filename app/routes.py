@@ -604,10 +604,90 @@ def delete_trip(trip_id):
         conn.close()
 
 # Additional missing routes
-@main_bp.route('/import_excel')
+@main_bp.route('/import_excel', methods=['GET', 'POST'])
 @login_required
 def import_excel():
-    """Display import Excel form"""
+    """Display import Excel form and handle file uploads"""
+    from flask import current_app
+    CONFIG = current_app.config['CONFIG']
+
+    logger.info(f"import_excel called with method: {request.method}")
+    logger.info(f"Session logged_in: {session.get('logged_in')}")
+    
+    if request.method == 'POST':
+        # Check if file was uploaded
+        if 'excel_file' not in request.files:
+            flash('No file selected')
+            return render_template('import_excel.html')
+        
+        file = request.files['excel_file']
+        if file.filename == '':
+            flash('No file selected')
+            return render_template('import_excel.html')
+        
+        if file and allowed_file(file.filename):
+            try:
+                # Create uploads directory if it doesn't exist
+                upload_dir = os.path.join(os.path.dirname(__file__), '..', 'uploads')
+                os.makedirs(upload_dir, exist_ok=True)
+                
+                # Save uploaded file
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(upload_dir, filename)
+                file.save(file_path)
+                
+                # Import the importer module
+                import sys
+                sys.path.append(os.path.dirname(__file__))
+                from importer import import_excel as process_excel
+                
+                # Process the Excel file
+                result = process_excel(file_path)
+                
+                if result['success']:
+                    # Log successful import
+                    write_audit(CONFIG['AUDIT_LOG_PATH'], 'excel_import_success', 'admin', {
+                        'filename': filename,
+                        'trips_added': result['trips_added'],
+                        'employees_processed': result['employees_processed']
+                    })
+                    
+                    # Clean up uploaded file
+                    try:
+                        os.remove(file_path)
+                    except:
+                        pass
+                    
+                    return render_template('import_excel.html', import_summary=result)
+                else:
+                    # Log failed import
+                    write_audit(CONFIG['AUDIT_LOG_PATH'], 'excel_import_failed', 'admin', {
+                        'filename': filename,
+                        'error': result.get('error', 'Unknown error')
+                    })
+                    
+                    flash(f'Import failed: {result.get("error", "Unknown error")}')
+                    
+                    # Clean up uploaded file
+                    try:
+                        os.remove(file_path)
+                    except:
+                        pass
+                    
+                    return render_template('import_excel.html')
+                    
+            except Exception as e:
+                logger.error(f"Error processing Excel file: {e}")
+                write_audit(CONFIG['AUDIT_LOG_PATH'], 'excel_import_error', 'admin', {
+                    'filename': file.filename,
+                    'error': str(e)
+                })
+                flash(f'Error processing file: {str(e)}')
+                return render_template('import_excel.html')
+        else:
+            flash('Invalid file type. Please upload an Excel file (.xlsx or .xls)')
+            return render_template('import_excel.html')
+    
     return render_template('import_excel.html')
 
 @main_bp.route('/calendar/<int:employee_id>')

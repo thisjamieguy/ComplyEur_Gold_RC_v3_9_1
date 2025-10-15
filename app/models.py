@@ -32,10 +32,18 @@ def init_db():
             entry_date DATE NOT NULL,
             exit_date DATE NOT NULL,
             purpose TEXT,
+            travel_days INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (employee_id) REFERENCES employees (id)
         )
     ''')
+    
+    # Add travel_days column if it doesn't exist (for existing databases)
+    try:
+        c.execute('ALTER TABLE trips ADD COLUMN travel_days INTEGER DEFAULT 0')
+    except sqlite3.OperationalError:
+        # Column already exists, ignore error
+        pass
     
     # Create admin table
     c.execute('''
