@@ -44,7 +44,9 @@ def create_app():
     try:
         # Set the database path in app config before calling init_db
         app.config['DATABASE'] = DATABASE
-        init_db()
+        # Initialize database within app context
+        with app.app_context():
+            init_db()
         print("✓ Database initialized successfully")
     except Exception as e:
         print(f"Warning: Could not initialize database: {e}")
