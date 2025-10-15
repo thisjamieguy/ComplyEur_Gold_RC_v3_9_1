@@ -10,7 +10,7 @@
             <p class="content-subtitle">Add the same trip to multiple employees at once</p>
         </div>
         <div style="display: flex; gap: 12px;">
-            <a href="{{ url_for('dashboard') }}" class="btn btn-outline">
+            <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                     <polyline points="9,22 9,12 15,12 15,22"></polyline>
@@ -133,7 +133,7 @@
                     <div style="font-size: 48px; margin-bottom: 16px;">👥</div>
                     <h3 style="color: #1f2937; font-weight: 600; margin-bottom: 8px;">No Employees Found</h3>
                     <p>Add employees first before bulk adding trips</p>
-                    <a href="{{ url_for('dashboard') }}" class="btn btn-primary" style="margin-top: 16px;">Go to Dashboard</a>
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary" style="margin-top: 16px;">Go to Dashboard</a>
                 </div>
                 {% endif %}
             </div>

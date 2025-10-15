@@ -81,7 +81,7 @@
             Something went wrong on our end. The error has been logged and our team will look into it.
             Please try again later or contact your system administrator.
         </p>
-        <a href="{{ url_for('dashboard') }}" class="btn-home">Go to Dashboard</a>
+        <a href="{{ url_for('main.dashboard') }}" class="btn-home">Go to Dashboard</a>
         <p class="error-id">
             Error Time: {{ error_time if error_time else 'N/A' }}
         </p>
