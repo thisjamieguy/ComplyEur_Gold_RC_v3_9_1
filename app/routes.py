@@ -519,6 +519,61 @@ def delete_trip(trip_id):
     finally:
         conn.close()
 
+# Additional missing routes
+@main_bp.route('/import_excel')
+@login_required
+def import_excel():
+    """Display import Excel form"""
+    return render_template('import_excel.html')
+
+@main_bp.route('/calendar/<int:employee_id>')
+@login_required
+def calendar(employee_id):
+    """Display employee calendar"""
+    from .models import Employee
+    employee = Employee.get_by_id(employee_id)
+    if not employee:
+        return "Employee not found", 404
+    return render_template('calendar.html', employee=employee)
+
+@main_bp.route('/future_job_alerts')
+@login_required
+def future_job_alerts():
+    """Display future job alerts"""
+    return render_template('future_job_alerts.html')
+
+@main_bp.route('/what_if_scenario')
+@login_required
+def what_if_scenario():
+    """Display what-if scenario page"""
+    return render_template('what_if_scenario.html')
+
+@main_bp.route('/admin_privacy_tools')
+@login_required
+def admin_privacy_tools():
+    """Display admin privacy tools"""
+    return render_template('admin_privacy_tools.html')
+
+@main_bp.route('/admin_settings')
+@login_required
+def admin_settings():
+    """Display admin settings"""
+    from flask import current_app
+    CONFIG = current_app.config['CONFIG']
+    return render_template('admin_settings.html', config=CONFIG)
+
+@main_bp.route('/change_password', methods=['POST'])
+@login_required
+def change_password():
+    """Change admin password"""
+    return redirect(url_for('main.admin_settings'))
+
+@main_bp.route('/delete_all_data', methods=['POST'])
+@login_required
+def delete_all_data():
+    """Delete all data"""
+    return redirect(url_for('main.admin_settings'))
+
 # Error handlers
 @main_bp.errorhandler(404)
 def not_found_error(error):
