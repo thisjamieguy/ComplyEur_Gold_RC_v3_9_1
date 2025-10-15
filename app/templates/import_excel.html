@@ -186,9 +186,9 @@
                             {% for t in import_summary.trips %}
                             <tr>
                                 <td>{{ t.employee }}</td>
-                                <td>{{ t.country|country_name }}</td>
-                                <td>{{ t.entry_date|uk_date }}</td>
-                                <td>{{ t.exit_date|uk_date }}</td>
+                                <td>{{ t.country }}</td>
+                                <td>{{ t.entry_date }}</td>
+                                <td>{{ t.exit_date }}</td>
                                 <td>{{ t.travel_days }}</td>
                                 <td>{{ t.total_days }}</td>
                             </tr>
