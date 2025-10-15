@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify, flash, make_response, send_file
 import hashlib
 import sqlite3
+import logging
+import traceback
 from datetime import datetime, timedelta
 from functools import wraps
 import os
@@ -8,20 +10,87 @@ import re
 import openpyxl
 from werkzeug.utils import secure_filename
 from config import load_config, get_session_lifetime, save_config
-from .services.hashing import Hasher
-from .services.audit import write_audit
-from .services.retention import purge_expired_trips, get_expired_trips, anonymize_employee
-from .services.dsar import create_dsar_export, delete_employee_data, rectify_employee_name, get_employee_data
-from .services.exports import export_trips_csv, export_employee_report_pdf, export_all_employees_report_pdf
-from .services.rolling90 import presence_days, days_used_in_window, earliest_safe_entry, calculate_days_remaining, get_risk_level, days_until_compliant
-from .services.trip_validator import validate_trip, validate_date_range
-from .services.compliance_forecast import (
-    calculate_future_job_compliance, 
-    get_all_future_jobs_for_employee,
-    calculate_what_if_scenario,
-    get_risk_level_for_forecast
-)
-from .services.backup import create_backup, auto_backup_if_needed, list_backups
+
+# Import service modules with error handling
+logger = logging.getLogger(__name__)
+
+try:
+    from .services.hashing import Hasher
+    logger.info("Successfully imported hashing service")
+except Exception as e:
+    logger.error(f"Failed to import hashing service: {e}")
+    logger.error(traceback.format_exc())
+    raise
+
+try:
+    from .services.audit import write_audit
+    logger.info("Successfully imported audit service")
+except Exception as e:
+    logger.error(f"Failed to import audit service: {e}")
+    logger.error(traceback.format_exc())
+    raise
+
+try:
+    from .services.retention import purge_expired_trips, get_expired_trips, anonymize_employee
+    logger.info("Successfully imported retention service")
+except Exception as e:
+    logger.error(f"Failed to import retention service: {e}")
+    logger.error(traceback.format_exc())
+    raise
+
+try:
+    from .services.dsar import create_dsar_export, delete_employee_data, rectify_employee_name, get_employee_data
+    logger.info("Successfully imported dsar service")
+except Exception as e:
+    logger.error(f"Failed to import dsar service: {e}")
+    logger.error(traceback.format_exc())
+    raise
+
+try:
+    from .services.exports import export_trips_csv, export_employee_report_pdf, export_all_employees_report_pdf
+    logger.info("Successfully imported exports service")
+except Exception as e:
+    logger.error(f"Failed to import exports service: {e}")
+    logger.error(traceback.format_exc())
+    raise
+
+try:
+    from .services.rolling90 import presence_days, days_used_in_window, earliest_safe_entry, calculate_days_remaining, get_risk_level, days_until_compliant
+    logger.info("Successfully imported rolling90 service")
+except Exception as e:
+    logger.error(f"Failed to import rolling90 service: {e}")
+    logger.error(traceback.format_exc())
+    raise
+
+try:
+    from .services.trip_validator import validate_trip, validate_date_range
+    logger.info("Successfully imported trip_validator service")
+except Exception as e:
+    logger.error(f"Failed to import trip_validator service: {e}")
+    logger.error(traceback.format_exc())
+    raise
+
+try:
+    from .services.compliance_forecast import (
+        calculate_future_job_compliance, 
+        get_all_future_jobs_for_employee,
+        calculate_what_if_scenario,
+        get_risk_level_for_forecast
+    )
+    logger.info("Successfully imported compliance_forecast service")
+except Exception as e:
+    logger.error(f"Failed to import compliance_forecast service: {e}")
+    logger.error(traceback.format_exc())
+    raise
+
+try:
+    from .services.backup import create_backup, auto_backup_if_needed, list_backups
+    logger.info("Successfully imported backup service")
+except Exception as e:
+    logger.error(f"Failed to import backup service: {e}")
+    logger.error(traceback.format_exc())
+    raise
+
 import io
 import csv
 import zipfile
@@ -50,10 +119,25 @@ def login_required(f):
         
         # Check session timeout
         if 'last_activity' in session:
-            last_activity = datetime.fromisoformat(session['last_activity'].replace('Z', '+00:00'))
-            if datetime.now(last_activity.tzinfo) - last_activity > timedelta(minutes=30):
-                session.pop('logged_in', None)
-                session.pop('last_activity', None)
+            try:
+                last_activity_str = session['last_activity']
+                # Handle different datetime formats safely
+                if isinstance(last_activity_str, str):
+                    if 'Z' in last_activity_str:
+                        last_activity_str = last_activity_str.replace('Z', '+00:00')
+                    last_activity = datetime.fromisoformat(last_activity_str)
+                    # Convert to naive datetime for comparison
+                    if last_activity.tzinfo:
+                        last_activity = last_activity.replace(tzinfo=None)
+                else:
+                    last_activity = datetime.now()
+
+                if datetime.now() - last_activity > timedelta(minutes=30):
+                    session.clear()  # Clear entire session
+                    return redirect(url_for('main.login'))
+            except (ValueError, TypeError, AttributeError):
+                # If datetime parsing fails, clear session
+                session.clear()
                 return redirect(url_for('main.login'))
         
         # Update last activity
@@ -593,8 +677,17 @@ def reset_admin_password():
 # Error handlers
 @main_bp.errorhandler(404)
 def not_found_error(error):
+    logger.warning(f"404 error: {error}")
     return render_template('404.html'), 404
 
 @main_bp.errorhandler(500)
 def internal_error(error):
+    logger.error(f"500 Internal Server Error: {error}")
+    logger.error(traceback.format_exc())
+    return render_template('500.html'), 500
+
+@main_bp.errorhandler(Exception)
+def handle_exception(e):
+    logger.error(f"Unhandled exception: {e}")
+    logger.error(traceback.format_exc())
     return render_template('500.html'), 500

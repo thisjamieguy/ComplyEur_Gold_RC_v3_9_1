@@ -7,19 +7,31 @@ from datetime import timedelta
 from flask import Flask
 from config import load_config, get_session_lifetime
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
 # Application Version
 APP_VERSION = "1.4.0 - Production Ready"
 
 def create_app():
     """Application factory pattern"""
     # Configure logging
+    # Ensure logs directory exists
+    logs_dir = os.path.join(os.path.dirname(__file__), '..', 'logs')
+    os.makedirs(logs_dir, exist_ok=True)
+
+    log_handlers = [logging.StreamHandler()]
+    try:
+        log_handlers.append(logging.FileHandler(os.path.join(logs_dir, 'app.log')))
+    except Exception:
+        # If file logging fails, continue with console logging only
+        pass
+
     logging.basicConfig(
         level=logging.DEBUG,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.FileHandler('logs/app.log'),
-            logging.StreamHandler()
-        ]
+        handlers=log_handlers
     )
     logger = logging.getLogger(__name__)
     
@@ -75,7 +87,12 @@ def create_app():
     # Configure database
     try:
         logger.info("Configuring database...")
-        DATABASE = os.path.join(os.path.dirname(__file__), '..', os.getenv('DATABASE_PATH', 'data/eu_tracker.db'))
+        db_path = os.getenv('DATABASE_PATH', 'eu_tracker.db')
+        if not os.path.isabs(db_path):
+            # Make relative paths absolute from project root
+            DATABASE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', db_path))
+        else:
+            DATABASE = db_path
         logger.info(f"Database path: {DATABASE}")
         
         # Check if database directory exists
