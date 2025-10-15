@@ -51,13 +51,14 @@ def login_required(f):
         # Check session timeout
         if 'last_activity' in session:
             last_activity = datetime.fromisoformat(session['last_activity'].replace('Z', '+00:00'))
-            if datetime.utcnow() - last_activity > timedelta(minutes=30):
+            if datetime.now(last_activity.tzinfo) - last_activity > timedelta(minutes=30):
                 session.pop('logged_in', None)
                 session.pop('last_activity', None)
                 return redirect(url_for('main.login'))
         
         # Update last activity
-        session['last_activity'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+        from datetime import timezone
+        session['last_activity'] = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
         return f(*args, **kwargs)
     return decorated_function
 
@@ -168,7 +169,8 @@ def login():
         from flask import current_app
         CONFIG = current_app.config['CONFIG']
         ip = request.remote_addr or 'local'
-        now = datetime.utcnow()
+        from datetime import timezone
+        now = datetime.now(timezone.utc)
         attempts = LOGIN_ATTEMPTS.get(ip)
         if attempts:
             count, first_ts = attempts
@@ -195,7 +197,8 @@ def login():
                 conn.commit()
             conn.close()
             session['logged_in'] = True
-            session['last_activity'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+            from datetime import timezone
+            session['last_activity'] = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
             write_audit(CONFIG['AUDIT_LOG_PATH'], 'login_success', 'admin', {'ip': ip})
             return redirect(url_for('main.dashboard'))
         # failed
