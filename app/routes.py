@@ -469,6 +469,21 @@ def add_trip():
     finally:
         conn.close()
 
+@main_bp.route('/bulk_add_trip')
+@login_required
+def bulk_add_trip():
+    """Display bulk add trip form"""
+    from flask import current_app
+    CONFIG = current_app.config['CONFIG']
+    
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('SELECT id, name FROM employees ORDER BY name')
+    employees = c.fetchall()
+    conn.close()
+    
+    return render_template('bulk_add_trip.html', employees=employees)
+
 @main_bp.route('/delete_trip/<int:trip_id>', methods=['POST'])
 @login_required
 def delete_trip(trip_id):
