@@ -46,7 +46,7 @@
                                 <strong>Next Trip:</strong> 
                                 {% if emp.next_trip %}
                                     <span style="color: #1f2937;">
-                                        {{ emp.next_trip['country']|country_name }} - {{ emp.next_trip['entry_date']|uk_date }}
+                                        {{ emp.next_trip['country'] }} - {{ emp.next_trip['entry_date'] }}
                                         {% if emp.next_trip['country']|is_ireland %}
                                             <span style="color: #9ca3af; font-size: 11px;">(Non-Schengen)</span>
                                         {% endif %}
@@ -61,7 +61,7 @@
                             <strong>Days Until Compliant:</strong> 
                             <span style="color: #dc2626; font-weight: 600;">{{ emp.days_until_compliant }}</span>
                             {% if emp.compliance_date %}
-                                <span style="color: #9ca3af;">({{ emp.compliance_date|uk_date }})</span>
+                                <span style="color: #9ca3af;">({{ emp.compliance_date }})</span>
                             {% endif %}
                         </div>
                         {% endif %}
@@ -244,7 +244,7 @@
                             </a>
                             {% if emp.earliest_safe_entry %}
                                 <br><small class="text-muted" style="font-size: 11px;" title="Earliest safe re-entry date">
-                                    Safe entry: {{ emp.earliest_safe_entry|uk_date }}
+                                    Safe entry: {{ emp.earliest_safe_entry }}
                                 </small>
                             {% endif %}
                         </td>
@@ -272,7 +272,7 @@
                         <td>
                             {% if emp.next_trip %}
                                 <span class="status-badge status-safe" style="font-size: 12px;">
-                                    {{ emp.next_trip.country|country_name }} - {{ emp.next_trip.entry_date|uk_date }}
+                                    {{ emp.next_trip.country }} - {{ emp.next_trip.entry_date }}
                                 </span>
                             {% else %}
                                 <span class="text-muted" style="font-style: italic;">No upcoming trips</span>
@@ -314,14 +314,14 @@
                 {% if emp.earliest_safe_entry %}
                 <div style="margin-bottom: 16px; padding: 12px; background: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b;">
                     <div style="font-size: 14px; color: #92400e; font-weight: 500;">Earliest Safe Entry</div>
-                    <div style="font-size: 13px; color: #92400e;">{{ emp.earliest_safe_entry|uk_date }}</div>
+                    <div style="font-size: 13px; color: #92400e;">{{ emp.earliest_safe_entry }}</div>
                 </div>
                 {% endif %}
                 
                 {% if emp.next_trip %}
                 <div style="margin-bottom: 16px; padding: 12px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #3b82f6;">
                     <div style="font-size: 14px; color: #1e40af; font-weight: 500;">Next Trip</div>
-                    <div style="font-size: 13px; color: #1e40af;">{{ emp.next_trip.country }} - {{ emp.next_trip.entry_date|uk_date }}</div>
+                    <div style="font-size: 13px; color: #1e40af;">{{ emp.next_trip.country }} - {{ emp.next_trip.entry_date }}</div>
                 </div>
                 {% endif %}
                 

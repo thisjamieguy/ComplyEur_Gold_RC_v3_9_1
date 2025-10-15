@@ -144,9 +144,9 @@
                 <tbody>
                     {% for trip in trips %}
                     <tr>
-                        <td style="font-weight: 500;">{{ trip.country|country_name }}</td>
-                        <td>{{ trip.entry_date|uk_date }}</td>
-                        <td>{{ trip.exit_date|uk_date }}</td>
+                        <td style="font-weight: 500;">{{ trip.country }}</td>
+                        <td>{{ trip.entry_date }}</td>
+                        <td>{{ trip.exit_date }}</td>
                         <td>{{ trip.trip_duration }} day{% if trip.trip_duration != 1 %}s{% endif %}</td>
                         <td>
                             {% if trip.overlaps_window %}
