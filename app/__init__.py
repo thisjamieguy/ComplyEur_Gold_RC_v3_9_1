@@ -4,7 +4,7 @@ import secrets
 import logging
 import traceback
 from datetime import timedelta
-from flask import Flask
+from flask import Flask, request
 from config import load_config, get_session_lifetime
 
 # Load environment variables from .env file
@@ -153,6 +153,17 @@ def create_app():
             response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
         return response
 
+    # Global error handler for 405 Method Not Allowed
+    @app.errorhandler(405)
+    def method_not_allowed(error):
+        logger.error(f"=== 405 METHOD NOT ALLOWED ===")
+        logger.error(f"URL: {request.url}")
+        logger.error(f"Method: {request.method}")
+        logger.error(f"Endpoint: {request.endpoint}")
+        logger.error(f"Available methods for this route: {error.description}")
+        logger.error(f"=== END 405 ERROR ===")
+        return f"Method {request.method} not allowed for {request.url}", 405
+
     # Upload configuration
     UPLOAD_FOLDER = 'uploads'
     ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
@@ -233,10 +244,16 @@ def create_app():
         logger.info("Importing routes module...")
         from .routes import main_bp
         logger.info("Routes module imported successfully")
-        
+
         logger.info("Registering blueprint...")
         app.register_blueprint(main_bp)
         logger.info("Blueprint registered successfully")
+
+        # Debug: Log all registered routes
+        logger.info("=== REGISTERED ROUTES ===")
+        for rule in app.url_map.iter_rules():
+            logger.info(f"Route: {rule.rule} | Methods: {list(rule.methods)} | Endpoint: {rule.endpoint}")
+        logger.info("=== END ROUTES ===")
     except Exception as e:
         logger.error(f"Failed to register routes: {e}")
         logger.error(traceback.format_exc())
