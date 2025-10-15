@@ -71,12 +71,13 @@ def get_db():
 def verify_and_upgrade_password(stored_hash, password):
     """Verify password and upgrade hash if needed"""
     try:
+        hasher = Hasher()
         # Try to verify with stored hash
-        if Hasher.verify(password, stored_hash):
+        if hasher.verify(stored_hash, password):
             # Check if we need to upgrade the hash
             if not stored_hash.startswith('$argon2'):
                 # Upgrade to argon2
-                new_hash = Hasher.hash(password)
+                new_hash = hasher.hash(password)
                 return True, new_hash
             return True, None
     except Exception:
@@ -218,7 +219,8 @@ def setup():
         password = request.form.get('password', '')
         if password:
             # Create admin account with provided password
-            password_hash = Hasher.hash(password)
+            hasher = Hasher()
+            password_hash = hasher.hash(password)
             Admin.set_password_hash(password_hash)
             return render_template('login.html', success='Admin account created successfully. Please log in.')
         else:
