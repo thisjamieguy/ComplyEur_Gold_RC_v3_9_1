@@ -574,6 +574,22 @@ def delete_all_data():
     """Delete all data"""
     return redirect(url_for('main.admin_settings'))
 
+@main_bp.route('/reset_admin_password', methods=['GET', 'POST'])
+def reset_admin_password():
+    """Emergency admin password reset - remove this route after use"""
+    if request.method == 'POST':
+        new_password = request.form.get('new_password', '')
+        if new_password and len(new_password) >= 6:
+            from .models import Admin
+            hasher = Hasher()
+            password_hash = hasher.hash(new_password)
+            Admin.set_password_hash(password_hash)
+            return render_template('login.html', success='Admin password reset successfully. Please log in with your new password.')
+        else:
+            return render_template('reset_password.html', error='Password must be at least 6 characters')
+    
+    return render_template('reset_password.html')
+
 # Error handlers
 @main_bp.errorhandler(404)
 def not_found_error(error):
