@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+
+{% block title %}What-If Scenario - EU Trip Tracker{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1 class="content-title">What-If Scenario Planner</h1>
+    <p class="content-subtitle">Test potential future trips to check compliance before scheduling them</p>
+</div>
+
+<div class="content-body">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <!-- Input Form -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Test a Scenario</h2>
+            </div>
+            <div class="card-body">
+                <form id="scenarioForm" class="what-if-form">
+                    <div class="form-group">
+                        <label for="employee_id">Employee *</label>
+                        <select id="employee_id" name="employee_id" class="form-control" required>
+                            <option value="">Select an employee...</option>
+                            {% for employee in employees %}
+                            <option value="{{ employee.id }}">{{ employee.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="country">Country *</label>
+                        <select id="country" name="country" class="form-control" required>
+                            <option value="">Select a country...</option>
+                            {% for code, name in country_codes.items() %}
+                            <option value="{{ name }}">{{ name }} ({{ code }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="start_date">Start Date *</label>
+                        <input type="date" id="start_date" name="start_date" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="end_date">End Date *</label>
+                        <input type="date" id="end_date" name="end_date" class="form-control" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        Calculate Compliance
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Scenario Results</h2>
+            </div>
+            <div class="card-body">
+                <div id="resultsContainer" style="display: none;">
+                    <div class="result-header" style="text-align: center; margin-bottom: 24px;">
+                        <div id="riskBadge" class="risk-badge" style="display: inline-block; padding: 8px 24px; border-radius: 16px; font-size: 16px; font-weight: 600; margin-bottom: 12px;"></div>
+                        <div id="employeeName" style="font-size: 18px; font-weight: 500; color: #2d3748;"></div>
+                    </div>
+
+                    <div class="result-details">
+                        <div class="result-row" style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+                            <span style="color: #718096;">Job Duration:</span>
+                            <span id="jobDuration" style="font-weight: 600; color: #2d3748;"></span>
+                        </div>
+                        <div class="result-row" style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+                            <span style="color: #718096;">Days Used (before job):</span>
+                            <span id="daysUsedBefore" style="font-weight: 600; color: #2d3748;"></span>
+                        </div>
+                        <div class="result-row" style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+                            <span style="color: #718096;">Days After Job:</span>
+                            <span id="daysAfter" style="font-weight: 600;"></span>
+                        </div>
+                        <div class="result-row" style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+                            <span style="color: #718096;">Days Remaining:</span>
+                            <span id="daysRemaining" style="font-weight: 600;"></span>
+                        </div>
+                        <div class="result-row" style="display: flex; justify-content: space-between; padding: 12px 0;">
+                            <span style="color: #718096;">Schengen Country:</span>
+                            <span id="isSchengen" style="font-weight: 600; color: #2d3748;"></span>
+                        </div>
+                    </div>
+
+                    <div id="compliantFromSection" style="display: none; margin-top: 20px; padding: 16px; background: #fee; border-left: 4px solid #c53030; border-radius: 4px;">
+                        <div style="font-weight: 600; color: #742a2a; margin-bottom: 4px;">⚠️ Non-Compliant</div>
+                        <div style="color: #742a2a; font-size: 14px;">
+                            Employee will be compliant again from: <strong id="compliantFromDate"></strong>
+                        </div>
+                    </div>
+
+                    <div id="complianceAdvice" style="margin-top: 20px; padding: 16px; border-radius: 4px;"></div>
+                </div>
+
+                <div id="placeholderMessage" style="text-align: center; padding: 40px 20px; color: #718096;">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto 16px; opacity: 0.5;">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <p>Fill in the form to test a scenario</p>
+                </div>
+
+                <div id="errorMessage" style="display: none; padding: 16px; background: #fed7d7; border-left: 4px solid #fc8181; border-radius: 4px; color: #742a2a;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Scenarios (could be stored in session) -->
+    <div class="card" style="margin-top: 24px;">
+        <div class="card-header">
+            <h2 class="card-title">Tips for Planning</h2>
+        </div>
+        <div class="card-body">
+            <ul style="color: #4a5568; line-height: 1.8;">
+                <li>The 90/180 day rule means you can spend up to 90 days in the Schengen area within any 180-day period.</li>
+                <li>The calculator considers all past trips AND other scheduled future trips before your test date.</li>
+                <li>Ireland is NOT part of the Schengen area and doesn't count toward the 90-day limit.</li>
+                <li>Green indicates safe travel (under {{ warning_threshold }} days), yellow shows approaching the limit ({{ warning_threshold }}+ days), and red means the limit would be exceeded (90+ days).</li>
+                <li>If a scenario is non-compliant, the system will show the earliest date when the trip would be compliant.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e0;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #3182ce;
+    box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+}
+
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: #2d3748;
+    font-size: 14px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: #3182ce;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2c5aa0;
+}
+
+.btn-primary:disabled {
+    background: #cbd5e0;
+    cursor: not-allowed;
+}
+
+.risk-badge {
+    transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .content-body > div {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
+
+<script>
+document.getElementById('scenarioForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = 'Calculating...';
+    
+    const formData = {
+        employee_id: document.getElementById('employee_id').value,
+        start_date: document.getElementById('start_date').value,
+        end_date: document.getElementById('end_date').value,
+        country: document.getElementById('country').value
+    };
+    
+    try {
+        const response = await fetch('{{ url_for("api_calculate_scenario") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Calculation failed');
+        }
+        
+        // Hide placeholder and error
+        document.getElementById('placeholderMessage').style.display = 'none';
+        document.getElementById('errorMessage').style.display = 'none';
+        
+        // Show results
+        document.getElementById('resultsContainer').style.display = 'block';
+        
+        // Update results
+        document.getElementById('employeeName').textContent = data.employee_name;
+        document.getElementById('jobDuration').textContent = data.job_duration + ' days';
+        document.getElementById('daysUsedBefore').textContent = data.days_used_before + ' / 90 days';
+        
+        // Color code days after
+        const daysAfterEl = document.getElementById('daysAfter');
+        daysAfterEl.textContent = data.days_after + ' / 90 days';
+        if (data.risk_level === 'red') {
+            daysAfterEl.style.color = '#c53030';
+        } else if (data.risk_level === 'yellow') {
+            daysAfterEl.style.color = '#ca8a04';
+        } else {
+            daysAfterEl.style.color = '#16a34a';
+        }
+        
+        // Color code days remaining
+        const daysRemainingEl = document.getElementById('daysRemaining');
+        daysRemainingEl.textContent = data.days_remaining + ' days';
+        if (data.days_remaining < 0) {
+            daysRemainingEl.style.color = '#c53030';
+        } else if (data.days_remaining < 10) {
+            daysRemainingEl.style.color = '#ca8a04';
+        } else {
+            daysRemainingEl.style.color = '#16a34a';
+        }
+        
+        // Risk badge
+        const riskBadge = document.getElementById('riskBadge');
+        if (data.risk_level === 'red') {
+            riskBadge.textContent = '🔴 CRITICAL - Would Exceed Limit';
+            riskBadge.style.background = '#c53030';
+            riskBadge.style.color = 'white';
+        } else if (data.risk_level === 'yellow') {
+            riskBadge.textContent = '🟡 WARNING - Approaching Limit';
+            riskBadge.style.background = '#ca8a04';
+            riskBadge.style.color = 'white';
+        } else {
+            riskBadge.textContent = '🟢 SAFE - Compliant';
+            riskBadge.style.background = '#16a34a';
+            riskBadge.style.color = 'white';
+        }
+        
+        // Schengen status
+        document.getElementById('isSchengen').textContent = data.is_schengen ? 'Yes' : 'No (Ireland)';
+        
+        // Compliant from date
+        if (data.compliant_from_date) {
+            document.getElementById('compliantFromSection').style.display = 'block';
+            document.getElementById('compliantFromDate').textContent = new Date(data.compliant_from_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        } else {
+            document.getElementById('compliantFromSection').style.display = 'none';
+        }
+        
+        // Advice
+        const adviceEl = document.getElementById('complianceAdvice');
+        if (data.risk_level === 'green') {
+            adviceEl.style.background = '#f0fdf4';
+            adviceEl.style.borderLeft = '4px solid #16a34a';
+            adviceEl.style.color = '#14532d';
+            adviceEl.innerHTML = '<strong>✓ Recommendation:</strong> This trip is safe to schedule. The employee will remain compliant with the 90/180 day rule.';
+        } else if (data.risk_level === 'yellow') {
+            adviceEl.style.background = '#fefce8';
+            adviceEl.style.borderLeft = '4px solid #ca8a04';
+            adviceEl.style.color = '#713f12';
+            adviceEl.innerHTML = '<strong>⚠️ Recommendation:</strong> Exercise caution. This trip is approaching the limit. Consider shorter duration or rescheduling if possible.';
+        } else {
+            adviceEl.style.background = '#fee';
+            adviceEl.style.borderLeft = '4px solid #c53030';
+            adviceEl.style.color = '#742a2a';
+            adviceEl.innerHTML = '<strong>❌ Recommendation:</strong> Do NOT schedule this trip. It would exceed the 90-day limit and violate EU entry requirements. Consider rescheduling to the compliant date shown above.';
+        }
+        
+    } catch (error) {
+        document.getElementById('placeholderMessage').style.display = 'none';
+        document.getElementById('resultsContainer').style.display = 'none';
+        const errorEl = document.getElementById('errorMessage');
+        errorEl.textContent = 'Error: ' + error.message;
+        errorEl.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Calculate Compliance';
+    }
+});
+
+// Set minimum date to today
+document.getElementById('start_date').min = new Date().toISOString().split('T')[0];
+document.getElementById('end_date').min = new Date().toISOString().split('T')[0];
+
+// Update end date min when start date changes
+document.getElementById('start_date').addEventListener('change', function() {
+    document.getElementById('end_date').min = this.value;
+});
+</script>
+{% endblock %}
+
+

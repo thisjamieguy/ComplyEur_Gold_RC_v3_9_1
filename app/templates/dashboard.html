@@ -86,6 +86,57 @@
     </div>
     {% endif %}
 
+    <!-- Future Compliance Alerts Summary -->
+    {% if future_alerts_red or future_alerts_yellow or future_alerts_green %}
+    <div class="card" style="border-left: 4px solid #3182ce; margin-bottom: 24px;">
+        <div class="card-header" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);">
+            <h2 class="card-title" style="color: #1e40af; display: flex; align-items: center; gap: 8px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                Future Job Compliance Forecast
+            </h2>
+            <p style="color: #1e40af; margin: 0; font-size: 14px;">
+                {{ future_alerts_red + future_alerts_yellow + future_alerts_green }} scheduled future job{{ 's' if (future_alerts_red + future_alerts_yellow + future_alerts_green) != 1 else '' }} analyzed
+            </p>
+        </div>
+        <div class="card-body" style="padding: 20px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
+                <div style="padding: 16px; background: #fee; border-left: 4px solid #c53030; border-radius: 8px;">
+                    <div style="font-size: 32px; font-weight: 700; color: #c53030; margin-bottom: 4px;">{{ future_alerts_red }}</div>
+                    <div style="color: #742a2a; font-size: 14px;">Critical (90+ days)</div>
+                </div>
+                <div style="padding: 16px; background: #fefce8; border-left: 4px solid #ca8a04; border-radius: 8px;">
+                    <div style="font-size: 32px; font-weight: 700; color: #ca8a04; margin-bottom: 4px;">{{ future_alerts_yellow }}</div>
+                    <div style="color: #713f12; font-size: 14px;">Warning (approaching limit)</div>
+                </div>
+                <div style="padding: 16px; background: #f0fdf4; border-left: 4px solid #16a34a; border-radius: 8px;">
+                    <div style="font-size: 32px; font-weight: 700; color: #16a34a; margin-bottom: 4px;">{{ future_alerts_green }}</div>
+                    <div style="color: #14532d; font-size: 14px;">Safe (compliant)</div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: center;">
+                <a href="{{ url_for('future_job_alerts') }}" class="btn btn-primary" style="background: #3182ce; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: 500;">
+                    View All Future Alerts
+                </a>
+                <a href="{{ url_for('what_if_scenario') }}" class="btn btn-outline" style="border: 2px solid #3182ce; color: #3182ce; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: 500; background: white;">
+                    Test What-If Scenario
+                </a>
+            </div>
+            {% if future_alerts_red > 0 %}
+            <div style="margin-top: 16px; padding: 12px; background: #fee; border-radius: 6px; border: 1px solid #fecaca;">
+                <p style="margin: 0; color: #991b1b; font-size: 14px;">
+                    <strong>⚠️ Action Required:</strong> {{ future_alerts_red }} future job{{ 's' if future_alerts_red != 1 else '' }} would exceed the 90-day EU limit. 
+                    Review and reschedule to ensure compliance.
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Add Employee Section -->
     <div class="card">
         <div class="card-header">
@@ -188,7 +239,9 @@
                     {% for emp in employees %}
                     <tr>
                         <td style="font-weight: 600;">
-                            {{ emp.name }}
+                            <a href="{{ url_for('employee_detail', employee_id=emp.id) }}" style="color: #3b82f6; text-decoration: none; cursor: pointer;">
+                                {{ emp.name }}
+                            </a>
                             {% if emp.earliest_safe_entry %}
                                 <br><small class="text-muted" style="font-size: 11px;" title="Earliest safe re-entry date">
                                     Safe entry: {{ emp.earliest_safe_entry|uk_date }}

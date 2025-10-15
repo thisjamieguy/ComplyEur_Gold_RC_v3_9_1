@@ -1,0 +1,116 @@
+EU TRIP TRACKER - SOFTWARE LICENSE AGREEMENT
+
+Version 1.2.0 - Production Ready
+Copyright (c) 2025. All Rights Reserved.
+
+================================================================================
+
+INTERNAL BUSINESS USE LICENSE
+
+This software ("EU Trip Tracker") is provided for internal business use only
+by authorized personnel within your organization.
+
+GRANT OF LICENSE:
+-----------------
+You are granted a non-exclusive, non-transferable license to:
+- Install and use the software on company computers
+- Make copies for backup purposes
+- Modify configuration settings for your specific needs
+- Use for tracking EU travel compliance within your organization
+
+RESTRICTIONS:
+-------------
+You may NOT:
+- Redistribute, sell, or sublicense this software
+- Use this software for commercial purposes outside your organization
+- Remove or modify copyright notices
+- Reverse engineer, decompile, or disassemble the software
+- Share access credentials with unauthorized persons
+
+DATA PRIVACY:
+-------------
+- All data is stored locally on your system
+- No data is transmitted to external servers
+- You are responsible for securing your data
+- Regular backups are recommended
+- GDPR compliance features are provided as-is
+
+SECURITY:
+---------
+- Change default passwords immediately
+- Keep Python and dependencies updated
+- Restrict physical access to the computer running this software
+- Use strong, unique passwords
+- Enable HTTPS if deploying on a network
+
+WARRANTY DISCLAIMER:
+--------------------
+THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
+
+LIMITATION OF LIABILITY:
+------------------------
+IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES,
+OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+DATA ACCURACY:
+--------------
+While this software is designed to accurately calculate EU travel compliance
+under the 90/180-day rule, users are responsible for:
+- Verifying all calculations
+- Ensuring data accuracy
+- Consulting legal advisors for compliance matters
+- Understanding current visa regulations
+
+SUPPORT:
+--------
+Support is provided through:
+- Built-in Help & Tutorial system
+- README_PRODUCTION.md documentation
+- CHANGELOG_PRODUCTION.md for updates
+- Internal IT support only
+
+UPDATES:
+--------
+- Software updates may be provided but are not guaranteed
+- Users are responsible for maintaining current versions
+- Backup your data before any updates
+
+TERMINATION:
+------------
+This license is effective until terminated. Your rights under this license
+will terminate automatically if you fail to comply with any of its terms.
+
+GOVERNING LAW:
+--------------
+This license shall be governed by the laws of the jurisdiction in which
+your organization is located.
+
+CONTACT:
+--------
+For questions about this license, contact your system administrator or
+the software provider.
+
+ACKNOWLEDGMENTS:
+----------------
+This software uses the following open-source components:
+- Flask (BSD License)
+- SQLite (Public Domain)
+- Python packages as listed in requirements.txt
+
+See individual package licenses for their respective terms.
+
+================================================================================
+
+BY USING THIS SOFTWARE, YOU ACKNOWLEDGE THAT YOU HAVE READ THIS LICENSE
+AGREEMENT, UNDERSTAND IT, AND AGREE TO BE BOUND BY ITS TERMS AND CONDITIONS.
+
+================================================================================
+
+EU Trip Tracker v1.2.0
+Internal Business Use Only
+All Rights Reserved
+

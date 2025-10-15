@@ -1,0 +1,124 @@
+================================================================================
+  EU TRIP TRACKER v1.2.0 - QUICK START GUIDE
+================================================================================
+
+FIRST TIME SETUP:
+-----------------
+1. Extract the folder to any location (Desktop, USB drive, etc.)
+2. Double-click "Run_App.bat"
+3. Wait for automatic setup (Python check, install packages, etc.)
+4. Browser will open automatically to http://localhost:5000
+5. Login with:
+   - Username: admin
+   - Password: admin123
+6. IMMEDIATELY change your password!
+
+SUBSEQUENT RUNS:
+----------------
+- Just double-click "Run_App.bat" again
+- Or use "START_APP_SIMPLE.bat" for faster startup
+
+STOPPING THE APP:
+-----------------
+- Press Ctrl+C in the terminal window
+- Or close the terminal window
+- Automatic backup will be created on shutdown
+
+DEFAULT LOGIN:
+--------------
+Username: admin
+Password: admin123
+⚠️ CHANGE THIS IMMEDIATELY!
+
+SYSTEM REQUIREMENTS:
+--------------------
+- Windows 10 or later
+- Python 3.9 or higher
+- 200 MB free disk space
+- Web browser (Chrome, Firefox, Edge)
+
+FEATURES:
+---------
+✓ Track employee EU travel (90/180 day rule)
+✓ Color-coded compliance alerts (Green/Amber/Red)
+✓ Excel import/export
+✓ Automatic backups
+✓ GDPR compliant
+✓ Fully offline
+
+BACKUP LOCATION:
+----------------
+instance/backups/
+- Auto-backup on startup (if >24 hours since last)
+- Auto-backup on shutdown
+- Manual backup available in Admin Settings
+
+KEY PAGES:
+----------
+- Dashboard: View all employees and compliance status
+- Add Trips: Bulk add trips to multiple employees
+- Import Data: Upload Excel files
+- Calendar: Visual timeline of all trips
+- Future Job Alerts: See upcoming compliance issues
+- Admin Settings: Configure retention, thresholds, etc.
+- Privacy Tools: DSAR exports, data deletion
+- Help: Complete tutorial and FAQ
+
+TROUBLESHOOTING:
+----------------
+Q: Python not installed?
+A: Install Python 3.9+ from https://www.python.org/downloads/
+   Make sure to check "Add Python to PATH"
+
+Q: Port already in use?
+A: Edit .env file and change PORT=5001
+
+Q: Can't login?
+A: Use default: admin/admin123
+   If changed and forgotten, delete eu_tracker.db (⚠️ loses data)
+
+Q: Browser doesn't open?
+A: Manually go to: http://localhost:5000
+
+EXCEL IMPORT FORMAT:
+--------------------
+Column A: Employee Name
+Column B: Country Code (FR, DE, IT, etc.)
+Column C: Entry Date (YYYY-MM-DD)
+Column D: Exit Date (YYYY-MM-DD)
+
+COMPLIANCE COLORS:
+------------------
+🟢 Green: 30+ days remaining (Safe)
+🟡 Amber: 10-29 days remaining (Caution)
+🔴 Red: <10 days remaining (At Risk)
+
+FILES YOU CAN DELETE:
+---------------------
+- instance/backups/* (old backups)
+- instance/exports/* (old exports)
+- instance/logs/* (old audit logs)
+- uploads/* (uploaded Excel files)
+
+⚠️ DO NOT DELETE:
+- eu_tracker.db (your main database!)
+- .env file (your configuration)
+- venv/ folder (Python packages)
+
+DATA LOCATION:
+--------------
+Main Database: eu_tracker.db
+Backups: instance/backups/
+Exports: instance/exports/
+Logs: instance/logs/audit.log
+
+SUPPORT:
+--------
+See README_PRODUCTION.md for complete documentation
+See CHANGELOG_PRODUCTION.md for all improvements
+Click "Help & Tutorial" in the app sidebar
+
+================================================================================
+  🇪🇺 EU Trip Tracker - Built for Compliance & Security
+================================================================================
+

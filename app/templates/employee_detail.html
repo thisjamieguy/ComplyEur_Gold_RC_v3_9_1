@@ -250,20 +250,25 @@
         
         {% if trips %}
         <div class="table-container">
-            <table class="table">
+            <table class="table" id="tripHistoryTable">
                 <thead>
                     <tr>
                         <th>Country</th>
-                        <th>Entry Date</th>
-                        <th>Exit Date</th>
+                        <th class="sortable" onclick="sortTripTable('entry_date')" data-tooltip="Click to sort by entry date">
+                            Entry Date <span class="sort-arrow" id="entryDateArrow">▼</span>
+                        </th>
+                        <th class="sortable" onclick="sortTripTable('exit_date')" data-tooltip="Click to sort by exit date">
+                            Exit Date <span class="sort-arrow" id="exitDateArrow">▼</span>
+                        </th>
                         <th>Duration</th>
                         <th>Status</th>
+                        <th>Days Remaining</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="tripTableBody">
                     {% for trip in trips %}
-                    <tr>
+                    <tr data-trip-id="{{ trip.id }}">
                         <td style="font-weight: 500;">
                             {{ trip.country|country_name }}
                             {% if trip.country|is_ireland %}
@@ -288,9 +293,46 @@
                                 <span class="status-badge status-warning">Current</span>
                             {% else %}
                                 <span class="status-badge" style="background: #f0f9ff; color: #1e40af;">Future</span>
+                                {% if trip.forecast %}
+                                    <br>
+                                    <span class="forecast-risk-badge" style="display: inline-block; margin-top: 6px; padding: 4px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; {% if trip.forecast.risk_level == 'red' %}background: #c53030; color: white;{% elif trip.forecast.risk_level == 'yellow' %}background: #ca8a04; color: white;{% else %}background: #16a34a; color: white;{% endif %}" title="Days at job start: {{ trip.forecast.days_after_job }} / 90">
+                                        {% if trip.forecast.risk_level == 'red' %}
+                                            🔴 {{ trip.forecast.days_after_job }}/90
+                                        {% elif trip.forecast.risk_level == 'yellow' %}
+                                            🟡 {{ trip.forecast.days_after_job }}/90
+                                        {% else %}
+                                            🟢 {{ trip.forecast.days_after_job }}/90
+                                        {% endif %}
+                                    </span>
+                                {% endif %}
                             {% endif %}
                         </td>
                         <td>
+                            <span class="days-remaining-badge" style="
+                                display: inline-block; 
+                                padding: 6px 12px; 
+                                border-radius: 12px; 
+                                font-size: 12px; 
+                                font-weight: 600;
+                                {% if trip.risk_level_after == 'green' %}
+                                    background: #d1fae5; color: #065f46;
+                                {% elif trip.risk_level_after == 'amber' %}
+                                    background: #fef3c7; color: #92400e;
+                                {% else %}
+                                    background: #fee2e2; color: #991b1b;
+                                {% endif %}
+                            ">
+                                {{ trip.days_remaining_after }} days
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="openEditModal({{ trip.id }})" style="margin-right: 8px;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                                Edit
+                            </button>
                             <form method="POST" action="{{ url_for('delete_trip', trip_id=trip.id) }}" style="display: inline;">
                                 <input type="hidden" name="employee_id" value="{{ employee.id }}">
                                 <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this trip?')">
@@ -304,11 +346,23 @@
                         </td>
                     </tr>
                     {% if trip.validation_note %}
-                    <tr>
-                        <td colspan="6" style="background: #fffbeb; padding: 8px 16px; border-left: 4px solid #f59e0b;">
+                    <tr class="validation-note-row" data-parent-trip="{{ trip.id }}">
+                        <td colspan="7" style="background: #fffbeb; padding: 8px 16px; border-left: 4px solid #f59e0b;">
                             <small style="color: #92400e;">
                                 <strong>Override Reason:</strong> {{ trip.validation_note }}
                             </small>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% if trip.status == 'future' and trip.forecast and not trip.forecast.is_compliant %}
+                    <tr class="forecast-details-row" data-parent-trip="{{ trip.id }}">
+                        <td colspan="7" style="background: {% if trip.forecast.risk_level == 'red' %}#fee{% elif trip.forecast.risk_level == 'yellow' %}#fefce8{% else %}#f0fdf4{% endif %}; padding: 12px 16px; border-left: 4px solid {% if trip.forecast.risk_level == 'red' %}#c53030{% elif trip.forecast.risk_level == 'yellow' %}#ca8a04{% else %}#16a34a{% endif %};">
+                            <div style="color: {% if trip.forecast.risk_level == 'red' %}#742a2a{% elif trip.forecast.risk_level == 'yellow' %}#713f12{% else %}#14532d{% endif %};">
+                                <strong>⚠️ Compliance Warning:</strong> This trip would result in {{ trip.forecast.days_after_job }} days used (limit: 90 days).
+                                {% if trip.forecast.compliant_from_date %}
+                                <br><strong>Employee will be compliant again from:</strong> {{ trip.forecast.compliant_from_date.strftime('%B %d, %Y') }}
+                                {% endif %}
+                            </div>
                         </td>
                     </tr>
                     {% endif %}
@@ -323,11 +377,180 @@
         </div>
         {% endif %}
     </div>
+
+    <!-- Edit Trip Modal -->
+    <div id="editTripModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Trip</h3>
+            </div>
+            <form id="editTripForm">
+                <input type="hidden" id="edit_trip_id" name="trip_id">
+                
+                <div class="form-group">
+                    <label class="form-label">Country</label>
+                    <select id="edit_country" name="country" class="form-input" required>
+                        <option value="AT">🇦🇹 Austria</option>
+                        <option value="BE">🇧🇪 Belgium</option>
+                        <option value="BG">🇧🇬 Bulgaria</option>
+                        <option value="HR">🇭🇷 Croatia</option>
+                        <option value="CY">🇨🇾 Cyprus</option>
+                        <option value="CZ">🇨🇿 Czech Republic</option>
+                        <option value="DK">🇩🇰 Denmark</option>
+                        <option value="EE">🇪🇪 Estonia</option>
+                        <option value="FI">🇫🇮 Finland</option>
+                        <option value="FR">🇫🇷 France</option>
+                        <option value="DE">🇩🇪 Germany</option>
+                        <option value="GR">🇬🇷 Greece</option>
+                        <option value="HU">🇭🇺 Hungary</option>
+                        <option value="IS">🇮🇸 Iceland</option>
+                        <option value="IE">🇮🇪 Ireland</option>
+                        <option value="IT">🇮🇹 Italy</option>
+                        <option value="LV">🇱🇻 Latvia</option>
+                        <option value="LI">🇱🇮 Liechtenstein</option>
+                        <option value="LT">🇱🇹 Lithuania</option>
+                        <option value="LU">🇱🇺 Luxembourg</option>
+                        <option value="MT">🇲🇹 Malta</option>
+                        <option value="NL">🇳🇱 Netherlands</option>
+                        <option value="NO">🇳🇴 Norway</option>
+                        <option value="PL">🇵🇱 Poland</option>
+                        <option value="PT">🇵🇹 Portugal</option>
+                        <option value="RO">🇷🇴 Romania</option>
+                        <option value="SK">🇸🇰 Slovakia</option>
+                        <option value="SI">🇸🇮 Slovenia</option>
+                        <option value="ES">🇪🇸 Spain</option>
+                        <option value="SE">🇸🇪 Sweden</option>
+                        <option value="CH">🇨🇭 Switzerland</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Entry Date</label>
+                    <input type="date" id="edit_entry_date" name="entry_date" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Exit Date</label>
+                    <input type="date" id="edit_exit_date" name="exit_date" class="form-input" required>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('editTripModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+// Trip Table Sorting Functionality
+let currentSortColumn = localStorage.getItem('tripTableSortColumn') || 'entry_date';
+let currentSortDirection = localStorage.getItem('tripTableSortDirection') || 'asc';
+
+function parseDDMMYYYY(dateStr) {
+    // Parse DD-MM-YYYY format to a comparable Date object
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return new Date(0);
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1; // Months are 0-indexed
+    const year = parseInt(parts[2], 10);
+    return new Date(year, month, day);
+}
+
+function sortTripTable(column) {
+    const tbody = document.getElementById('tripTableBody');
+    const tripRows = Array.from(tbody.querySelectorAll('tr[data-trip-id]'));
+    
+    // Toggle sort direction if clicking the same column
+    if (currentSortColumn === column) {
+        currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+        currentSortColumn = column;
+        currentSortDirection = 'asc';
+    }
+    
+    // Save sort state to localStorage
+    localStorage.setItem('tripTableSortColumn', currentSortColumn);
+    localStorage.setItem('tripTableSortDirection', currentSortDirection);
+    
+    // Get column index for sorting
+    const columnIndex = column === 'entry_date' ? 1 : 2;
+    
+    // Sort the trip rows
+    tripRows.sort((a, b) => {
+        const aCell = a.cells[columnIndex];
+        const bCell = b.cells[columnIndex];
+        
+        if (!aCell || !bCell) return 0;
+        
+        const aText = aCell.textContent.trim();
+        const bText = bCell.textContent.trim();
+        
+        const aDate = parseDDMMYYYY(aText);
+        const bDate = parseDDMMYYYY(bText);
+        
+        if (currentSortDirection === 'asc') {
+            return aDate - bDate;
+        } else {
+            return bDate - aDate;
+        }
+    });
+    
+    // Update arrow indicators
+    document.querySelectorAll('.sort-arrow').forEach(arrow => {
+        arrow.classList.remove('active');
+        arrow.textContent = '▼';
+    });
+    
+    const activeHeader = document.querySelector(`th[onclick="sortTripTable('${column}')"]`);
+    const activeArrow = activeHeader.querySelector('.sort-arrow');
+    activeArrow.classList.add('active');
+    activeArrow.textContent = currentSortDirection === 'asc' ? '▲' : '▼';
+    
+    // Fade out effect
+    tbody.style.opacity = '0.3';
+    tbody.style.transition = 'opacity 0.2s ease';
+    
+    // Reorder rows with animation
+    setTimeout(() => {
+        // Clear tbody
+        tbody.innerHTML = '';
+        
+        // Re-append sorted rows with their associated validation notes
+        tripRows.forEach(tripRow => {
+            const tripId = tripRow.getAttribute('data-trip-id');
+            tbody.appendChild(tripRow);
+            
+            // Find and append any validation note row that belongs to this trip
+            const validationRow = document.querySelector(`.validation-note-row[data-parent-trip="${tripId}"]`);
+            if (validationRow) {
+                tbody.appendChild(validationRow);
+            }
+        });
+        
+        // Fade back in
+        tbody.style.opacity = '1';
+    }, 200);
+}
+
+// Initialize table with saved sort on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Give the page a moment to fully render, then apply saved sort
+    setTimeout(() => {
+        // First, reset all arrows to inactive state
+        document.querySelectorAll('.sort-arrow').forEach(arrow => {
+            arrow.classList.remove('active');
+            arrow.textContent = '▼';
+        });
+        
+        // Then apply the saved sort which will update the correct arrow
+        sortTripTable(currentSortColumn);
+    }, 100);
+});
+
 // Country dropdown functionality
 function toggleDropdown(dropdownId) {
     const dropdown = document.getElementById(dropdownId);
@@ -443,9 +666,67 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('planEntryDate').value = tomorrow.toISOString().split('T')[0];
     document.getElementById('planExitDate').value = nextWeek.toISOString().split('T')[0];
 });
+
+// Edit Trip Modal functionality
+function openEditModal(tripId) {
+    fetch(`/get_trip/${tripId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Error loading trip data: ' + data.error);
+                return;
+            }
+            
+            document.getElementById('edit_trip_id').value = data.id;
+            document.getElementById('edit_country').value = data.country;
+            document.getElementById('edit_entry_date').value = data.entry_date;
+            document.getElementById('edit_exit_date').value = data.exit_date;
+            
+            openModal('editTripModal');
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('Error loading trip data');
+        });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const editForm = document.getElementById('editTripForm');
+    if (editForm) {
+        editForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const tripId = document.getElementById('edit_trip_id').value;
+            const updatedData = {
+                country: document.getElementById('edit_country').value,
+                entry_date: document.getElementById('edit_entry_date').value,
+                exit_date: document.getElementById('edit_exit_date').value,
+            };
+            
+            try {
+                const response = await fetch(`/edit_trip/${tripId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedData)
+                });
+                
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    const data = await response.json();
+                    alert('Error saving changes: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error saving changes');
+            }
+        });
+    }
+});
 </script>
 
 <style>
+/* Dropdown Styles */
 .dropdown-container { position: relative; }
 .dropdown-input {
     width: 100%;
@@ -501,6 +782,94 @@ document.addEventListener('DOMContentLoaded', function() {
     color: #6b7280;
     pointer-events: none;
     font-size: 12px;
+}
+
+/* Sortable Table Styles */
+.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.sortable:hover {
+    background-color: #f9fafb;
+    color: #f97316;
+}
+
+.sort-arrow {
+    display: inline-block;
+    margin-left: 6px;
+    font-size: 12px;
+    color: #9ca3af;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.sort-arrow.active {
+    color: #f97316;
+    font-weight: bold;
+    transform: scale(1.2);
+}
+
+.sortable:hover .sort-arrow {
+    color: #f97316;
+}
+
+/* Smooth row transitions */
+#tripTableBody tr {
+    transition: all 0.3s ease;
+}
+
+/* Tooltip styling for sortable headers */
+.sortable[data-tooltip] {
+    position: relative;
+}
+
+.sortable[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    background: #1f2937;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
+    opacity: 0;
+    animation: fadeInTooltip 0.2s ease forwards;
+}
+
+.sortable[data-tooltip]:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-2px);
+    border: 5px solid transparent;
+    border-top-color: #1f2937;
+    z-index: 1000;
+    opacity: 0;
+    animation: fadeInTooltip 0.2s ease forwards;
+}
+
+@keyframes fadeInTooltip {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(-8px);
+    }
+}
+
+/* Add subtle highlight to sorted column */
+.sortable.active-sort {
+    background-color: #fef3c7;
 }
 </style>
 {% endblock %}

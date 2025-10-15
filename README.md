@@ -1,107 +1,162 @@
-# EU Trip Tracker
+# EU 90/180 Employee Travel Tracker
 
-A Flask-based web application for managing EU travel compliance under the Schengen Area's 90/180-day rule.
-
-## Overview
-
-The EU Trip Tracker helps organizations monitor employee travel to ensure compliance with the Schengen Area visa-free travel limits. The system tracks trips, calculates rolling 90-day periods within 180-day windows, and provides risk alerts for employees approaching or exceeding limits.
+A Flask web application for tracking employee travel to EU/Schengen countries and ensuring compliance with the 90/180-day rule.
 
 ## Features
 
-- 📊 **Trip Management**: Add, edit, and track employee trips across EU countries
-- 📈 **Risk Dashboard**: Real-time compliance status with color-coded risk levels
-- 📅 **Rolling 90-Day Calculation**: Automatic calculation of days used within sliding 180-day windows
-- 🔒 **Security & Privacy**: GDPR-compliant with data retention policies and audit logging
-- 📥 **Excel Import/Export**: Bulk upload travel schedules via Excel files
-- 📄 **PDF Reports**: Generate compliance reports for individual employees or entire teams
-- 🌍 **EU Entry Requirements**: Built-in reference for visa and passport requirements
-- ✅ **Trip Validator**: Prevents overlapping trips and validates date ranges
+- **Employee Management**: Add and manage employee records
+- **Trip Tracking**: Record and track EU/Schengen trips with entry/exit dates
+- **Compliance Monitoring**: Real-time calculation of days used and remaining in the 90/180-day rolling window
+- **Risk Assessment**: Color-coded risk levels (green/amber/red) based on remaining days
+- **Calendar View**: Visual calendar showing trip history and future compliance dates
+- **Data Export**: Export trip data to CSV and generate PDF reports
+- **GDPR Compliance**: Built-in data retention and DSAR (Data Subject Access Request) tools
+- **Security**: Secure authentication, audit logging, and session management
 
-## Setup Instructions
+## Quick Start
 
-### Prerequisites
+### Local Development
 
-- Python 3.9 or higher
-- pip (Python package manager)
-
-### Installation
-
-1. Clone the repository:
+1. **Clone the repository**
    ```bash
    git clone <repository-url>
    cd eu-trip-tracker
    ```
 
-2. Install dependencies:
+2. **Install dependencies**
    ```bash
    pip install -r requirements.txt
    ```
 
-3. Configure environment variables:
+3. **Set up environment variables**
    ```bash
-   cp env_template.txt .env
-   # Edit .env and set your SECRET_KEY and ADMIN_PASSWORD
+   cp .env.example .env
+   # Edit .env with your configuration
    ```
 
-4. Initialize the database:
+4. **Run the application**
    ```bash
    python app.py
-   # Database will be created automatically on first run
    ```
 
-## How to Run
+5. **Access the application**
+   Open your browser to `http://localhost:5000`
 
-### Development Mode
+### Production Deployment on Render
 
-```bash
-python app.py
+1. **Connect your GitHub repository to Render**
+2. **Create a new Web Service**
+3. **Configure build settings:**
+   - Build Command: `pip install -r requirements.txt`
+   - Start Command: `gunicorn app:app`
+4. **Set environment variables:**
+   - `SECRET_KEY`: A secure random string
+   - `DATABASE_PATH`: `data/eu_tracker.db` (or your preferred path)
+   - `SESSION_COOKIE_SECURE`: `true` (for HTTPS)
+5. **Deploy**
+
+## Configuration
+
+### Environment Variables
+
+- `SECRET_KEY`: Flask secret key for sessions (required)
+- `DATABASE_PATH`: Path to SQLite database file (default: `data/eu_tracker.db`)
+- `SESSION_COOKIE_SECURE`: Enable secure cookies for HTTPS (default: `false`)
+
+### Application Settings
+
+The application includes configurable settings accessible through the admin panel:
+
+- **Data Retention**: Configure how long to keep employee data
+- **Session Timeout**: Set automatic logout timeout
+- **Risk Thresholds**: Customize green/amber/red risk levels
+- **Future Job Warnings**: Set threshold for future job compliance alerts
+
+## Database Schema
+
+### Employees Table
+- `id`: Primary key
+- `name`: Employee full name
+- `created_at`: Timestamp
+
+### Trips Table
+- `id`: Primary key
+- `employee_id`: Foreign key to employees
+- `country`: EU/Schengen country code
+- `entry_date`: Date of entry
+- `exit_date`: Date of exit
+- `purpose`: Trip purpose (optional)
+- `created_at`: Timestamp
+
+### Admin Table
+- `id`: Primary key (always 1)
+- `password_hash`: Hashed admin password
+- `created_at`: Timestamp
+
+## API Endpoints
+
+### Authentication
+- `GET /login` - Login page
+- `POST /login` - Authenticate user
+- `GET /logout` - Logout user
+
+### Main Application
+- `GET /dashboard` - Main dashboard
+- `GET /employee/<id>` - Employee detail page
+- `POST /add_employee` - Add new employee
+- `POST /add_trip` - Add new trip
+- `POST /delete_trip/<id>` - Delete trip
+
+### API Endpoints
+- `GET /api/entry-requirements` - Get EU entry requirements data
+- `POST /api/entry-requirements/reload` - Reload entry requirements
+
+## Security Features
+
+- **Password Hashing**: Uses Argon2 for secure password storage
+- **Session Security**: HTTPOnly cookies, secure flags, session timeout
+- **Rate Limiting**: Login attempt rate limiting
+- **Security Headers**: XSS protection, content type options, frame options
+- **Audit Logging**: Comprehensive audit trail for all actions
+- **Data Retention**: Automatic purging of expired data
+- **GDPR Compliance**: DSAR tools and data anonymization
+
+## Development
+
+### Project Structure
+
+```
+├── app/
+│   ├── __init__.py          # Flask app factory
+│   ├── routes.py            # Route definitions
+│   ├── models.py            # Database models
+│   ├── services/            # Business logic services
+│   ├── templates/           # Jinja2 templates
+│   └── static/              # Static assets (CSS, JS, images)
+├── data/                    # Data files and database
+├── config.py                # Configuration management
+├── requirements.txt         # Python dependencies
+├── Procfile                 # Render deployment config
+├── runtime.txt              # Python version
+└── README.md               # This file
 ```
 
-The application will start at `http://127.0.0.1:5003` (default port)
+### Services
 
-### Production Deployment
-
-1. Set `FLASK_ENV=production` in your `.env` file
-2. Configure a production WSGI server (gunicorn, uWSGI, etc.)
-3. Enable HTTPS and set `SESSION_COOKIE_SECURE=True`
-
-See `/docs/DEPLOYMENT_CHECKLIST.md` for detailed production setup instructions.
-
-## Documentation
-
-Comprehensive documentation is available in the `/docs` folder:
-
-- **SETUP_GUIDE.md** - Detailed setup and configuration
-- **DEPLOYMENT_CHECKLIST.md** - Production deployment guide
-- **COMPLIANCE.md** - GDPR compliance features
-- **IMPORT_SYSTEM_README.md** - Excel import instructions
-- **SECURITY_REVIEW_SUMMARY.md** - Security features overview
-
-## Project Structure
-
-```
-eu-trip-tracker/
-├── app.py                 # Main Flask application
-├── config.py              # Configuration loader
-├── requirements.txt       # Python dependencies
-├── modules/               # Service modules
-│   └── app/services/      # Business logic (rolling90, exports, etc.)
-├── templates/             # Jinja2 HTML templates
-├── static/                # CSS, JavaScript, images
-├── data/                  # JSON data files
-├── docs/                  # Project documentation
-└── tests/                 # Unit tests
-```
+- **hashing.py**: Password hashing utilities
+- **audit.py**: Audit logging functionality
+- **rolling90.py**: 90/180-day rule calculations
+- **trip_validator.py**: Trip data validation
+- **exports.py**: Data export functionality
+- **compliance_forecast.py**: Future compliance forecasting
+- **dsar.py**: GDPR data subject access requests
+- **retention.py**: Data retention and anonymization
+- **backup.py**: Database backup functionality
 
 ## License
 
-This project is for internal use. All rights reserved.
-
-## Author
-
-Developed for EU travel compliance management.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Support
 
-For questions or issues, please refer to the documentation in `/docs` or contact the system administrator.
-
+For support and questions, please refer to the help section within the application or contact the development team.

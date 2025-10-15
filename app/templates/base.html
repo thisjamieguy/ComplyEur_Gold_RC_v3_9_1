@@ -81,7 +81,25 @@
                     <span>Calendar</span>
                 </a>
                 
-                <!-- TEMPORARY TEST LINK - REMOVE WHEN TESTING COMPLETE -->
+                <a href="{{ url_for('future_job_alerts') }}" class="nav-item {% if request.endpoint == 'future_job_alerts' %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <span>Future Job Alerts</span>
+                </a>
+                
+                <a href="{{ url_for('what_if_scenario') }}" class="nav-item {% if request.endpoint == 'what_if_scenario' %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <span>What-If Scenario</span>
+                </a>
+                
+                <!-- Test Overview Link - Disabled for Production
                 <a href="{{ url_for('test_overview.test_overview') }}" class="nav-item {% if request.endpoint == 'test_overview.test_overview' %}active{% endif %}" style="background: #fef3c7; border-left: 3px solid #f59e0b;">
                     <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
@@ -89,7 +107,7 @@
                     </svg>
                     <span>🧪 Test Overview</span>
                 </a>
-                <!-- END TEMPORARY TEST LINK -->
+                -->
                 
                 <div class="nav-item" style="margin-top: 16px; padding: 8px 16px; color: #9ca3af; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
                     <span>Administration</span>

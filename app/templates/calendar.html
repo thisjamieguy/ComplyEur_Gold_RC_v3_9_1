@@ -285,7 +285,11 @@ function renderTimeline() {
     `;
     timeline.appendChild(todayLabel);
     
-    // Draw trips
+    // Create a single trip lane for linear display
+    const tripLaneY = 120;
+    const tripLaneHeight = 25;
+    
+    // Draw trips in a linear fashion
     trips.forEach((trip, index) => {
         const tripStart = new Date(trip.entry_date);
         const tripEnd = new Date(trip.exit_date);
@@ -301,50 +305,139 @@ function renderTimeline() {
             color = '#6366f1'; // Future trips (purple)
         }
         
+        // Create trip container for better organization
+        const tripContainer = document.createElement('div');
+        tripContainer.style.cssText = `
+            position: absolute;
+            left: ${startX}px;
+            top: ${tripLaneY}px;
+            width: ${tripWidth}px;
+            height: ${tripLaneHeight}px;
+        `;
+        
         const tripRect = document.createElement('div');
         tripRect.style.cssText = `
             position: absolute;
-            left: ${startX}px;
-            top: ${120 + (index * 25)}px;
-            width: ${tripWidth}px;
+            left: 0;
+            top: 0;
+            width: 100%;
             height: 20px;
             background: ${color};
             border-radius: 3px;
             cursor: pointer;
             transition: all 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.3);
         `;
-        
-        tripRect.addEventListener('mouseenter', function() {
-            this.style.transform = 'scaleY(1.2)';
-            this.style.zIndex = '5';
-        });
-        
-        tripRect.addEventListener('mouseleave', function() {
-            this.style.transform = 'scaleY(1)';
-            this.style.zIndex = '1';
-        });
-        
-        timeline.appendChild(tripRect);
         
         // Add trip label
         const tripLabel = document.createElement('div');
         tripLabel.textContent = `${trip.country} (${trip.trip_duration}d)`;
         tripLabel.style.cssText = `
             position: absolute;
-            left: ${startX}px;
-            top: ${145 + (index * 25)}px;
+            left: 0;
+            top: 20px;
             font-size: 11px;
             color: #6b7280;
             white-space: nowrap;
             max-width: ${tripWidth}px;
             overflow: hidden;
             text-overflow: ellipsis;
+            padding: 1px 2px;
         `;
-        timeline.appendChild(tripLabel);
         
-        // Add tooltip
-        tripRect.title = `${trip.country}\n${trip.entry_date} to ${trip.exit_date}\nDuration: ${trip.trip_duration} days\nDays in window: ${trip.days_in_window}`;
+        // Enhanced hover effects and tooltip
+        let tooltip = null;
+        
+        tripRect.addEventListener('mouseenter', function() {
+            this.style.transform = 'scaleY(1.3) translateY(-1px)';
+            this.style.zIndex = '10';
+            this.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+            
+            // Create detailed tooltip
+            tooltip = document.createElement('div');
+            tooltip.style.cssText = `
+                position: absolute;
+                left: ${Math.max(0, startX - 50)}px;
+                top: ${tripLaneY - 80}px;
+                background: #1f2937;
+                color: white;
+                padding: 12px;
+                border-radius: 8px;
+                font-size: 12px;
+                line-height: 1.4;
+                z-index: 20;
+                min-width: 200px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                border: 1px solid #374151;
+            `;
+            
+            // Calculate remaining days for this trip
+            const tripExitDate = new Date(trip.exit_date);
+            const daysAfterTrip = calculateDaysAfterTrip(trip, trips);
+            const remainingDays = 90 - daysAfterTrip;
+            
+            let riskColor = '#10b981'; // green
+            if (remainingDays < 10) riskColor = '#ef4444'; // red
+            else if (remainingDays < 30) riskColor = '#f59e0b'; // amber
+            
+            tooltip.innerHTML = `
+                <div style="font-weight: 600; margin-bottom: 8px; color: ${color};">${trip.country}</div>
+                <div style="margin-bottom: 4px;">📅 <strong>${trip.entry_date}</strong> to <strong>${trip.exit_date}</strong></div>
+                <div style="margin-bottom: 4px;">⏱️ <strong>${trip.trip_duration}</strong> days duration</div>
+                <div style="margin-bottom: 4px;">📊 <strong>${trip.days_in_window}</strong> days in 180-day window</div>
+                <div style="margin-bottom: 4px;">📈 <strong>${daysAfterTrip}</strong> total days after trip</div>
+                <div style="margin-bottom: 0; color: ${riskColor}; font-weight: 600;">🎯 <strong>${remainingDays}</strong> days remaining</div>
+            `;
+            
+            timeline.appendChild(tooltip);
+        });
+        
+        tripRect.addEventListener('mouseleave', function() {
+            this.style.transform = 'scaleY(1) translateY(0)';
+            this.style.zIndex = '1';
+            this.style.boxShadow = 'none';
+            
+            if (tooltip) {
+                tooltip.remove();
+                tooltip = null;
+            }
+        });
+        
+        tripContainer.appendChild(tripRect);
+        tripContainer.appendChild(tripLabel);
+        timeline.appendChild(tripContainer);
     });
+    
+    // Function to calculate days after a specific trip
+    function calculateDaysAfterTrip(targetTrip, allTrips) {
+        const targetExitDate = new Date(targetTrip.exit_date);
+        
+        // Get all trips that end on or before this trip's exit date
+        const relevantTrips = allTrips.filter(trip => 
+            new Date(trip.exit_date) <= targetExitDate
+        );
+        
+        // Calculate 180-day window from target exit date
+        const windowStart = new Date(targetExitDate);
+        windowStart.setDate(windowStart.getDate() - 179);
+        
+        // Count days in the 180-day window
+        let daysUsed = 0;
+        relevantTrips.forEach(trip => {
+            const tripStart = new Date(trip.entry_date);
+            const tripEnd = new Date(trip.exit_date);
+            
+            // Check if trip overlaps with the 180-day window
+            if (tripEnd >= windowStart && tripStart <= targetExitDate) {
+                const effectiveStart = new Date(Math.max(tripStart, windowStart));
+                const effectiveEnd = new Date(Math.min(tripEnd, targetExitDate));
+                const overlapDays = Math.ceil((effectiveEnd - effectiveStart) / (1000 * 60 * 60 * 24)) + 1;
+                daysUsed += overlapDays;
+            }
+        });
+        
+        return daysUsed;
+    }
     
     // Add month markers
     let currentDate = new Date(timelineStart);

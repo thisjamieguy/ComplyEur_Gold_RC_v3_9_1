@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Future Job Alerts - EU Trip Tracker{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1 class="content-title">Future Job Compliance Alerts</h1>
+    <p class="content-subtitle">Forecast compliance issues for scheduled future jobs based on the 90/180 day rolling window</p>
+</div>
+
+<div class="content-body">
+    <!-- Summary Cards -->
+    <div class="alert-summary-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div class="summary-card" style="background: #fee; border-left: 4px solid #c53030; padding: 16px; border-radius: 8px;">
+            <div style="font-size: 32px; font-weight: 700; color: #c53030;">{{ red_count }}</div>
+            <div style="color: #742a2a; font-size: 14px; margin-top: 4px;">Critical (90+ days)</div>
+        </div>
+        <div class="summary-card" style="background: #fefce8; border-left: 4px solid #ca8a04; padding: 16px; border-radius: 8px;">
+            <div style="font-size: 32px; font-weight: 700; color: #ca8a04;">{{ yellow_count }}</div>
+            <div style="color: #713f12; font-size: 14px; margin-top: 4px;">Warning ({{ warning_threshold }}+ days)</div>
+        </div>
+        <div class="summary-card" style="background: #f0fdf4; border-left: 4px solid #16a34a; padding: 16px; border-radius: 8px;">
+            <div style="font-size: 32px; font-weight: 700; color: #16a34a;">{{ green_count }}</div>
+            <div style="color: #14532d; font-size: 14px; margin-top: 4px;">Safe (&lt;{{ warning_threshold }} days)</div>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="alert-controls" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <div>
+                <label style="font-size: 13px; color: #666; display: block; margin-bottom: 4px;">Filter by Risk:</label>
+                <select id="riskFilter" onchange="filterAlerts()" style="padding: 8px 12px; border: 1px solid #cbd5e0; border-radius: 4px;">
+                    <option value="all" {% if risk_filter == 'all' %}selected{% endif %}>All Levels</option>
+                    <option value="red" {% if risk_filter == 'red' %}selected{% endif %}>🔴 Critical Only</option>
+                    <option value="yellow" {% if risk_filter == 'yellow' %}selected{% endif %}>🟡 Warning Only</option>
+                    <option value="green" {% if risk_filter == 'green' %}selected{% endif %}>🟢 Safe Only</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-size: 13px; color: #666; display: block; margin-bottom: 4px;">Sort by:</label>
+                <select id="sortBy" onchange="sortAlerts()" style="padding: 8px 12px; border: 1px solid #cbd5e0; border-radius: 4px;">
+                    <option value="risk" {% if sort_by == 'risk' %}selected{% endif %}>Risk Level</option>
+                    <option value="date" {% if sort_by == 'date' %}selected{% endif %}>Date</option>
+                    <option value="employee" {% if sort_by == 'employee' %}selected{% endif %}>Employee Name</option>
+                    <option value="days" {% if sort_by == 'days' %}selected{% endif %}>Days Used</option>
+                </select>
+            </div>
+        </div>
+        <a href="{{ url_for('export_future_alerts') }}" class="btn btn-primary" style="padding: 8px 16px; background: #3182ce; color: white; text-decoration: none; border-radius: 4px; display: inline-flex; align-items: center; gap: 8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Export to Excel
+        </a>
+    </div>
+
+    <!-- Alerts Table -->
+    {% if forecasts %}
+    <div class="card">
+        <div class="table-container" style="overflow-x: auto;">
+            <table class="alerts-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f7fafc; border-bottom: 2px solid #e2e8f0;">
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: #2d3748;">Risk</th>
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: #2d3748;">Employee</th>
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: #2d3748;">Job Dates</th>
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: #2d3748;">Country</th>
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: #2d3748;">Duration</th>
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: #2d3748;">Days Used (at start)</th>
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: #2d3748;">Days After Job</th>
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: #2d3748;">Days Remaining</th>
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: #2d3748;">Compliant From</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for forecast in forecasts %}
+                    <tr class="forecast-row" style="border-bottom: 1px solid #e2e8f0; {% if forecast.risk_level == 'red' %}background: #fee;{% elif forecast.risk_level == 'yellow' %}background: #fefce8;{% else %}background: #f0fdf4;{% endif %}">
+                        <td style="padding: 12px;">
+                            <div class="risk-badge risk-{{ forecast.risk_level }}" style="display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; {% if forecast.risk_level == 'red' %}background: #c53030; color: white;{% elif forecast.risk_level == 'yellow' %}background: #ca8a04; color: white;{% else %}background: #16a34a; color: white;{% endif %}">
+                                {% if forecast.risk_level == 'red' %}🔴 CRITICAL{% elif forecast.risk_level == 'yellow' %}🟡 WARNING{% else %}🟢 SAFE{% endif %}
+                            </div>
+                        </td>
+                        <td style="padding: 12px;">
+                            <a href="{{ url_for('employee_detail', employee_id=forecast.employee_id) }}" style="color: #3182ce; text-decoration: none; font-weight: 500;">
+                                {{ forecast.employee_name }}
+                            </a>
+                        </td>
+                        <td style="padding: 12px; font-size: 14px;">
+                            {{ forecast.job_start_date.strftime('%b %d, %Y') }} - {{ forecast.job_end_date.strftime('%b %d, %Y') }}
+                        </td>
+                        <td style="padding: 12px;">{{ forecast.job.country }}</td>
+                        <td style="padding: 12px; text-align: center;">{{ forecast.job_duration }} days</td>
+                        <td style="padding: 12px; text-align: center;" class="tooltip-trigger">
+                            <span>{{ forecast.days_used_before_job }}</span>
+                            <div class="forecast-tooltip" style="display: none; position: absolute; background: #2d3748; color: white; padding: 12px; border-radius: 8px; font-size: 13px; z-index: 1000; min-width: 250px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                                <div style="font-weight: 600; margin-bottom: 8px;">Details for {{ forecast.job_start_date.strftime('%b %d, %Y') }}</div>
+                                <div>Days in 180-day window: <strong>{{ forecast.days_used_before_job }}</strong></div>
+                                <div>Job duration: <strong>{{ forecast.job_duration }}</strong> days</div>
+                                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #4a5568;">
+                                    Total after job: <strong>{{ forecast.days_after_job }}</strong> / 90 days
+                                </div>
+                                {% if forecast.trips_in_window %}
+                                <div style="margin-top: 8px; font-size: 12px; color: #cbd5e0;">
+                                    Contributing trips: {{ forecast.trips_in_window|length }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td style="padding: 12px; text-align: center; font-weight: 600; {% if forecast.days_after_job >= 90 %}color: #c53030;{% elif forecast.days_after_job >= warning_threshold %}color: #ca8a04;{% else %}color: #16a34a;{% endif %}">
+                            {{ forecast.days_after_job }}
+                        </td>
+                        <td style="padding: 12px; text-align: center; {% if forecast.days_remaining_after_job < 0 %}color: #c53030; font-weight: 600;{% endif %}">
+                            {{ forecast.days_remaining_after_job }}
+                        </td>
+                        <td style="padding: 12px;">
+                            {% if forecast.compliant_from_date %}
+                                <span style="color: #c53030; font-weight: 500;">{{ forecast.compliant_from_date.strftime('%b %d, %Y') }}</span>
+                            {% else %}
+                                <span style="color: #16a34a;">✓ Compliant</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="card" style="padding: 40px; text-align: center; color: #718096;">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto 16px;">
+            <path d="M9 11l3 3L22 4"></path>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+        </svg>
+        <h3 style="margin-bottom: 8px; color: #2d3748;">No Future Jobs Scheduled</h3>
+        <p>There are no future trips scheduled in the system.</p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.tooltip-trigger {
+    position: relative;
+    cursor: help;
+}
+
+.tooltip-trigger:hover .forecast-tooltip {
+    display: block !important;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary {
+    background: #3182ce;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2c5aa0;
+}
+
+.alerts-table tbody tr:hover {
+    filter: brightness(0.95);
+}
+
+.forecast-row {
+    transition: all 0.2s ease;
+}
+</style>
+
+<script>
+function filterAlerts() {
+    const filter = document.getElementById('riskFilter').value;
+    const sort = document.getElementById('sortBy').value;
+    window.location.href = `{{ url_for('future_job_alerts') }}?risk=${filter}&sort=${sort}`;
+}
+
+function sortAlerts() {
+    const filter = document.getElementById('riskFilter').value;
+    const sort = document.getElementById('sortBy').value;
+    window.location.href = `{{ url_for('future_job_alerts') }}?risk=${filter}&sort=${sort}`;
+}
+</script>
+{% endblock %}
+
+

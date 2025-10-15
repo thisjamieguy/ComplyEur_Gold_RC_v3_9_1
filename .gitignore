@@ -1,41 +1,104 @@
-# macOS
-.DS_Store
-
-# Python / Flask
+# Python
 __pycache__/
 *.py[cod]
-*.egg-info/
-*.log
-*.tmp
-dist/
-build/
-instance/
-uploads/
-testenv/
-.venv/
-venv/
-.env
-.env.*
+*$py.class
+*.so
+.Python
 
-# Editor / IDE
+# Virtual Environment
+venv/
+env/
+ENV/
+testenv/
+
+# Flask
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment Variables
+.env
+.env.local
+
+# IDE
 .vscode/
 .idea/
-.cursor/
+*.swp
+*.swo
+*~
+.DS_Store
 
-# System
-Thumbs.db
-*.sqlite
-*.sqlite-journal
-*.db
-
-# Sensitive files
-cookies.txt
-
-# Backups / Exports
-backups/
-exports/
+# Logs
+*.log
 logs/
+instance/logs/
 
-# Test artifacts
+# Backups
+instance/backups/
+*.db.backup
+
+# Uploads and Exports
+uploads/
+exports/
+instance/exports/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Testing
+.pytest_cache/
 .coverage
-pytest_cache/
+htmlcov/
+.tox/
+
+# Distribution / packaging
+*.zip
+*.tar.gz
+
+# Compiled cityscapes
+generate_cityscapes.py
+
+# Sensitive data
+cookies.txt
+settings.json
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Node modules (for hubspot-ui)
+hubspot-ui/node_modules/
+
+# Don't commit actual database
+eu_tracker.db
+data/eu_tracker.db
+
+# Production files
+.env
+.env.local
+.env.production
+
+# Cleanup artifacts
+app_backup.py
+original_app.py
