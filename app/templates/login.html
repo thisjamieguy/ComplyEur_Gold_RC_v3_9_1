@@ -13,6 +13,10 @@
         <div class="error-message">{{ error }}</div>
         {% endif %}
         
+        {% if success %}
+        <div class="success-message">{{ success }}</div>
+        {% endif %}
+        
         <form method="POST">
             <div class="form-group">
                 <label class="form-label" for="password">Admin Password</label>

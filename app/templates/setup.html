@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% set is_login_page = true %}
+
+{% block title %}Setup - EU Trip Tracker{% endblock %}
+
+{% block login_content %}
+<div class="login-page">
+    <div class="login-container">
+        <h1 class="login-title">🇪🇺 EU Trip Tracker</h1>
+        <p class="login-subtitle">First-Time Setup</p>
+        
+        {% if error %}
+        <div class="error-message">{{ error }}</div>
+        {% endif %}
+        
+        <form method="POST">
+            <div class="form-group">
+                <label class="form-label" for="password">Create Admin Password</label>
+                <input type="password" id="password" name="password" class="form-input" required autofocus 
+                       placeholder="Enter a secure password">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 16px; font-size: 16px;">Create Admin Account</button>
+        </form>
+        
+        <div class="card" style="margin-top: 24px; background: #f0f9ff; border-left: 4px solid #3b82f6;">
+            <div style="font-size: 14px; color: #1e40af;">
+                <strong style="color: #3b82f6; font-weight: 600;">Setup Instructions:</strong><br>
+                1. Choose a strong password (12+ characters recommended)<br>
+                2. This will create your admin account<br>
+                3. You can change the password later in settings
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -186,7 +186,7 @@ def login():
         admin = c.fetchone()
         if not admin:
             conn.close()
-            return render_template('login.html', error='Setup incomplete')
+            return redirect(url_for('main.setup'))
         ok, new_hash = verify_and_upgrade_password(admin['password_hash'], password)
         if ok:
             if new_hash:
@@ -204,6 +204,27 @@ def login():
         write_audit(CONFIG['AUDIT_LOG_PATH'], 'login_failure', 'admin', {'ip': ip})
         return render_template('login.html', error='Invalid password')
     return render_template('login.html')
+
+@main_bp.route('/setup', methods=['GET', 'POST'])
+def setup():
+    """First-time setup to create admin account"""
+    from .models import Admin
+    
+    # Check if admin already exists
+    if Admin.exists():
+        return redirect(url_for('main.login'))
+    
+    if request.method == 'POST':
+        password = request.form.get('password', '')
+        if password:
+            # Create admin account with provided password
+            password_hash = Hasher.hash(password)
+            Admin.set_password_hash(password_hash)
+            return render_template('login.html', success='Admin account created successfully. Please log in.')
+        else:
+            return render_template('setup.html', error='Password is required')
+    
+    return render_template('setup.html')
 
 @main_bp.route('/logout')
 def logout():
