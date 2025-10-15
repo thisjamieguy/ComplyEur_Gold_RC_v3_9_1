@@ -1,6 +1,8 @@
 import os
 import json
 import secrets
+import logging
+import traceback
 from datetime import timedelta
 from flask import Flask
 from config import load_config, get_session_lifetime
@@ -10,46 +12,98 @@ APP_VERSION = "1.4.0 - Production Ready"
 
 def create_app():
     """Application factory pattern"""
-    app = Flask(__name__, static_folder='static', template_folder='templates')
+    # Configure logging
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler('logs/app.log'),
+            logging.StreamHandler()
+        ]
+    )
+    logger = logging.getLogger(__name__)
+    
+    try:
+        logger.info("Starting application initialization...")
+        app = Flask(__name__, static_folder='static', template_folder='templates')
+        logger.info("Flask app created successfully")
+    except Exception as e:
+        logger.error(f"Failed to create Flask app: {e}")
+        logger.error(traceback.format_exc())
+        raise
     
     # Load EU Entry Requirements data at startup
     EU_ENTRY_DATA = []
     try:
+        logger.info("Loading EU entry requirements data...")
         data_file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'eu_entry_requirements.json')
+        logger.info(f"Looking for data file at: {data_file_path}")
         with open(data_file_path, 'r', encoding='utf-8') as f:
             EU_ENTRY_DATA = json.load(f)
+        logger.info(f"✓ Loaded {len(EU_ENTRY_DATA)} EU entry requirements")
         print(f"✓ Loaded {len(EU_ENTRY_DATA)} EU entry requirements")
     except Exception as e:
+        logger.error(f"Failed to load EU entry requirements data: {e}")
+        logger.error(traceback.format_exc())
         print(f"Warning: Could not load EU entry requirements data: {e}")
 
     # Secure secret key from environment variable
-    SECRET_KEY = os.getenv('SECRET_KEY')
-    if not SECRET_KEY or SECRET_KEY == 'your-secret-key-here-change-this-to-a-random-64-character-hex-string':
-        # Generate a secure random key if not set
-        SECRET_KEY = secrets.token_hex(32)
-        print("\n" + "="*70)
-        print("WARNING: No SECRET_KEY found in .env file!")
-        print("Using a temporary key. Add this to your .env file:")
-        print(f"SECRET_KEY={SECRET_KEY}")
-        print("="*70 + "\n")
+    try:
+        logger.info("Setting up secret key...")
+        SECRET_KEY = os.getenv('SECRET_KEY')
+        if not SECRET_KEY or SECRET_KEY == 'your-secret-key-here-change-this-to-a-random-64-character-hex-string':
+            # Generate a secure random key if not set
+            SECRET_KEY = secrets.token_hex(32)
+            logger.warning("No SECRET_KEY found in environment, generating temporary key")
+            print("\n" + "="*70)
+            print("WARNING: No SECRET_KEY found in .env file!")
+            print("Using a temporary key. Add this to your .env file:")
+            print(f"SECRET_KEY={SECRET_KEY}")
+            print("="*70 + "\n")
 
-    app.secret_key = SECRET_KEY
-    CONFIG = load_config()
+        app.secret_key = SECRET_KEY
+        logger.info("Secret key configured successfully")
+        
+        logger.info("Loading configuration...")
+        CONFIG = load_config()
+        logger.info("Configuration loaded successfully")
+    except Exception as e:
+        logger.error(f"Failed to setup secret key or load config: {e}")
+        logger.error(traceback.format_exc())
+        raise
 
     # Configure database
-    DATABASE = os.path.join(os.path.dirname(__file__), '..', os.getenv('DATABASE_PATH', 'data/eu_tracker.db'))
-
-    # Initialize database tables
-    from .models import init_db
     try:
+        logger.info("Configuring database...")
+        DATABASE = os.path.join(os.path.dirname(__file__), '..', os.getenv('DATABASE_PATH', 'data/eu_tracker.db'))
+        logger.info(f"Database path: {DATABASE}")
+        
+        # Check if database directory exists
+        db_dir = os.path.dirname(DATABASE)
+        if not os.path.exists(db_dir):
+            logger.info(f"Creating database directory: {db_dir}")
+            os.makedirs(db_dir, exist_ok=True)
+
+        # Initialize database tables
+        logger.info("Importing models module...")
+        from .models import init_db
+        logger.info("Models module imported successfully")
+        
         # Set the database path in app config before calling init_db
         app.config['DATABASE'] = DATABASE
+        logger.info("Database path set in app config")
+        
         # Initialize database within app context
+        logger.info("Initializing database tables...")
         with app.app_context():
             init_db()
+        logger.info("✓ Database initialized successfully")
         print("✓ Database initialized successfully")
     except Exception as e:
+        logger.error(f"Failed to initialize database: {e}")
+        logger.error(traceback.format_exc())
         print(f"Warning: Could not initialize database: {e}")
+        # Don't raise here, let the app continue with limited functionality
 
     # Make version and CSRF token available to all templates
     @app.context_processor
@@ -132,8 +186,44 @@ def create_app():
     app.config['COUNTRY_CODE_MAPPING'] = COUNTRY_CODE_MAPPING
     app.config['ALLOWED_EXTENSIONS'] = ALLOWED_EXTENSIONS
 
-    # Register blueprints
-    from .routes import main_bp
-    app.register_blueprint(main_bp)
+    # Add custom template filters
+    @app.template_filter('country_name')
+    def country_name_filter(country_code):
+        """Convert country code to full country name"""
+        return COUNTRY_CODE_MAPPING.get(country_code, country_code)
+    
+    @app.template_filter('uk_date')
+    def uk_date_filter(date_str):
+        """Convert date string to UK format (DD/MM/YYYY)"""
+        if not date_str:
+            return ''
+        try:
+            from datetime import datetime
+            if isinstance(date_str, str):
+                # Try different date formats
+                for fmt in ['%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y']:
+                    try:
+                        date_obj = datetime.strptime(date_str, fmt)
+                        return date_obj.strftime('%d/%m/%Y')
+                    except ValueError:
+                        continue
+            return str(date_str)
+        except Exception:
+            return str(date_str)
 
+    # Register blueprints
+    try:
+        logger.info("Importing routes module...")
+        from .routes import main_bp
+        logger.info("Routes module imported successfully")
+        
+        logger.info("Registering blueprint...")
+        app.register_blueprint(main_bp)
+        logger.info("Blueprint registered successfully")
+    except Exception as e:
+        logger.error(f"Failed to register routes: {e}")
+        logger.error(traceback.format_exc())
+        raise
+
+    logger.info("Application initialization completed successfully")
     return app
