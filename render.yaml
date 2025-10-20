@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: eu-trip-tracker
+    env: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.6
+      - key: DATABASE_PATH
+        value: /var/data/eu_tracker.db
+      - key: LOG_LEVEL
+        value: INFO
+      - key: PERSISTENT_DIR
+        value: /var/data
+      - key: AUDIT_LOG_PATH
+        value: logs/audit.log
+      - key: EXPORT_DIR
+        value: exports
+      - key: BACKUP_DIR
+        value: /var/data/backups
+    disks:
+      - name: data
+        mountPath: /var/data
+        sizeGB: 1

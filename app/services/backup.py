@@ -10,8 +10,14 @@ from pathlib import Path
 
 
 def get_backup_dir():
-    """Get or create backup directory"""
-    backup_dir = Path(__file__).parent.parent.parent.parent / 'instance' / 'backups'
+    """Get or create backup directory (persistent)."""
+    # Prefer BACKUP_DIR env, else co-locate under DB directory
+    backup_dir_env = os.getenv('BACKUP_DIR')
+    if backup_dir_env:
+        backup_dir = Path(backup_dir_env).expanduser().resolve()
+    else:
+        db_path = os.getenv('DATABASE_PATH', str(Path(__file__).resolve().parents[2] / 'data' / 'eu_tracker.db'))
+        backup_dir = Path(db_path).resolve().parent / 'backups'
     backup_dir.mkdir(parents=True, exist_ok=True)
     return backup_dir
 

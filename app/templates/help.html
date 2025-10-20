@@ -386,7 +386,7 @@
             </div>
             <div class="help-section-content {% if section.expanded %}active{% endif %}">
                 <div class="help-section-body">
-                    {{ section.content|replace('\n\n', '</p><p>')|replace('\n', '<br>')|safe }}
+                    {{ section.content|e|replace('\n\n', '</p><p>')|replace('\n', '<br>')|safe }}
                 </div>
             </div>
         </div>

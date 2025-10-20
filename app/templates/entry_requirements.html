@@ -709,7 +709,7 @@
              data-etias="{{ country.etias_status|lower }}">
             
             <!-- Card Header with City Photo Background -->
-            <div class="card-header-banner" style="background-image: url('/static/cities/{{ country.country|lower|replace(' ', '-') }}.jpg');">
+            <div class="card-header-banner" style="background-image: url('{{ url_for('static', filename='images/cityscapes/' + (country.country|lower|replace(' ', '-') ) + '.webp') }}');">
                 <div class="card-header-content">
                     <div class="country-name-header">
                         <span class="country-flag">
@@ -862,9 +862,6 @@ const flagEmojis = {
 
 // Modal Functions
 function showCountryDetails(button) {
-    console.log('🚀 showCountryDetails() called with button:', button);
-    console.log('🔍 Button element:', button);
-    console.log('🔍 Button tagName:', button.tagName);
     
     
     const card = button.closest('.country-card');
@@ -872,17 +869,14 @@ function showCountryDetails(button) {
         console.error('❌ Could not find country card');
         return;
     }
-    console.log('✅ Found country card:', card);
     
     // Get country data from individual data attributes instead of JSON
     const countryName = card.dataset.country;
     const isSchengen = card.dataset.schengen === 'yes';
     
-    console.log('Country:', countryName); // Debug log
     
     // Get flag emoji from flagEmojis map using country name
     const flagEmoji = flagEmojis[countryName.toLowerCase()] || '🇪🇺';
-    console.log('🏳️ Using flag:', flagEmoji, 'for country:', countryName);
     
     // Get text content from the card with error handling
     const shortStayElement = card.querySelector('.summary-item:nth-child(1) .summary-value');
@@ -893,7 +887,6 @@ function showCountryDetails(button) {
     const etiasStatus = etiasElement ? etiasElement.textContent.trim() : 'Unknown';
     const eesStatus = eesElement ? eesElement.textContent.trim() : 'Unknown';
     
-    console.log('📊 Data extracted:', { shortStayRule, etiasStatus, eesStatus });
     
     // Try to get notes for HR if it exists
     let notesForHR = '';
@@ -909,7 +902,6 @@ function showCountryDetails(button) {
     const modalCountryName = document.getElementById('modalCountryName');
     const modalSchengenStatus = document.getElementById('modalSchengenStatus');
     
-    console.log('🔍 Modal elements found:', { modal, modalBody, modalHeader, modalFlag, modalCountryName, modalSchengenStatus });
     
     if (!modal) {
         console.error('❌ Modal overlay not found!');
@@ -919,7 +911,7 @@ function showCountryDetails(button) {
     // Set header background image
     const countrySlug = countryName.toLowerCase().replace(/\s+/g, '-');
     if (modalHeader) {
-        modalHeader.style.backgroundImage = `url('/static/cities/${countrySlug}.jpg')`;
+        modalHeader.style.backgroundImage = `url('${"{{ url_for('static', filename='images/cityscapes/') }}"}${countrySlug}.webp')`;
     }
     
     // Set header content with error handling
@@ -974,24 +966,19 @@ function showCountryDetails(button) {
         modalBody.innerHTML = modalContent;
     }
     
-    console.log('📦 Modal content populated');
     
     // Show modal with animation
     modal.style.display = 'flex';
-    console.log('👁️ Modal display set to flex');
     
     setTimeout(() => {
         modal.classList.add('active');
-        console.log('✨ Modal active class added');
     }, 10);
     
     // Prevent body scroll when modal is open
     document.body.style.overflow = 'hidden';
-    console.log('🎉 Modal should be visible now!');
 }
 
 function closeCountryModal() {
-    console.log('🚪 closeCountryModal() called');
     const modal = document.getElementById('modalOverlay');
     if (!modal) {
         console.error('❌ Modal not found');
@@ -1007,54 +994,35 @@ function closeCountryModal() {
     // Force display none after transition
     setTimeout(() => {
         modal.style.display = 'none';
-        console.log('🎉 Modal closed and hidden');
     }, 300);
     
     // Re-enable body scroll immediately
     document.body.style.overflow = '';
-    console.log('✅ Body scroll restored');
 }
 
 // Make closeCountryModal explicitly global (for inline onclick)
 window.closeCountryModal = closeCountryModal;
-console.log('✅ closeCountryModal added to window object:', window.closeCountryModal);
 
 // ULTRA DEBUG: Test immediate call
-console.log('🧪 Testing closeCountryModal now:', typeof closeCountryModal);
-console.log('🧪 Window has closeCountryModal?', 'closeCountryModal' in window);
 
 // DEBUG HELPER: Manual test function
 window.testCloseModal = function() {
-    console.log('🧪 TEST: Manually calling closeCountryModal...');
     closeCountryModal();
 };
-console.log('💡 TIP: Type window.testCloseModal() in console to test closing');
 
 // GLOBAL CLICK DEBUGGER - catches all clicks
-document.addEventListener('click', function(e) {
-    console.log('🖱️  GLOBAL CLICK detected on:', e.target);
-    console.log('   - Tag:', e.target.tagName);
-    console.log('   - Classes:', e.target.className);
-    console.log('   - ID:', e.target.id);
-    if (e.target.classList.contains('modal-close') || e.target.closest('.modal-close')) {
-        console.log('🎯 CLICK WAS ON CLOSE BUTTON OR ITS CHILD!');
-    }
-}, true); // Capture phase
+document.addEventListener('click', function(e) {}, true);
 
 // Set up button listeners when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🔧 DOMContentLoaded fired - Setting up modal buttons...');
-    console.log('🔍 Testing closeCountryModal availability:', typeof window.closeCountryModal);
     
     const buttons = document.querySelectorAll('.more-info-btn');
-    console.log('📊 Found', buttons.length, 'more-info buttons');
     
     // Add click listeners to all buttons
     buttons.forEach((button, index) => {
         button.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('🔵 More Info button clicked');
             showCountryDetails(this);
         });
     });
@@ -1062,38 +1030,26 @@ document.addEventListener('DOMContentLoaded', function() {
     // CRITICAL: Direct event listener on close button (primary method)
     const closeButton = document.querySelector('.modal-close');
     if (closeButton) {
-        console.log('✅ Close button found:', closeButton);
-        console.log('📍 Close button onclick:', closeButton.onclick);
-        console.log('📍 Close button getAttribute onclick:', closeButton.getAttribute('onclick'));
         
         // Remove inline onclick to prevent conflicts
         closeButton.removeAttribute('onclick');
-        console.log('🗑️ Removed inline onclick attribute');
         
         // Add direct click handler
         closeButton.addEventListener('click', function(e) {
-            console.log('🔴 CLOSE BUTTON CLICKED! Event:', e);
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
-            console.log('🚪 Calling closeCountryModal...');
             closeCountryModal();
         }, true); // Use capture phase
-        
-        console.log('✅ Direct click handler attached to close button');
     } else {
-        console.error('❌ Close button not found in DOM!');
+        // If no close button, ignore
     }
-    
-    console.log('✅ All button listeners attached');
     
     // Close modal on background click
     const modalOverlay = document.getElementById('modalOverlay');
     if (modalOverlay) {
         modalOverlay.addEventListener('click', function(e) {
-            console.log('📍 Modal overlay clicked, target:', e.target, 'this:', this);
             if (e.target === this) {
-                console.log('✅ Background clicked, closing modal');
                 closeCountryModal();
             }
         });
@@ -1102,7 +1058,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Close modal on ESC key
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' || e.key === 'Esc') {
-            console.log('⌨️  ESC key pressed, closing modal');
             closeCountryModal();
         }
     });

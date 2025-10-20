@@ -32,7 +32,8 @@ def export_trips_csv(db_path: str, employee_id: int = None) -> str:
     if employee_id:
         c.execute('''
             SELECT employees.name, trips.country, trips.entry_date, 
-                   trips.exit_date, trips.travel_days
+                   trips.exit_date,
+                   CAST(julianday(trips.exit_date) - julianday(trips.entry_date) + 1 AS INTEGER) AS travel_days
             FROM trips
             JOIN employees ON trips.employee_id = employees.id
             WHERE trips.employee_id = ?
@@ -41,7 +42,8 @@ def export_trips_csv(db_path: str, employee_id: int = None) -> str:
     else:
         c.execute('''
             SELECT employees.name, trips.country, trips.entry_date, 
-                   trips.exit_date, trips.travel_days
+                   trips.exit_date,
+                   CAST(julianday(trips.exit_date) - julianday(trips.entry_date) + 1 AS INTEGER) AS travel_days
             FROM trips
             JOIN employees ON trips.employee_id = employees.id
             ORDER BY employees.name, trips.entry_date DESC
@@ -65,7 +67,7 @@ def export_trips_csv(db_path: str, employee_id: int = None) -> str:
             row['country'],
             row['entry_date'],
             row['exit_date'],
-            row['travel_days'] or 0,
+            int(row['travel_days'] or 0),
             schengen_status
         ])
     

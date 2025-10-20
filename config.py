@@ -22,10 +22,31 @@ SETTINGS_FILE = os.path.join(os.path.dirname(__file__), 'settings.json')
 
 
 def ensure_directories(config: dict) -> None:
-    exports_dir = os.path.abspath(config.get('DSAR_EXPORT_DIR', DEFAULTS['DSAR_EXPORT_DIR']))
-    logs_path = os.path.abspath(config.get('AUDIT_LOG_PATH', DEFAULTS['AUDIT_LOG_PATH']))
+    # Determine persistent base directory (prefer PERSISTENT_DIR, else next to DB)
+    db_path_env = os.getenv('DATABASE_PATH', 'data/eu_tracker.db')
+    persistent_base = os.path.abspath(
+        os.getenv('PERSISTENT_DIR', os.path.dirname(os.path.abspath(db_path_env)))
+    )
+
+    # Resolve exports directory: ENV > config > default; make absolute under persistent_base if relative
+    exports_env = os.getenv('EXPORT_DIR')
+    exports_dir = exports_env or config.get('DSAR_EXPORT_DIR', DEFAULTS['DSAR_EXPORT_DIR'])
+    if not os.path.isabs(exports_dir):
+        exports_dir = os.path.join(persistent_base, exports_dir)
+    exports_dir = os.path.abspath(exports_dir)
+    config['DSAR_EXPORT_DIR'] = exports_dir
+
+    # Resolve audit log path: ENV > config > default; make absolute under persistent_base if relative
+    audit_env = os.getenv('AUDIT_LOG_PATH')
+    logs_path = audit_env or config.get('AUDIT_LOG_PATH', DEFAULTS['AUDIT_LOG_PATH'])
+    if not os.path.isabs(logs_path):
+        logs_path = os.path.join(persistent_base, logs_path)
+    logs_path = os.path.abspath(logs_path)
+    config['AUDIT_LOG_PATH'] = logs_path
+
     logs_dir = os.path.dirname(logs_path)
     compliance_dir = os.path.join(os.path.dirname(__file__), 'compliance')
+
     os.makedirs(exports_dir, exist_ok=True)
     os.makedirs(logs_dir, exist_ok=True)
     os.makedirs(compliance_dir, exist_ok=True)
