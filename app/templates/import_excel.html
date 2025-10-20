@@ -27,7 +27,7 @@
         <div class="card">
             <div class="card-header">
                 <h2 class="card-title">Upload File</h2>
-                <form method="POST" action="#" onsubmit="return confirm('WARNING: This will delete ALL employees and trips from the database. This action cannot be undone. Are you sure you want to continue?');" style="margin-left: auto;">
+                <form method="POST" action="{{ url_for('main.delete_all_data') }}" onsubmit="return confirm('WARNING: This will delete ALL employees and trips from the database. This action cannot be undone. Are you sure you want to continue?');" style="margin-left: auto;">
                     <button type="submit" class="btn btn-outline" style="color: #dc2626; border-color: #dc2626;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="3,6 5,6 21,6"></polyline>
@@ -187,8 +187,8 @@
                             <tr>
                                 <td>{{ t.employee }}</td>
                                 <td>{{ t.country }}</td>
-                                <td>{{ t.entry_date }}</td>
-                                <td>{{ t.exit_date }}</td>
+                                <td>{{ t.entry_date|format_date }}</td>
+                                <td>{{ t.exit_date|format_date }}</td>
                                 <td>{{ t.travel_days }}</td>
                                 <td>{{ t.total_days }}</td>
                             </tr>
@@ -245,9 +245,9 @@ function sortImportedTrips() {
         
         // Handle date sorting
         if (sortBy === 'entry_date' || sortBy === 'exit_date') {
-            // Convert DD/MM/YYYY to comparable format
+            // Convert DD-MM-YYYY to comparable format
             const parseDate = (dateStr) => {
-                const parts = dateStr.split('/');
+                const parts = dateStr.split('-');
                 if (parts.length === 3) {
                     return new Date(parts[2], parts[1] - 1, parts[0]);
                 }

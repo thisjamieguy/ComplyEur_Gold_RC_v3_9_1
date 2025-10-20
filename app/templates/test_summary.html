@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Trip Summary Test Page - EU Trip Tracker{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <h1 class="content-title">Trip Summary Test Page</h1>
+            <p class="content-subtitle">Temporary page for verifying trip data accuracy and calculations</p>
+            <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px; margin-top: 12px;">
+                <p style="color: #92400e; margin: 0; font-size: 14px;">
+                    <strong>⚠️ Development Only:</strong> This page is for testing purposes only. 
+                    It can be disabled by setting TEST_MODE=False in config.py
+                </p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                </svg>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="content-body">
+    <!-- Employee Selection -->
+    <div class="card">
+        <div style="padding: 20px;">
+            <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600;">Select Employee</h3>
+            <form method="GET" action="{{ url_for('main.test_summary') }}">
+                <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                    <select name="employee_id" onchange="this.form.submit()" style="min-width: 250px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                        <option value="">Choose an employee...</option>
+                        {% for employee in employees %}
+                            <option value="{{ employee.id }}" {% if selected_employee and employee.id == selected_employee.id %}selected{% endif %}>
+                                {{ employee.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    {% if selected_employee %}
+                        <span style="color: #6b7280; font-size: 14px;">
+                            Selected: <strong>{{ selected_employee.name }}</strong>
+                        </span>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if selected_employee %}
+        <!-- Trip Summary -->
+        <div class="card">
+            <div style="padding: 20px;">
+                <h3 style="margin: 0 0 20px 0; font-size: 18px; font-weight: 600;">
+                    Trip Breakdown for {{ selected_employee.name }}
+                </h3>
+                
+                {% if trips %}
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Trip ID</th>
+                                    <th>Country</th>
+                                    <th>Entry Date</th>
+                                    <th>Exit Date</th>
+                                    <th>Purpose</th>
+                                    <th>Total Days</th>
+                                    <th>Travel Days</th>
+                                    <th>Working Days</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for trip in trips %}
+                                <tr>
+                                    <td style="font-family: monospace; font-size: 13px; color: #6b7280;">
+                                        #{{ trip.id }}
+                                    </td>
+                                    <td style="font-weight: 500;">
+                                        {{ trip.country }}
+                                        {% if trip.is_schengen %}
+                                            <span class="badge" style="background: #10b981; color: white; margin-left: 8px; font-size: 11px; padding: 2px 6px; border-radius: 4px;">Schengen</span>
+                                        {% else %}
+                                            <span class="badge" style="background: #6b7280; color: white; margin-left: 8px; font-size: 11px; padding: 2px 6px; border-radius: 4px;">Non-Schengen</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ trip.entry_date|format_date }}</td>
+                                    <td>{{ trip.exit_date|format_date }}</td>
+                                    <td>
+                                        {% if trip.purpose %}
+                                            {{ trip.purpose }}
+                                        {% else %}
+                                            <span style="color: #9ca3af; font-style: italic;">Not specified</span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="text-align: center; font-weight: 600;">
+                                        {{ trip.total_days }}
+                                    </td>
+                                    <td style="text-align: center;">
+                                        {% if trip.travel_days > 0 %}
+                                            <span style="color: #f59e0b; font-weight: 500;">{{ trip.travel_days }}</span>
+                                        {% else %}
+                                            <span style="color: #9ca3af;">0</span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="text-align: center;">
+                                        {% if trip.working_days > 0 %}
+                                            <span style="color: #10b981; font-weight: 500;">{{ trip.working_days }}</span>
+                                        {% else %}
+                                            <span style="color: #9ca3af;">0</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot style="background: #f9fafb; border-top: 2px solid #e5e7eb;">
+                                <tr style="font-weight: 600;">
+                                    <td colspan="5" style="text-align: right; padding: 12px 16px;">
+                                        <strong>Totals:</strong>
+                                    </td>
+                                    <td style="text-align: center; padding: 12px 16px; color: #1f2937;">
+                                        {{ totals.total_days }}
+                                    </td>
+                                    <td style="text-align: center; padding: 12px 16px; color: #f59e0b;">
+                                        {{ totals.travel_days }}
+                                    </td>
+                                    <td style="text-align: center; padding: 12px 16px; color: #10b981;">
+                                        {{ totals.working_days }}
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    
+                    <!-- Summary Stats -->
+                    <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                        <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 16px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 700; color: #0369a1; margin-bottom: 4px;">
+                                {{ trips|length }}
+                            </div>
+                            <div style="color: #0369a1; font-size: 14px; font-weight: 500;">
+                                Total Trips
+                            </div>
+                        </div>
+                        
+                        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 700; color: #16a34a; margin-bottom: 4px;">
+                                {{ totals.total_days }}
+                            </div>
+                            <div style="color: #16a34a; font-size: 14px; font-weight: 500;">
+                                Total Days
+                            </div>
+                        </div>
+                        
+                        <div style="background: #fffbeb; border: 1px solid #fed7aa; border-radius: 8px; padding: 16px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 700; color: #ea580c; margin-bottom: 4px;">
+                                {{ totals.travel_days }}
+                            </div>
+                            <div style="color: #ea580c; font-size: 14px; font-weight: 500;">
+                                Travel Days
+                            </div>
+                        </div>
+                        
+                        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 700; color: #16a34a; margin-bottom: 4px;">
+                                {{ totals.working_days }}
+                            </div>
+                            <div style="color: #16a34a; font-size: 14px; font-weight: 500;">
+                                Working Days
+                            </div>
+                        </div>
+                    </div>
+                    
+                {% else %}
+                    <!-- Empty State -->
+                    <div style="text-align: center; padding: 40px 20px;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
+                        <h4 style="color: #6b7280; margin: 0 0 8px 0;">No trips found</h4>
+                        <p style="color: #9ca3af; margin: 0;">This employee has no trip records in the database.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <!-- No Employee Selected State -->
+        <div class="card">
+            <div style="padding: 40px 20px; text-align: center;">
+                <div style="font-size: 48px; margin-bottom: 16px;">👤</div>
+                <h4 style="color: #6b7280; margin: 0 0 8px 0;">Select an employee</h4>
+                <p style="color: #9ca3af; margin: 0;">Choose an employee from the dropdown above to view their trip breakdown.</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+

@@ -85,8 +85,8 @@
                     <tr>
                         <td style="font-weight: 500;">{{ trip.employee_name }}</td>
                         <td>{{ trip.country }}</td>
-                        <td>{{ trip.entry_date }}</td>
-                        <td>{{ trip.exit_date }}</td>
+                        <td>{{ trip.entry_date|format_date }}</td>
+                        <td>{{ trip.exit_date|format_date }}</td>
                         <td>{{ trip.duration }} day{% if trip.duration != 1 %}s{% endif %}</td>
                         <td class="text-center">{{ trip.row }}</td>
                     </tr>

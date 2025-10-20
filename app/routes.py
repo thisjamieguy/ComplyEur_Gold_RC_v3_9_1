@@ -185,6 +185,21 @@ def allowed_file(filename):
 def index():
     return redirect(url_for('main.login'))
 
+@main_bp.route('/healthz')
+def healthz():
+    return jsonify({'status': 'ok'}), 200
+
+@main_bp.route('/api/version')
+def api_version():
+    from flask import current_app
+    version = current_app.config.get('APP_VERSION', None)
+    try:
+        from app import APP_VERSION as defined_version
+        version = version or defined_version
+    except Exception:
+        pass
+    return jsonify({'version': version}), 200
+
 @main_bp.route('/privacy')
 def privacy():
     from flask import current_app
@@ -195,6 +210,87 @@ def privacy():
                          session_timeout_minutes=CONFIG.get('SESSION_IDLE_TIMEOUT_MINUTES', 30),
                          max_login_attempts=MAX_ATTEMPTS,
                          rate_limit_window=ATTEMPT_WINDOW_SECONDS // 60)
+
+@main_bp.route('/test-summary', methods=['GET'])
+# @login_required  # Temporarily disabled for testing
+def test_summary():
+    """
+    TEMPORARY TEST PAGE - FOR DEVELOPMENT ONLY
+    Displays detailed trip breakdown per employee for data verification.
+    Can be disabled by setting TEST_MODE=False in config.py
+    """
+    config = load_config()
+    if not config.get('TEST_MODE', False):
+        return render_template('404.html'), 404
+    
+    from .models import get_db, Employee
+    
+    # Get selected employee from query params
+    employee_id = request.args.get('employee_id', type=int)
+    
+    # Use single database connection for all operations
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Load all employees for dropdown
+    cursor.execute('SELECT id, name FROM employees ORDER BY name')
+    employees = [type('Employee', (), {'id': row['id'], 'name': row['name']})() for row in cursor.fetchall()]
+    
+    # If employee selected, fetch their trips with calculations
+    trips_data = []
+    selected_employee = None
+    totals = {'total_days': 0, 'travel_days': 0, 'working_days': 0}
+    
+    if employee_id:
+        # Get employee info
+        cursor.execute('SELECT id, name FROM employees WHERE id = ?', (employee_id,))
+        emp_row = cursor.fetchone()
+        if emp_row:
+            selected_employee = type('Employee', (), {'id': emp_row['id'], 'name': emp_row['name']})()
+            
+            # Get trips for this employee
+            cursor.execute('''
+                SELECT id, country, entry_date, exit_date, purpose, travel_days
+                FROM trips 
+                WHERE employee_id = ?
+                ORDER BY entry_date DESC
+            ''', (employee_id,))
+            
+            for row in cursor.fetchall():
+                # Calculate days
+                entry = datetime.strptime(row['entry_date'], '%Y-%m-%d').date()
+                exit = datetime.strptime(row['exit_date'], '%Y-%m-%d').date()
+                total_days = (exit - entry).days + 1
+                travel_days = row['travel_days'] or 0
+                working_days = total_days - travel_days
+                
+                # Determine if Schengen
+                from .services.rolling90 import is_schengen_country
+                is_schengen = is_schengen_country(row['country'])
+                
+                trip_info = {
+                    'id': row['id'],
+                    'country': row['country'],
+                    'entry_date': row['entry_date'],
+                    'exit_date': row['exit_date'],
+                    'purpose': row['purpose'] or '',
+                    'total_days': total_days,
+                    'travel_days': travel_days,
+                    'working_days': working_days,
+                    'is_schengen': is_schengen
+                }
+                trips_data.append(trip_info)
+                
+                # Update totals
+                totals['total_days'] += total_days
+                totals['travel_days'] += travel_days
+                totals['working_days'] += working_days
+    
+    return render_template('test_summary.html',
+                         employees=employees,
+                         selected_employee=selected_employee,
+                         trips=trips_data,
+                         totals=totals)
 
 @main_bp.route('/help')
 @login_required
@@ -659,6 +755,98 @@ def delete_trip(trip_id):
     finally:
         conn.close()
 
+# Fetch a single trip (for edit modal)
+@main_bp.route('/get_trip/<int:trip_id>')
+@login_required
+def get_trip(trip_id):
+    conn = get_db()
+    c = conn.cursor()
+    try:
+        c.execute('SELECT id, employee_id, country, entry_date, exit_date FROM trips WHERE id = ?', (trip_id,))
+        row = c.fetchone()
+        if not row:
+            return jsonify({'error': 'Trip not found'}), 404
+        return jsonify({
+            'id': row['id'],
+            'employee_id': row['employee_id'],
+            'country': row['country'],
+            'entry_date': row['entry_date'],
+            'exit_date': row['exit_date']
+        })
+    finally:
+        conn.close()
+
+# Edit a trip
+@main_bp.route('/edit_trip/<int:trip_id>', methods=['POST'])
+@login_required
+def edit_trip(trip_id):
+    from flask import current_app
+    CONFIG = current_app.config['CONFIG']
+
+    try:
+        payload = request.get_json(force=True) or {}
+        new_country = (payload.get('country') or '').strip()
+        new_entry = payload.get('entry_date')
+        new_exit = payload.get('exit_date')
+        if not (new_country and new_entry and new_exit):
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        # Parse dates
+        from datetime import date as _date
+        try:
+            entry_dt = _date.fromisoformat(new_entry)
+            exit_dt = _date.fromisoformat(new_exit)
+        except Exception:
+            return jsonify({'error': 'Invalid date format'}), 400
+
+        # Load existing trip and employee
+        conn = get_db()
+        c = conn.cursor()
+        c.execute('SELECT id, employee_id FROM trips WHERE id = ?', (trip_id,))
+        current_trip = c.fetchone()
+        if not current_trip:
+            conn.close()
+            return jsonify({'error': 'Trip not found'}), 404
+
+        employee_id = current_trip['employee_id']
+
+        # Validate against overlaps for this employee
+        c.execute('SELECT id, entry_date, exit_date FROM trips WHERE employee_id = ? AND id != ?', (employee_id, trip_id))
+        existing = [{'id': r['id'], 'entry_date': r['entry_date'], 'exit_date': r['exit_date']} for r in c.fetchall()]
+
+        hard_errors, _warnings = validate_trip(existing, entry_dt, exit_dt, trip_id_to_exclude=trip_id)
+        if hard_errors:
+            conn.close()
+            return jsonify({'error': hard_errors[0]}), 400
+
+        # Update
+        c.execute('UPDATE trips SET country = ?, entry_date = ?, exit_date = ? WHERE id = ?', (new_country, new_entry, new_exit, trip_id))
+        conn.commit()
+
+        try:
+            write_audit(CONFIG['AUDIT_LOG_PATH'], 'trip_updated', 'admin', {
+                'trip_id': trip_id,
+                'employee_id': employee_id,
+                'country': new_country,
+                'entry_date': new_entry,
+                'exit_date': new_exit
+            })
+        except Exception:
+            pass
+
+        return jsonify({'success': True})
+    except Exception as e:
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+        return jsonify({'error': str(e)}), 500
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
 # Additional missing routes
 
 @main_bp.route('/import_excel', methods=['GET', 'POST'])
@@ -698,9 +886,9 @@ def import_excel():
                 sys.path.append(os.path.dirname(__file__))
                 from importer import import_excel as process_excel
                 
-                # Process the Excel file
+                # Process the Excel file with extended scanning enabled
                 logger.info(f"Starting Excel processing for '{filename}'")
-                result = process_excel(file_path)
+                result = process_excel(file_path, enable_extended_scan=True)
                 elapsed = time.monotonic() - start_time
                 logger.info(f"Finished Excel processing in {elapsed:.2f}s for '{filename}'")
                 
@@ -867,14 +1055,14 @@ def export_future_alerts():
             rows.append({
                 'Employee': emp['name'],
                 'Risk Level': f['risk_level'],
-                'Job Start': f['job_start_date'].strftime('%Y-%m-%d'),
-                'Job End': f['job_end_date'].strftime('%Y-%m-%d'),
+                'Job Start': f['job_start_date'].strftime('%d-%m-%Y'),
+                'Job End': f['job_end_date'].strftime('%d-%m-%Y'),
                 'Country': (f['job'].get('country') or f['job'].get('country_code', '')),
                 'Job Duration (days)': f['job_duration'],
                 'Days Used Before': f['days_used_before_job'],
                 'Days After Job': f['days_after_job'],
                 'Days Remaining': f['days_remaining_after_job'],
-                'Compliant From': f['compliant_from_date'].strftime('%Y-%m-%d') if f.get('compliant_from_date') else ''
+                'Compliant From': f['compliant_from_date'].strftime('%d-%m-%Y') if f.get('compliant_from_date') else ''
             })
 
     conn.close()
@@ -1177,8 +1365,91 @@ def change_password():
 @main_bp.route('/delete_all_data', methods=['POST'])
 @login_required
 def delete_all_data():
-    """Delete all data"""
-    return redirect(url_for('main.admin_settings'))
+    """Delete all data (employees, trips, exported files).
+    - If a 'confirmation' field is provided, it must equal "DELETE ALL DATA".
+    - Redirects back to the referring page (import page or admin settings).
+    """
+    from flask import current_app
+    CONFIG = current_app.config['CONFIG']
+    db_path = current_app.config['DATABASE']
+
+    # Determine where to send the user back to
+    referrer = request.referrer or ''
+    def redirect_back():
+        if '/import_excel' in referrer:
+            return redirect(url_for('main.import_excel'))
+        return redirect(url_for('main.admin_settings'))
+
+    try:
+        # Enforce confirmation phrase only when provided (admin settings form)
+        if 'confirmation' in request.form:
+            if request.form.get('confirmation', '').strip() != 'DELETE ALL DATA':
+                flash('You must type "DELETE ALL DATA" to confirm this action.')
+                return redirect_back()
+
+        # Count existing data for audit purposes
+        conn = sqlite3.connect(db_path)
+        c = conn.cursor()
+        try:
+            c.execute('SELECT COUNT(*) FROM trips')
+            trips_before = c.fetchone()[0]
+        except Exception:
+            trips_before = 0
+        try:
+            c.execute('SELECT COUNT(*) FROM employees')
+            employees_before = c.fetchone()[0]
+        except Exception:
+            employees_before = 0
+
+        # Delete all trips and employees
+        try:
+            c.execute('DELETE FROM trips')
+        except Exception:
+            pass
+        try:
+            c.execute('DELETE FROM employees')
+        except Exception:
+            pass
+        try:
+            conn.commit()
+        finally:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+        # Remove exported files but keep the directory itself
+        exports_dir = CONFIG.get('DSAR_EXPORT_DIR')
+        export_files_deleted = 0
+        if exports_dir and os.path.isdir(exports_dir):
+            for root, dirs, files in os.walk(exports_dir):
+                for f in files:
+                    try:
+                        os.remove(os.path.join(root, f))
+                        export_files_deleted += 1
+                    except Exception:
+                        pass
+
+        # Write audit entry
+        try:
+            write_audit(CONFIG['AUDIT_LOG_PATH'], 'delete_all_data', 'admin', {
+                'employees_deleted': employees_before,
+                'trips_deleted': trips_before,
+                'export_files_deleted': export_files_deleted
+            })
+        except Exception:
+            pass
+
+        flash('All data has been cleared successfully.')
+        return redirect_back()
+    except Exception as e:
+        logger.error(f"Delete all data error: {e}")
+        try:
+            write_audit(CONFIG['AUDIT_LOG_PATH'], 'delete_all_data_error', 'admin', {'error': str(e)})
+        except Exception:
+            pass
+        flash(f'Failed to delete data: {str(e)}')
+        return redirect_back()
 
 @main_bp.route('/reset_admin_password', methods=['GET', 'POST'])
 def reset_admin_password():

@@ -278,8 +278,8 @@
                                 <br><small style="color: #f59e0b; font-size: 11px;" title="Validation override: {{ trip.validation_note }}">Override</small>
                             {% endif %}
                         </td>
-                        <td>{{ trip.entry_date }}</td>
-                        <td>{{ trip.exit_date }}</td>
+                        <td>{{ trip.entry_date|format_date }}</td>
+                        <td>{{ trip.exit_date|format_date }}</td>
                         <td>
                             {{ trip.duration }} day{% if trip.duration != 1 %}s{% endif %}
                             {% if trip.travel_days and trip.travel_days > 0 %}
@@ -360,7 +360,7 @@
                             <div style="color: {% if trip.forecast.risk_level == 'red' %}#742a2a{% elif trip.forecast.risk_level == 'yellow' %}#713f12{% else %}#14532d{% endif %};">
                                 <strong>⚠️ Compliance Warning:</strong> This trip would result in {{ trip.forecast.days_after_job }} days used (limit: 90 days).
                                 {% if trip.forecast.compliant_from_date %}
-                                <br><strong>Employee will be compliant again from:</strong> {{ trip.forecast.compliant_from_date.strftime('%B %d, %Y') }}
+                                <br><strong>Employee will be compliant again from:</strong> {{ trip.forecast.compliant_from_date.strftime('%d-%m-%Y') }}
                                 {% endif %}
                             </div>
                         </td>
@@ -669,22 +669,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Edit Trip Modal functionality
 function openEditModal(tripId) {
-    fetch(`/get_trip/${tripId}`)
-        .then(response => response.json())
-        .then(data => {
+    fetch(`/get_trip/${tripId}`, { credentials: 'same-origin' })
+        .then(async (response) => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const ct = response.headers.get('Content-Type') || '';
+            if (ct.indexOf('application/json') === -1) {
+                throw new Error('Unexpected response');
+            }
+            return response.json();
+        })
+        .then((data) => {
             if (data.error) {
                 alert('Error loading trip data: ' + data.error);
                 return;
             }
-            
             document.getElementById('edit_trip_id').value = data.id;
             document.getElementById('edit_country').value = data.country;
             document.getElementById('edit_entry_date').value = data.entry_date;
             document.getElementById('edit_exit_date').value = data.exit_date;
-            
             openModal('editTripModal');
         })
-        .catch(err => {
+        .catch((err) => {
             console.error('Error:', err);
             alert('Error loading trip data');
         });
@@ -707,14 +714,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 const response = await fetch(`/edit_trip/${tripId}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
                     body: JSON.stringify(updatedData)
                 });
                 
                 if (response.ok) {
                     location.reload();
                 } else {
-                    const data = await response.json();
-                    alert('Error saving changes: ' + (data.error || 'Unknown error'));
+                    try {
+                        const data = await response.json();
+                        alert('Error saving changes: ' + (data.error || 'Unknown error'));
+                    } catch (_) {
+                        alert('Error saving changes');
+                    }
                 }
             } catch (error) {
                 console.error('Error:', error);

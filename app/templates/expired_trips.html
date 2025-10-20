@@ -29,8 +29,8 @@
                         <tr style="border-bottom: 1px solid #e2e8f0;">
                             <td style="padding: 12px;">{{ trip.name }}</td>
                             <td style="padding: 12px;">{{ trip.country }}</td>
-                            <td style="padding: 12px;">{{ trip.entry_date }}</td>
-                            <td style="padding: 12px;">{{ trip.exit_date }}</td>
+                            <td style="padding: 12px;">{{ trip.entry_date|format_date }}</td>
+                            <td style="padding: 12px;">{{ trip.exit_date|format_date }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>

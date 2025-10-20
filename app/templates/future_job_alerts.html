@@ -89,14 +89,14 @@
                             </a>
                         </td>
                         <td style="padding: 12px; font-size: 14px;">
-                            {{ forecast.job_start_date.strftime('%b %d, %Y') }} - {{ forecast.job_end_date.strftime('%b %d, %Y') }}
+                            {{ forecast.job_start_date.strftime('%d-%m-%Y') }} - {{ forecast.job_end_date.strftime('%d-%m-%Y') }}
                         </td>
                         <td style="padding: 12px;">{{ forecast.job.country }}</td>
                         <td style="padding: 12px; text-align: center;">{{ forecast.job_duration }} days</td>
                         <td style="padding: 12px; text-align: center;" class="tooltip-trigger">
                             <span>{{ forecast.days_used_before_job }}</span>
                             <div class="forecast-tooltip" style="display: none; position: absolute; background: #2d3748; color: white; padding: 12px; border-radius: 8px; font-size: 13px; z-index: 1000; min-width: 250px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                                <div style="font-weight: 600; margin-bottom: 8px;">Details for {{ forecast.job_start_date.strftime('%b %d, %Y') }}</div>
+                                <div style="font-weight: 600; margin-bottom: 8px;">Details for {{ forecast.job_start_date.strftime('%d-%m-%Y') }}</div>
                                 <div>Days in 180-day window: <strong>{{ forecast.days_used_before_job }}</strong></div>
                                 <div>Job duration: <strong>{{ forecast.job_duration }}</strong> days</div>
                                 <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #4a5568;">
@@ -117,7 +117,7 @@
                         </td>
                         <td style="padding: 12px;">
                             {% if forecast.compliant_from_date %}
-                                <span style="color: #c53030; font-weight: 500;">{{ forecast.compliant_from_date.strftime('%b %d, %Y') }}</span>
+                                <span style="color: #c53030; font-weight: 500;">{{ forecast.compliant_from_date.strftime('%d-%m-%Y') }}</span>
                             {% else %}
                                 <span style="color: #16a34a;">✓ Compliant</span>
                             {% endif %}

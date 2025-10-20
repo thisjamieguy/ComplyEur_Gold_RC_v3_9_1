@@ -111,7 +111,7 @@
                 <div>
                     <div style="font-weight: 600; color: #1e40af; margin-bottom: 4px;">Current 180-Day Window</div>
                     <div style="font-size: 14px; color: #1e40af;">
-                        From {{ window_start.strftime('%B %d, %Y') }} to {{ window_end.strftime('%B %d, %Y') }}
+                        From {{ window_start.strftime('%d-%m-%Y') }} to {{ window_end.strftime('%d-%m-%Y') }}
                     </div>
                 </div>
                 <div style="text-align: right;">
@@ -145,8 +145,8 @@
                     {% for trip in trips %}
                     <tr>
                         <td style="font-weight: 500;">{{ trip.country }}</td>
-                        <td>{{ trip.entry_date }}</td>
-                        <td>{{ trip.exit_date }}</td>
+                        <td>{{ trip.entry_date|format_date }}</td>
+                        <td>{{ trip.exit_date|format_date }}</td>
                         <td>{{ trip.trip_duration }} day{% if trip.trip_duration != 1 %}s{% endif %}</td>
                         <td>
                             {% if trip.overlaps_window %}

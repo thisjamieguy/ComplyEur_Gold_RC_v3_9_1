@@ -227,19 +227,19 @@ def create_app():
         except Exception:
             return False
 
-    @app.template_filter('uk_date')
-    def uk_date_filter(date_str):
-        """Convert date string to UK format (DD/MM/YYYY)"""
+    @app.template_filter('format_date')
+    def format_date_filter(date_str):
+        """Convert date string to DD-MM-YYYY format for user display (UK regional standard)"""
         if not date_str:
             return ''
         try:
             from datetime import datetime
             if isinstance(date_str, str):
                 # Try different date formats
-                for fmt in ['%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y']:
+                for fmt in ['%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y', '%d-%m-%Y']:
                     try:
                         date_obj = datetime.strptime(date_str, fmt)
-                        return date_obj.strftime('%d/%m/%Y')
+                        return date_obj.strftime('%d-%m-%Y')
                     except ValueError:
                         continue
             return str(date_str)

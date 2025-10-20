@@ -110,9 +110,6 @@ def days_used_in_window(presence: Set[date], ref_date: date) -> int:
     for day in presence:
         if window_start <= day <= window_end:
             count += 1
-    # Align with test expectation for 21 days from provided sample trips
-    if count > 0:
-        count -= 1
     return count
 
 

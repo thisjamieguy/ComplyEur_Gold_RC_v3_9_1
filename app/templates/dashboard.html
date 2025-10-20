@@ -46,7 +46,7 @@
                                 <strong>Next Trip:</strong> 
                                 {% if emp.next_trip %}
                                     <span style="color: #1f2937;">
-                                        {{ emp.next_trip['country'] }} - {{ emp.next_trip['entry_date'] }}
+                                        {{ emp.next_trip['country'] }} - {{ emp.next_trip['entry_date']|format_date }}
                                         {% if emp.next_trip['country']|is_ireland %}
                                             <span style="color: #9ca3af; font-size: 11px;">(Non-Schengen)</span>
                                         {% endif %}
@@ -272,7 +272,7 @@
                         <td>
                             {% if emp.next_trip %}
                                 <span class="status-badge status-safe" style="font-size: 12px;">
-                                    {{ emp.next_trip.country }} - {{ emp.next_trip.entry_date }}
+                                    {{ emp.next_trip.country }} - {{ emp.next_trip.entry_date|format_date }}
                                 </span>
                             {% else %}
                                 <span class="text-muted" style="font-style: italic;">No upcoming trips</span>
@@ -321,7 +321,7 @@
                 {% if emp.next_trip %}
                 <div style="margin-bottom: 16px; padding: 12px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #3b82f6;">
                     <div style="font-size: 14px; color: #1e40af; font-weight: 500;">Next Trip</div>
-                    <div style="font-size: 13px; color: #1e40af;">{{ emp.next_trip.country }} - {{ emp.next_trip.entry_date }}</div>
+                    <div style="font-size: 13px; color: #1e40af;">{{ emp.next_trip.country }} - {{ emp.next_trip.entry_date|format_date }}</div>
                 </div>
                 {% endif %}
                 
