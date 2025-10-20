@@ -116,43 +116,49 @@ def parse_date_header(date_str: str) -> Optional[date]:
     
     return None
 
-def find_date_headers(worksheet, max_rows: int = 15) -> Tuple[int, List[date]]:
+def find_date_headers(worksheet, max_rows: int = 15) -> Tuple[int, List[Tuple[int, date]]]:
     """
-    Find the row containing date headers and extract dates.
-    Returns (header_row_index, list_of_dates)
+    Find the row containing date headers and extract dates with their column indices.
+    Returns (header_row_index, list_of_(col_idx, date))
     """
-    dates = []
+    dates_with_cols: List[Tuple[int, date]] = []
     header_row = None
-    
+
+    # Cap scanned columns (two years worth) to avoid massive sparse sheets
+    max_cols_to_scan = min(getattr(worksheet, 'max_column', 365 * 2), 365 * 2)
+
     for row_idx in range(1, max_rows + 1):
-        row_dates = []
-        for col_idx in range(2, worksheet.max_column + 1):  # Start from column B
-            cell = worksheet.cell(row=row_idx, column=col_idx)
-            if cell.value:
-                parsed_date = parse_date_header(cell.value)
-                if parsed_date:
-                    row_dates.append(parsed_date)
-        
-        if len(row_dates) >= 3:  # Found a row with at least 3 dates
+        row_dates: List[Tuple[int, date]] = []
+        # Stream row values for speed
+        for cells in worksheet.iter_rows(min_row=row_idx, max_row=row_idx, min_col=2, max_col=max_cols_to_scan, values_only=True):
+            for offset, value in enumerate(cells, start=0):
+                if value:
+                    parsed_date = parse_date_header(value)
+                    if parsed_date:
+                        col_idx = 2 + offset
+                        row_dates.append((col_idx, parsed_date))
+
+        # Found a row with at least 3 dates
+        if len(row_dates) >= 3:
             header_row = row_idx
-            dates = row_dates
+            dates_with_cols = row_dates
             break
-    
-    return header_row, dates
+
+    return header_row, dates_with_cols
 
 def process_excel_file(file_path: str) -> Dict:
     """
     Process Excel file and return import summary.
     """
     try:
-        # Load Excel file
-        workbook = openpyxl.load_workbook(file_path, data_only=True)
+        # Load Excel file in read-only streaming mode for performance
+        workbook = openpyxl.load_workbook(file_path, data_only=True, read_only=True)
         worksheet = workbook.active
         
         logger.info(f"Excel file loaded. Shape: ({worksheet.max_row}, {worksheet.max_column})")
         
-        # Find date headers
-        header_row, dates = find_date_headers(worksheet)
+        # Find date headers with their actual column indices
+        header_row, dates_with_cols = find_date_headers(worksheet)
         if not header_row:
             return {
                 'success': False,
@@ -165,13 +171,25 @@ def process_excel_file(file_path: str) -> Dict:
         trip_records = []
         employees_processed = 0
         
-        for row_idx in range(header_row + 1, worksheet.max_row + 1):
-            # Get employee name from column A
-            employee_cell = worksheet.cell(row=row_idx, column=1)
-            if not employee_cell.value or not str(employee_cell.value).strip():
+        # Avoid iterating over 1,048,576 rows on sparsely formatted sheets
+        max_rows_to_scan = min(getattr(worksheet, 'max_row', header_row + 1000), header_row + 1000)
+        consecutive_empty_names = 0
+
+        # Bound the right edge to the last useful date column
+        max_date_col = max((c for c, _ in dates_with_cols), default=2)
+
+        for cells in worksheet.iter_rows(min_row=header_row + 1, max_row=max_rows_to_scan, min_col=1, max_col=max_date_col, values_only=True):
+            # Column A (index 0) is employee name
+            employee_val = cells[0] if cells and len(cells) > 0 else None
+            if not employee_val or not str(employee_val).strip():
+                consecutive_empty_names += 1
+                # If we see a long run of empty rows, assume we've reached the end
+                if consecutive_empty_names >= 50:
+                    break
                 continue
+            consecutive_empty_names = 0
             
-            employee_name = str(employee_cell.value).strip()
+            employee_name = str(employee_val).strip()
             
             # Skip "Unallocated" or similar sections
             if employee_name.lower() in ['unallocated', 'unassigned', '']:
@@ -180,16 +198,15 @@ def process_excel_file(file_path: str) -> Dict:
             employees_processed += 1
             logger.info(f"Processing employee: {employee_name}")
             
-            # Process each date column
-            for col_idx, trip_date in enumerate(dates, start=2):
-                if col_idx > worksheet.max_column:
-                    break
-                
-                cell = worksheet.cell(row=row_idx, column=col_idx)
-                if not cell.value:
+            # Process each date column: read cell value from the streamed row tuple
+            for col_idx, trip_date in dates_with_cols:
+                tuple_index = col_idx - 1  # cells is 0-based
+                if tuple_index >= len(cells):
                     continue
-                
-                cell_text = str(cell.value).strip()
+                cell_value = cells[tuple_index]
+                if not cell_value:
+                    continue
+                cell_text = str(cell_value).strip()
                 country = detect_country_enhanced(cell_text)
                 
                 # Skip UK/domestic work
@@ -206,7 +223,8 @@ def process_excel_file(file_path: str) -> Dict:
                         'text': cell_text
                     })
                     
-                    logger.info(f"  Found trip: {trip_date} - {country} - Travel: {is_travel} - Text: '{cell_text}'")
+                    # Avoid per-cell verbose logging for performance
+                    # logger.debug(f"Found trip: {trip_date} - {country} - Travel: {is_travel}")
         
         logger.info(f"Total trip records found: {len(trip_records)}")
         
@@ -214,15 +232,18 @@ def process_excel_file(file_path: str) -> Dict:
         aggregated_trips = aggregate_trips(trip_records)
         
         # Save to database
-        saved_trips = save_trips_to_database(aggregated_trips)
+        save_result = save_trips_to_database(aggregated_trips)
         
         return {
             'success': True,
-            'trips_added': len(saved_trips),
+            'trips_added': len(save_result.get('trips', [])),
             'employees_processed': employees_processed,
             'total_records': len(trip_records),
             'aggregated_trips': len(aggregated_trips),
-            'trips': saved_trips
+            'trips': save_result.get('trips', []),
+            'duplicates_skipped': save_result.get('duplicates_skipped', 0),
+            'uk_jobs_skipped': save_result.get('uk_jobs_skipped', 0),
+            'empty_cells_skipped': save_result.get('empty_cells_skipped', 0)
         }
         
     except Exception as e:
@@ -271,10 +292,10 @@ def aggregate_trips(trip_records: List[Dict]) -> List[Dict]:
                 if record['is_travel']:
                     current_trip['travel_days'] += 1
                 
-                logger.info(f"    Extended trip to {record['date']}, travel_day: {record['is_travel']}")
+                # logger.debug(f"Extend trip to {record['date']}, travel_day: {record['is_travel']}")
             else:
                 # Complete current trip and start new one
-                logger.info(f"  Completed trip: {current_trip['employee']} to {current_trip['country']} from {current_trip['entry_date']} to {current_trip['exit_date']} ({current_trip['travel_days']} travel days)")
+                # logger.debug("Completed trip block")
                 aggregated.append(current_trip)
                 
                 current_trip = {
@@ -285,11 +306,11 @@ def aggregate_trips(trip_records: List[Dict]) -> List[Dict]:
                     'travel_days': 1 if record['is_travel'] else 0,
                     'total_days': 1
                 }
-                logger.info(f"  Started new trip: {record['employee']} to {record['country']} starting {record['date']}")
+                # logger.debug("Start new trip block")
     
     # Add final trip
     if current_trip:
-        logger.info(f"  Completed trip: {current_trip['employee']} to {current_trip['country']} from {current_trip['entry_date']} to {current_trip['exit_date']} ({current_trip['travel_days']} travel days)")
+        # logger.debug("Completed final trip block")
         aggregated.append(current_trip)
     
     logger.info(f"After aggregation: {len(aggregated)} trip blocks")
@@ -302,10 +323,20 @@ def save_trips_to_database(trips: List[Dict]) -> List[Dict]:
     if not trips:
         return []
     
-    # Get database path from environment or use default
-    db_path = os.path.join(os.path.dirname(__file__), 'eu_tracker.db')
-    if not os.path.exists(db_path):
-        db_path = os.path.join(os.path.dirname(__file__), 'data', 'eu_tracker.db')
+    # Prefer the Flask-configured database if available
+    db_path = None
+    try:
+        from flask import current_app
+        if current_app and current_app.config.get('DATABASE'):
+            db_path = current_app.config['DATABASE']
+    except Exception:
+        # Not in an application context
+        pass
+
+    if not db_path:
+        # Fallback to local paths
+        candidate = os.path.join(os.path.dirname(__file__), 'eu_tracker.db')
+        db_path = candidate if os.path.exists(candidate) else os.path.join(os.path.dirname(__file__), 'data', 'eu_tracker.db')
     
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row

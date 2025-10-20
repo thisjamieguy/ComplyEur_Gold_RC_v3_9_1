@@ -95,7 +95,7 @@ def validate_trip(
     return hard_errors, soft_warnings
 
 
-def validate_date_range(entry_date: date, exit_date: date) -> Tuple[bool, str]:
+def validate_date_range(entry_date: date, exit_date: date) -> Tuple[List[str], List[str]]:
     """
     Validate basic date range logic.
     
@@ -104,16 +104,19 @@ def validate_date_range(entry_date: date, exit_date: date) -> Tuple[bool, str]:
         exit_date: Exit date
     
     Returns:
-        Tuple of (is_valid, error_message)
+        Tuple of (hard_errors, soft_warnings)
     """
+    hard_errors: List[str] = []
+    soft_warnings: List[str] = []
+
     if exit_date <= entry_date:
-        return False, "Exit date must be after entry date"
-    
+        hard_errors.append("Exit date must be after entry date")
+
     # Check for reasonable duration (max 2 years)
     if (exit_date - entry_date).days > 730:
-        return False, "Trip duration cannot exceed 2 years"
-    
-    return True, ""
+        soft_warnings.append("Trip duration exceeds 2 years; verify this is intended")
+
+    return hard_errors, soft_warnings
 
 
 def check_trip_overlaps(

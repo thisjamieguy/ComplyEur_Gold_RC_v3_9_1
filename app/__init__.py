@@ -4,7 +4,7 @@ import secrets
 import logging
 import traceback
 from datetime import timedelta
-from flask import Flask, request
+from flask import Flask, request, render_template
 from config import load_config, get_session_lifetime
 
 # Load environment variables from .env file
@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Application Version
-APP_VERSION = "1.4.0 - Production Ready"
+APP_VERSION = "1.5.0 - Render Ready"
 
 def create_app():
     """Application factory pattern"""
@@ -28,8 +28,11 @@ def create_app():
         # If file logging fails, continue with console logging only
         pass
 
+    # Respect LOG_LEVEL from environment (default INFO)
+    log_level_str = os.getenv('LOG_LEVEL', 'INFO').upper()
+    log_level = getattr(logging, log_level_str, logging.INFO)
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=log_level,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=log_handlers
     )
@@ -52,12 +55,10 @@ def create_app():
         logger.info(f"Looking for data file at: {data_file_path}")
         with open(data_file_path, 'r', encoding='utf-8') as f:
             EU_ENTRY_DATA = json.load(f)
-        logger.info(f"✓ Loaded {len(EU_ENTRY_DATA)} EU entry requirements")
-        print(f"✓ Loaded {len(EU_ENTRY_DATA)} EU entry requirements")
+        logger.info(f"Loaded {len(EU_ENTRY_DATA)} EU entry requirements")
     except Exception as e:
         logger.error(f"Failed to load EU entry requirements data: {e}")
         logger.error(traceback.format_exc())
-        print(f"Warning: Could not load EU entry requirements data: {e}")
 
     # Secure secret key from environment variable
     try:
@@ -67,11 +68,6 @@ def create_app():
             # Generate a secure random key if not set
             SECRET_KEY = secrets.token_hex(32)
             logger.warning("No SECRET_KEY found in environment, generating temporary key")
-            print("\n" + "="*70)
-            print("WARNING: No SECRET_KEY found in .env file!")
-            print("Using a temporary key. Add this to your .env file:")
-            print(f"SECRET_KEY={SECRET_KEY}")
-            print("="*70 + "\n")
 
         app.secret_key = SECRET_KEY
         logger.info("Secret key configured successfully")
@@ -87,7 +83,7 @@ def create_app():
     # Configure database
     try:
         logger.info("Configuring database...")
-        db_path = os.getenv('DATABASE_PATH', 'eu_tracker.db')
+        db_path = os.getenv('DATABASE_PATH', 'data/eu_tracker.db')
         if not os.path.isabs(db_path):
             # Make relative paths absolute from project root
             DATABASE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', db_path))
@@ -114,12 +110,11 @@ def create_app():
         logger.info("Initializing database tables...")
         with app.app_context():
             init_db()
-        logger.info("✓ Database initialized successfully")
-        print("✓ Database initialized successfully")
+        logger.info("Database initialized successfully")
     except Exception as e:
         logger.error(f"Failed to initialize database: {e}")
         logger.error(traceback.format_exc())
-        print(f"Warning: Could not initialize database: {e}")
+        logger.warning(f"Continuing without DB initialization: {e}")
         # Don't raise here, let the app continue with limited functionality
 
     # Make version and CSRF token available to all templates
@@ -139,6 +134,8 @@ def create_app():
         SESSION_COOKIE_SAMESITE='Lax',
         SESSION_COOKIE_SECURE=os.getenv('SESSION_COOKIE_SECURE', 'False').lower() == 'true'
     )
+    # Explicitly control DEBUG via env (default False)
+    app.config['DEBUG'] = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
     app.permanent_session_lifetime = get_session_lifetime(CONFIG)
 
     # Additional security headers
@@ -149,7 +146,7 @@ def create_app():
         response.headers['X-Frame-Options'] = 'SAMEORIGIN'
         response.headers['X-XSS-Protection'] = '1; mode=block'
         # Only add HSTS if using HTTPS
-        if hasattr(response, 'request') and response.request.is_secure:
+        if request.is_secure:
             response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
         return response
 
@@ -220,6 +217,16 @@ def create_app():
         """Convert country code to full country name"""
         return COUNTRY_CODE_MAPPING.get(country_code, country_code)
     
+    @app.template_filter('is_ireland')
+    def is_ireland_filter(country_code):
+        """Return True if the country code represents Ireland (IE)."""
+        if not country_code:
+            return False
+        try:
+            return str(country_code).strip().upper() in ['IE', 'IRELAND']
+        except Exception:
+            return False
+
     @app.template_filter('uk_date')
     def uk_date_filter(date_str):
         """Convert date string to UK format (DD/MM/YYYY)"""
@@ -239,6 +246,17 @@ def create_app():
         except Exception:
             return str(date_str)
 
+    # Close DB connection at app context teardown
+    @app.teardown_appcontext
+    def close_db(exception):
+        try:
+            from flask import g
+            conn = getattr(g, '_db_conn', None)
+            if conn is not None:
+                conn.close()
+        except Exception:
+            pass
+
     # Register blueprints
     try:
         logger.info("Importing routes module...")
@@ -256,4 +274,17 @@ def create_app():
         raise
 
     logger.info("Application initialization completed successfully")
+
+    # Global error handlers (ensure friendly pages for non-blueprint routes)
+    @app.errorhandler(404)
+    def app_not_found_error(error):
+        logger.warning(f"404 error: {error}")
+        return render_template('404.html'), 404
+
+    @app.errorhandler(500)
+    def app_internal_error(error):
+        logger.error(f"500 Internal Server Error: {error}")
+        logger.error(traceback.format_exc())
+        return render_template('500.html'), 500
+
     return app

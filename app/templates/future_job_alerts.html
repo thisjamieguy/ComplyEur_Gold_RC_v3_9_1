@@ -47,7 +47,7 @@
                 </select>
             </div>
         </div>
-        <a href="{{ url_for('export_future_alerts') }}" class="btn btn-primary" style="padding: 8px 16px; background: #3182ce; color: white; text-decoration: none; border-radius: 4px; display: inline-flex; align-items: center; gap: 8px;">
+        <a href="{{ url_for('main.export_future_alerts') }}" class="btn btn-primary" style="padding: 8px 16px; background: #3182ce; color: white; text-decoration: none; border-radius: 4px; display: inline-flex; align-items: center; gap: 8px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="7 10 12 15 17 10"></polyline>
@@ -183,13 +183,13 @@
 function filterAlerts() {
     const filter = document.getElementById('riskFilter').value;
     const sort = document.getElementById('sortBy').value;
-    window.location.href = `{{ url_for('future_job_alerts') }}?risk=${filter}&sort=${sort}`;
+    window.location.href = `{{ url_for('main.future_job_alerts') }}?risk=${filter}&sort=${sort}`;
 }
 
 function sortAlerts() {
     const filter = document.getElementById('riskFilter').value;
     const sort = document.getElementById('sortBy').value;
-    window.location.href = `{{ url_for('future_job_alerts') }}?risk=${filter}&sort=${sort}`;
+    window.location.href = `{{ url_for('main.future_job_alerts') }}?risk=${filter}&sort=${sort}`;
 }
 </script>
 {% endblock %}

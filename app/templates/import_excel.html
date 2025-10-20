@@ -48,7 +48,7 @@
                 {% endif %}
             {% endwith %}
             
-            <form method="POST" enctype="multipart/form-data">
+            <form method="POST" enctype="multipart/form-data" onsubmit="return startImport(this)">
                 <div class="form-group">
                     <label class="form-label">Excel File (.xlsx or .xls)</label>
                     <input type="file" name="excel_file" accept=".xlsx,.xls" class="form-input" required>
@@ -57,13 +57,13 @@
                     </div>
                 </div>
                 
-                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                <button id="importBtn" type="submit" class="btn btn-primary" style="width: 100%;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                         <polyline points="7,10 12,15 17,10"></polyline>
                         <line x1="12" y1="15" x2="12" y2="3"></line>
                     </svg>
-                    Upload and Process
+                    <span id="importBtnText">Upload and Process</span>
                 </button>
             </form>
         </div>
@@ -206,6 +206,15 @@
 
 {% block extra_js %}
 <script>
+function startImport(form) {
+    const btn = document.getElementById('importBtn');
+    const text = document.getElementById('importBtnText');
+    if (btn && text) {
+        btn.disabled = true;
+        text.textContent = 'Processing… Please wait';
+    }
+    return true; // allow submit
+}
 function sortImportedTrips() {
     const table = document.getElementById('importedTripsTable');
     const tbody = table.querySelector('tbody');

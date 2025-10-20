@@ -67,7 +67,7 @@
                         {% endif %}
                     </div>
                     <div style="display: flex; gap: 8px;">
-                        <a href="{{ url_for('employee_detail', employee_id=emp.id) }}" 
+                        <a href="{{ url_for('main.employee_detail', employee_id=emp.id) }}" 
                            class="btn" 
                            style="background: #dc2626; color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none; font-size: 14px; font-weight: 500;">
                             View Details
@@ -239,7 +239,7 @@
                     {% for emp in employees %}
                     <tr>
                         <td style="font-weight: 600;">
-                            <a href="{{ url_for('employee_detail', employee_id=emp.id) }}" style="color: #3b82f6; text-decoration: none; cursor: pointer;">
+                            <a href="{{ url_for('main.employee_detail', employee_id=emp.id) }}" style="color: #3b82f6; text-decoration: none; cursor: pointer;">
                                 {{ emp.name }}
                             </a>
                             {% if emp.earliest_safe_entry %}
@@ -280,8 +280,8 @@
                         </td>
                         <td class="text-center">
                             <div style="display: flex; gap: 8px; justify-content: center;">
-                                <a href="{{ url_for('employee_detail', employee_id=emp.id) }}" class="btn btn-primary btn-sm">Details</a>
-                                <a href="{{ url_for('calendar', employee_id=emp.id) }}" class="btn btn-secondary btn-sm">📅</a>
+                                <a href="{{ url_for('main.employee_detail', employee_id=emp.id) }}" class="btn btn-primary btn-sm">Details</a>
+                                <a href="{{ url_for('main.calendar', employee_id=emp.id) }}" class="btn btn-secondary btn-sm">📅</a>
                             </div>
                         </td>
                     </tr>
@@ -326,11 +326,13 @@
                 {% endif %}
                 
                 <div style="display: flex; gap: 8px;">
-                    <a href="{{ url_for('employee_detail', employee_id=emp.id) }}" class="btn btn-primary btn-sm" style="flex: 1;">Details</a>
-                    <a href="{{ url_for('calendar', employee_id=emp.id) }}" class="btn btn-secondary btn-sm" style="flex: 1;">📅 Calendar</a>
-                    <form method="POST" action="{{ url_for('delete_employee', employee_id=emp.id) }}" style="flex: 1;" onsubmit="return confirm('Are you sure you want to delete this employee?');">
+                    <a href="{{ url_for('main.employee_detail', employee_id=emp.id) }}" class="btn btn-primary btn-sm" style="flex: 1;">Details</a>
+                    <a href="{{ url_for('main.calendar', employee_id=emp.id) }}" class="btn btn-secondary btn-sm" style="flex: 1;">📅 Calendar</a>
+                    {# Delete action disabled: route not implemented
+                    <form method="POST" action="{{ url_for('main.delete_employee', employee_id=emp.id) }}" style="flex: 1;" onsubmit="return confirm('Are you sure you want to delete this employee?');">
                         <button type="submit" class="btn btn-danger btn-sm" style="width: 100%;">Delete</button>
                     </form>
+                    #}
                 </div>
             </div>
             {% endfor %}

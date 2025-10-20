@@ -1,12 +1,48 @@
 import sqlite3
 from datetime import datetime
 from typing import List, Dict, Optional
+from flask import g
 
 def get_db():
-    """Get database connection"""
+    """Get database connection (shared for request context).
+    Supports in-memory DB in tests using a shared cache.
+    """
     from flask import current_app
-    conn = sqlite3.connect(current_app.config['DATABASE'])
-    conn.row_factory = sqlite3.Row
+    db_path = current_app.config['DATABASE']
+
+    # If using shared in-memory DB, keep a persistent process-wide connection alive
+    if db_path == ':memory:' or (isinstance(db_path, str) and db_path.startswith('file:eu_memdb')):
+        if db_path == ':memory:':
+            db_path = 'file:eu_memdb?mode=memory&cache=shared'
+            current_app.config['DATABASE'] = db_path
+        persistent = current_app.config.get('PERSISTENT_DB_CONN')
+        def ensure_open(conn):
+            try:
+                conn.execute('SELECT 1')
+                return conn
+            except Exception:
+                return None
+
+        if persistent is None or ensure_open(persistent) is None:
+            persistent = sqlite3.connect(db_path, uri=True, check_same_thread=False)
+            persistent.row_factory = sqlite3.Row
+            try:
+                persistent.execute('PRAGMA foreign_keys = ON')
+            except Exception:
+                pass
+            current_app.config['PERSISTENT_DB_CONN'] = persistent
+        return persistent
+
+    # Use a single connection per request context for file-based DBs
+    conn = getattr(g, '_db_conn', None)
+    if conn is None:
+        conn = sqlite3.connect(db_path, check_same_thread=False)
+        conn.row_factory = sqlite3.Row
+        try:
+            conn.execute('PRAGMA foreign_keys = ON')
+        except Exception:
+            pass
+        g._db_conn = conn
     return conn
 
 def init_db():
@@ -59,9 +95,33 @@ def init_db():
     c.execute('CREATE INDEX IF NOT EXISTS idx_trips_entry_date ON trips(entry_date)')
     c.execute('CREATE INDEX IF NOT EXISTS idx_trips_exit_date ON trips(exit_date)')
     c.execute('CREATE INDEX IF NOT EXISTS idx_trips_dates ON trips(entry_date, exit_date)')
+
+    # Ensure default admin exists (used by tests and first-run local dev)
+    try:
+        c.execute('SELECT COUNT(1) FROM admin WHERE id = 1')
+        row = c.fetchone()
+        if not row or row[0] == 0:
+            try:
+                # Hash default password 'admin123'
+                from .services.hashing import Hasher
+                hasher = Hasher()
+                default_hash = hasher.hash('admin123')
+            except Exception:
+                # Fallback: store as-is (tests rely on Hasher normally)
+                default_hash = 'admin123'
+            c.execute('INSERT INTO admin (id, password_hash) VALUES (1, ?)', (default_hash,))
+    except Exception:
+        pass
     
     conn.commit()
-    conn.close()
+    # Do not close persistent in-memory connection; keep schema alive for tests
+    from flask import current_app
+    db_path = current_app.config.get('DATABASE', '')
+    if not (isinstance(db_path, str) and db_path.startswith('file:eu_memdb')):
+        try:
+            conn.close()
+        except Exception:
+            pass
 
 class Employee:
     def __init__(self, id: int, name: str, created_at: Optional[str] = None):

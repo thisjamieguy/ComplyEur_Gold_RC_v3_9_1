@@ -208,7 +208,7 @@ document.getElementById('scenarioForm').addEventListener('submit', async functio
     };
     
     try {
-        const response = await fetch('{{ url_for("api_calculate_scenario") }}', {
+        const response = await fetch('{{ url_for("main.api_calculate_scenario") }}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
