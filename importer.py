@@ -143,7 +143,7 @@ def parse_date_header(date_str: str) -> Optional[date]:
     
     return None
 
-def find_date_headers(worksheet, max_rows: int = 50) -> Tuple[int, List[Tuple[int, date]]]:
+def find_date_headers(worksheet, max_rows: int = 50, enable_extended_scan: bool = True) -> Tuple[int, List[Tuple[int, date]]]:
     """
     Find the row containing date headers and extract dates with their column indices.
     Returns (header_row_index, list_of_(col_idx, date))
@@ -257,7 +257,7 @@ def process_excel_file(file_path: str, enable_extended_scan: bool = True) -> Dic
         logger.info(f"Excel file loaded. Shape: ({worksheet.max_row}, {worksheet.max_column})")
         
         # Find date headers with their actual column indices
-        header_row, dates_with_cols = find_date_headers(worksheet)
+        header_row, dates_with_cols = find_date_headers(worksheet, enable_extended_scan=enable_extended_scan)
         if not header_row:
             return {
                 'success': False,
