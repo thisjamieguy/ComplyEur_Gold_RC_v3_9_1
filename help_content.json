@@ -1,0 +1,162 @@
+{
+  "page_title": "Help & User Guide",
+  "page_subtitle": "Learn how to use the EU Trip Tracker effectively",
+  "quick_tips": [
+    {
+      "icon": "lightbulb",
+      "title": "Use the Forecast Tool",
+      "text": "Plan future trips by checking how they'll affect your 90/180 day limit before booking."
+    },
+    {
+      "icon": "alert-triangle",
+      "title": "Watch the Rolling Window",
+      "text": "The 180-day period moves every day - always check your current status before traveling."
+    },
+    {
+      "icon": "file-text",
+      "title": "Export for Reports",
+      "text": "Generate CSV reports for HR records or PDF summaries for management presentations."
+    },
+    {
+      "icon": "shield-check",
+      "title": "GDPR Compliant",
+      "text": "All data is stored securely and you can export or delete your data at any time."
+    }
+  ],
+  "sections": [
+    {
+      "id": "getting-started",
+      "icon": "rocket",
+      "title": "Getting Started",
+      "content": "Welcome to the EU Trip Tracker! This system helps you monitor compliance with the 90/180 day rule for UK citizens traveling to the Schengen Area.\n\n**What is the 90/180 rule?**\nUK citizens can spend up to 90 days in the Schengen Area within any 180-day period. This is a rolling window that moves every day.\n\n**Key Features:**\n• Track all employee trips to EU countries\n• Monitor compliance in real-time\n• Visual calendar view of travel patterns\n• Export data for reporting\n• GDPR-compliant data management\n\n**Getting Started:**\n1. Add your employees to the system\n2. Log their trips (past and future)\n3. Monitor the dashboard for compliance status\n4. Use forecasting to plan future travel",
+      "expanded": true
+    },
+    {
+      "id": "dashboard-overview",
+      "icon": "grid",
+      "title": "Understanding the Dashboard",
+      "content": "The dashboard is your main control center, showing all employees and their current EU travel status.\n\n**Color Coding System:**\n• **Green (30+ days remaining)**: Safe to travel - plenty of days available\n• **Amber (10-29 days remaining)**: Caution - approaching the limit\n• **Red (<10 days or over limit)**: At Risk - immediate attention needed\n\n**Dashboard Features:**\n• Real-time status updates\n• Quick search functionality\n• Employee detail links\n• Export options\n• System statistics\n\n**Status Indicators:**\n• Days remaining in current 180-day window\n• Next available travel date\n• Risk level assessment\n• Compliance warnings\n\n**Navigation:**\n• Click any employee name to view detailed trip history\n• Use the search bar for quick employee lookup\n• Access calendar view for visual trip planning",
+      "expanded": false
+    },
+    {
+      "id": "90-180-rule",
+      "icon": "calendar",
+      "title": "The 90/180 Day Rule Explained",
+      "content": "Understanding the 90/180 rule is crucial for compliance. Here's how it works:\n\n**The Rule:**\nUK citizens can spend a maximum of 90 days in the Schengen Area within any 180-day period.\n\n**Key Concepts:**\n• **Rolling Window**: The 180-day period moves every day\n• **Schengen Area**: 26 European countries with no internal border controls\n• **Counting Days**: Only days physically present in Schengen countries count\n• **Ireland**: Tracked separately - doesn't count toward the 90-day limit\n\n**How We Calculate:**\n1. Look at the last 180 days from today\n2. Count all days spent in Schengen countries\n3. Show remaining days available\n4. Flag if approaching or exceeding the limit\n\n**Important Notes:**\n• Days are counted from midnight to midnight\n• Partial days count as full days\n• Travel days count toward the limit\n• The window rolls forward each day\n\n**Example:**\nIf you spent 45 days in France in the last 180 days, you have 45 days remaining in your current window.",
+      "expanded": false
+    },
+    {
+      "id": "adding-trips",
+      "icon": "plus",
+      "title": "Adding Employee Trips",
+      "content": "There are three ways to add trips to the system:\n\n**Method 1: Individual Trips**\n1. Go to the employee's detail page\n2. Click 'Add Trip'\n3. Enter departure and return dates\n4. Select destination country\n5. Add any notes\n6. Save the trip\n\n**Method 2: Bulk Trips**\n1. Click 'Bulk Add Trip' in the sidebar\n2. Select multiple employees\n3. Enter the same trip details for all\n4. Perfect for group travel or company events\n\n**Method 3: Excel Import**\n1. Prepare your Excel file (see Excel Import Guide)\n2. Go to 'Import Excel' in the sidebar\n3. Upload your file\n4. Review the preview\n5. Confirm the import\n\n**Trip Information Required:**\n• Employee name\n• Departure date\n• Return date\n• Destination country\n• Optional: Notes or purpose\n\n**Best Practices:**\n• Add trips as soon as they're booked\n• Include all travel days (departure and return)\n• Use consistent date formats\n• Add notes for business trips vs. personal travel",
+      "expanded": false
+    },
+    {
+      "id": "excel-import",
+      "icon": "upload",
+      "title": "Excel Import Guide",
+      "content": "Import multiple trips quickly using Excel files. We support two formats:\n\n**Format 1: Simple Trip List**\nColumns: Employee Name | Departure Date | Return Date | Country\n\n**Format 2: Detailed Schedule**\nColumns: Employee Name | Start Date | End Date | Destination | Notes\n\n**Excel File Requirements:**\n• First row must contain column headers\n• Dates in format: DD/MM/YYYY or YYYY-MM-DD\n• Country names must match our database\n• No empty rows between data\n• Maximum 1000 rows per import\n\n**Supported Countries:**\n• All 26 Schengen countries\n• Ireland (tracked separately)\n• UK (for reference only)\n\n**Step-by-Step Import:**\n1. Prepare your Excel file with correct format\n2. Go to 'Import Excel' in the sidebar\n3. Click 'Choose File' and select your Excel file\n4. Review the preview table\n5. Check for any errors or warnings\n6. Click 'Import Trips' to confirm\n7. View the import summary\n\n**Common Issues:**\n• Date format errors - use DD/MM/YYYY\n• Country name mismatches - check spelling\n• Missing required columns - ensure all headers present\n• Duplicate trips - system will warn about conflicts\n\n**Tips for Success:**\n• Use the sample file as a template\n• Test with a small file first\n• Keep backup of original data\n• Review preview carefully before importing",
+      "expanded": false
+    },
+    {
+      "id": "calendar-view",
+      "icon": "calendar-check",
+      "title": "Using the Calendar View",
+      "content": "The calendar provides a visual timeline of all employee trips, making it easy to spot patterns and potential conflicts.\n\n**Calendar Features:**\n• Monthly and weekly views\n• Color-coded trip status\n• Hover for trip details\n• Filter by employee or country\n• Export calendar data\n\n**Color Coding:**\n• **Green**: Safe trips (plenty of days remaining)\n• **Amber**: Caution trips (approaching limit)\n• **Red**: At-risk trips (near or over limit)\n• **Grey**: Past trips (for reference)\n\n**Navigation:**\n• Use arrow buttons to change months\n• Click on any trip for details\n• Use filters to focus on specific employees\n• Switch between month and week views\n\n**Planning Features:**\n• See upcoming trips at a glance\n• Identify busy travel periods\n• Plan around existing commitments\n• Spot potential compliance issues\n\n**Calendar Controls:**\n• **Previous/Next**: Navigate months\n• **Today**: Jump to current date\n• **Filter**: Show specific employees\n• **Export**: Download calendar data\n\n**Best Practices:**\n• Check calendar before approving new trips\n• Use filters to focus on specific teams\n• Export calendar for management reports\n• Review monthly for compliance planning",
+      "expanded": false
+    },
+    {
+      "id": "forecasting",
+      "icon": "trending-up",
+      "title": "Trip Forecasting",
+      "content": "Plan future travel with confidence using our forecasting tools.\n\n**What is Forecasting?**\nForecasting shows you how future trips will affect your 90/180 day compliance, helping you make informed travel decisions.\n\n**How to Use Forecasting:**\n1. Go to an employee's detail page\n2. Click 'Forecast Trip'\n3. Enter proposed travel dates\n4. Select destination country\n5. View the impact analysis\n\n**Forecast Results Show:**\n• Days used in the 180-day window\n• Days remaining after the trip\n• Risk level assessment\n• Next available travel date\n• Compliance warnings\n\n**Planning Scenarios:**\n• **What-if Analysis**: Test different trip dates\n• **Multiple Trips**: See cumulative impact\n• **Long-term Planning**: Plan months ahead\n• **Risk Assessment**: Identify potential issues\n\n**Forecast Features:**\n• Real-time calculations\n• Visual timeline display\n• Risk level indicators\n• Export forecast reports\n• Save planning scenarios\n\n**Best Practices:**\n• Forecast before booking any trip\n• Plan for multiple trips in advance\n• Consider peak travel periods\n• Leave buffer days for flexibility\n• Review forecasts regularly\n\n**Risk Levels:**\n• **Low Risk**: 30+ days remaining\n• **Medium Risk**: 10-29 days remaining\n• **High Risk**: <10 days remaining\n• **Critical**: Would exceed limit",
+      "expanded": false
+    },
+    {
+      "id": "exporting-data",
+      "icon": "download",
+      "title": "Exporting Data",
+      "content": "Export your data in various formats for reporting, compliance, and record-keeping.\n\n**Export Options:**\n\n**1. CSV Export**\n• Complete trip data\n• Employee information\n• Compliance status\n• Custom date ranges\n• Perfect for Excel analysis\n\n**2. PDF Reports**\n• Formatted summary reports\n• Management presentations\n• Compliance certificates\n• Professional layouts\n\n**3. DSAR Export (Data Subject Access Request)**\n• Complete personal data\n• GDPR-compliant format\n• Individual employee data\n• Privacy-focused export\n\n**How to Export:**\n1. Go to the main dashboard\n2. Click 'Export Data' in the sidebar\n3. Choose export type\n4. Select date range\n5. Choose employees (if applicable)\n6. Click 'Generate Export'\n7. Download the file\n\n**Export Contents:**\n• Employee details\n• Trip history\n• Compliance status\n• Risk assessments\n• System timestamps\n• Data retention info\n\n**Use Cases:**\n• **HR Records**: Employee travel history\n• **Compliance Reports**: Regulatory submissions\n• **Management Reports**: Executive summaries\n• **Audit Trails**: System activity logs\n• **Data Portability**: GDPR compliance\n\n**Export Formats:**\n• **CSV**: Spreadsheet compatible\n• **PDF**: Print-ready reports\n• **JSON**: Technical integration\n• **XML**: Structured data\n\n**Data Security:**\n• Exports are encrypted\n• Access logs maintained\n• Automatic expiration\n• Secure download links",
+      "expanded": false
+    },
+    {
+      "id": "privacy-management",
+      "icon": "shield",
+      "title": "Privacy & Data Management",
+      "content": "Your data privacy and security are our top priorities. This system is fully GDPR-compliant.\n\n**Data Protection Features:**\n• End-to-end encryption\n• Secure data storage\n• Access controls\n• Audit logging\n• Data retention policies\n\n**Your Rights (GDPR):**\n• **Right to Access**: View all your data\n• **Right to Rectification**: Correct inaccurate data\n• **Right to Erasure**: Delete your data\n• **Right to Portability**: Export your data\n• **Right to Restriction**: Limit data processing\n\n**Data We Collect:**\n• Employee names and contact info\n• Trip dates and destinations\n• Compliance calculations\n• System usage logs\n• Security audit trails\n\n**Data Retention:**\n• Trip data: 7 years (legal requirement)\n• System logs: 2 years\n• Backup data: 1 year\n• Deleted data: 30 days (recoverable)\n\n**Security Measures:**\n• Regular security updates\n• Encrypted data transmission\n• Secure authentication\n• Access monitoring\n• Incident response procedures\n\n**Privacy Tools:**\n• **Data Export**: Download all your data\n• **Data Deletion**: Remove personal information\n• **Access Logs**: See who accessed your data\n• **Consent Management**: Control data processing\n\n**Compliance Features:**\n• GDPR Article 30 records\n• Data Protection Impact Assessments\n• Breach notification procedures\n• Privacy by design\n• Regular compliance audits\n\n**Contact Privacy Officer:**\nFor privacy concerns or data requests, contact our Data Protection Officer.",
+      "expanded": false
+    },
+    {
+      "id": "system-settings",
+      "icon": "settings",
+      "title": "System Settings",
+      "content": "Configure the system to match your organization's needs and preferences.\n\n**General Settings:**\n• Company information\n• Default date formats\n• Time zone settings\n• Language preferences\n• Notification settings\n\n**User Management:**\n• Add/remove users\n• Role assignments\n• Permission levels\n• Access controls\n• Password policies\n\n**Compliance Settings:**\n• Risk thresholds\n• Warning levels\n• Notification triggers\n• Reporting schedules\n• Audit requirements\n\n**Data Settings:**\n• Backup frequency\n• Retention periods\n• Export formats\n• Archive policies\n• Cleanup schedules\n\n**Integration Settings:**\n• API configurations\n• Webhook endpoints\n• Third-party connections\n• Data synchronization\n• Import/export settings\n\n**Security Settings:**\n• Authentication methods\n• Session timeouts\n• Access logging\n• Encryption levels\n• Security policies\n\n**Notification Settings:**\n• Email alerts\n• Dashboard warnings\n• Compliance notifications\n• System updates\n• Maintenance notices\n\n**Backup & Recovery:**\n• Automatic backups\n• Manual backups\n• Recovery procedures\n• Data validation\n• Disaster recovery\n\n**System Maintenance:**\n• Performance monitoring\n• Log management\n• Update schedules\n• Health checks\n• Troubleshooting tools\n\n**Accessing Settings:**\n1. Go to 'Admin Settings' in the sidebar\n2. Select the settings category\n3. Make your changes\n4. Save the configuration\n5. Test the new settings",
+      "expanded": false
+    },
+    {
+      "id": "country-codes",
+      "icon": "globe",
+      "title": "Schengen Country Codes",
+      "content": "Complete reference for all Schengen Area countries and their codes used in the system.\n\n**Schengen Area Countries (26):**\n\n**Western Europe:**\n• Austria (AT)\n• Belgium (BE)\n• France (FR)\n• Germany (DE)\n• Luxembourg (LU)\n• Netherlands (NL)\n• Switzerland (CH)\n\n**Northern Europe:**\n• Denmark (DK)\n• Finland (FI)\n• Iceland (IS)\n• Norway (NO)\n• Sweden (SE)\n\n**Southern Europe:**\n• Greece (GR)\n• Italy (IT)\n• Malta (MT)\n• Portugal (PT)\n• Spain (ES)\n\n**Eastern Europe:**\n• Czech Republic (CZ)\n• Estonia (EE)\n• Hungary (HU)\n• Latvia (LV)\n• Lithuania (LT)\n• Poland (PL)\n• Slovakia (SK)\n• Slovenia (SI)\n\n**Special Cases:**\n• **Ireland (IE)**: EU member but not in Schengen - tracked separately\n• **UK (GB)**: No longer in EU - for reference only\n• **Croatia (HR)**: Recently joined Schengen (2023)\n\n**Country Selection Tips:**\n• Use the full country name when adding trips\n• The system will auto-complete as you type\n• Check the spelling if a country doesn't appear\n• Some countries have multiple names (e.g., Netherlands/Holland)\n\n**Important Notes:**\n• All Schengen countries count toward the 90-day limit\n• Ireland does NOT count toward the limit\n• Travel between Schengen countries doesn't require new entry\n• The 90/180 rule applies to the entire Schengen Area as one zone\n\n**Troubleshooting:**\n• If a country doesn't appear, check the spelling\n• Some territories have special status (e.g., French overseas territories)\n• Contact support if you need to add a new country\n• The system is regularly updated with border changes",
+      "expanded": false
+    },
+    {
+      "id": "troubleshooting",
+      "icon": "help-circle",
+      "title": "Troubleshooting & FAQ",
+      "content": "Common issues and solutions for the EU Trip Tracker.\n\n**Frequently Asked Questions:**\n\n**Q: Why is my employee showing as 'At Risk'?**\nA: This means they have less than 10 days remaining in their 180-day window, or they've exceeded the 90-day limit. Check their trip history and consider postponing future travel.\n\n**Q: How do I correct a trip that was entered incorrectly?**\nA: Go to the employee's detail page, find the trip, and click 'Edit'. Make your changes and save. The system will recalculate their status automatically.\n\n**Q: Can I import trips from other systems?**\nA: Yes, use the Excel import feature. Download the sample file to see the required format, then upload your data.\n\n**Q: What if an employee travels to Ireland?**\nA: Ireland is tracked separately and doesn't count toward the 90/180 limit. Select 'Ireland' as the destination when adding the trip.\n\n**Q: How often should I check the dashboard?**\nA: We recommend checking weekly, or before approving any new travel. The system will show warnings for employees approaching their limits.\n\n**Q: Can I export data for HR records?**\nA: Yes, use the 'Export Data' feature to generate CSV files or PDF reports suitable for HR record-keeping.\n\n**Common Issues:**\n\n**Problem: Dashboard not loading**\n• Check your internet connection\n• Clear browser cache\n• Try a different browser\n• Contact IT support\n\n**Problem: Can't add trips**\n• Ensure you're logged in\n• Check date format (DD/MM/YYYY)\n• Verify country name spelling\n• Try refreshing the page\n\n**Problem: Excel import failing**\n• Check file format matches sample\n• Ensure no empty rows\n• Verify date formats\n• Check country names\n\n**Problem: Calculations seem wrong**\n• Check trip dates are correct\n• Verify destination countries\n• Look for overlapping trips\n• Contact support for review\n\n**Getting Help:**\n• Check this help section first\n• Use the search function\n• Contact your system administrator\n• Submit a support ticket\n\n**System Requirements:**\n• Modern web browser (Chrome, Firefox, Safari, Edge)\n• JavaScript enabled\n• Stable internet connection\n• Screen resolution 1024x768 or higher\n\n**Performance Tips:**\n• Close unused browser tabs\n• Clear browser cache regularly\n• Use a wired internet connection\n• Avoid using during peak hours",
+      "expanded": false
+    }
+  ],
+  "tutorial_steps": [
+    {
+      "element": ".sidebar",
+      "title": "🇪🇺 Welcome to EU Trip Tracker!",
+      "intro": "This quick tutorial will show you the main features. Let's start with the navigation sidebar.",
+      "position": "right"
+    },
+    {
+      "element": ".dashboard-card",
+      "title": "📊 Dashboard Overview",
+      "intro": "Your main hub showing all employees and their EU travel status. Green = Safe, Amber = Caution, Red = At Risk.",
+      "position": "bottom"
+    },
+    {
+      "element": "[href*='add-trip']",
+      "title": "➕ Adding Trips",
+      "intro": "Click here to add individual trips. You can also use bulk add or Excel import for multiple trips.",
+      "position": "right"
+    },
+    {
+      "element": "[href*='import']",
+      "title": "📤 Excel Import",
+      "intro": "Upload work schedules or trip lists using Excel files. Perfect for bulk data entry.",
+      "position": "right"
+    },
+    {
+      "element": "[href*='calendar']",
+      "title": "📅 Calendar View",
+      "intro": "Visual timeline of all employee trips. Color-coded by risk level with hover details.",
+      "position": "right"
+    },
+    {
+      "element": ".search-input",
+      "title": "🔍 Quick Search",
+      "intro": "Type any employee name to instantly jump to their detail page. Super fast navigation!",
+      "position": "bottom"
+    },
+    {
+      "element": "[href*='privacy']",
+      "title": "🔒 Privacy Tools",
+      "intro": "GDPR-compliant data management. Export data, manage consent, and ensure compliance.",
+      "position": "right"
+    },
+    {
+      "element": ".help-button",
+      "title": "🎯 You're Ready!",
+      "intro": "Click the Help button anytime for detailed guides. Happy tracking! 🚀",
+      "position": "bottom"
+    }
+  ]
+}
