@@ -148,6 +148,14 @@ class KeyboardShortcuts {
             window.location.href = '/';
         }, 'Go to Home');
 
+        this.register('alt+b', () => {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = '/';
+            }
+        }, 'Go Back');
+
         this.register('alt+d', () => {
             window.location.href = '/dashboard';
         }, 'Go to Dashboard');

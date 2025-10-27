@@ -743,6 +743,46 @@ p, td, li, button, input, label { font-weight: 400; }
     justify-content: center;
     background-color: var(--hubspot-bg);
     padding: 20px;
+    position: relative;
+}
+
+/* Login Navigation */
+.login-nav {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+}
+
+.login-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--color-blue-primary);
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(76, 115, 159, 0.2);
+}
+
+.login-nav-link:hover {
+    background: rgba(255, 255, 255, 1);
+    color: var(--color-blue-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(76, 115, 159, 0.15);
+}
+
+.login-nav-link svg {
+    flex-shrink: 0;
 }
 
 .login-container {
