@@ -75,9 +75,9 @@ class HelpSystem {
             }
         });
 
-        // Help button click
+        // Help button click - only for elements with data-help-click attribute
         document.addEventListener('click', (e) => {
-            if (e.target.closest('.help-trigger')) {
+            if (e.target.closest('.help-trigger[data-help-click="true"]')) {
                 e.preventDefault();
                 const helpId = e.target.closest('.help-trigger').dataset.helpId;
                 this.showContextualHelp(helpId);
@@ -236,10 +236,11 @@ class HelpSystem {
             position: 'top'
         });
 
-        // Navigation elements
+        // Navigation elements - tooltips only, no click functionality
         this.addTooltipToSelector('.nav-item', {
             content: 'Click to navigate to this section. Active sections are highlighted.',
-            position: 'right'
+            position: 'right',
+            clickable: false
         });
     }
 
@@ -252,8 +253,11 @@ class HelpSystem {
     addTooltip(element, options) {
         const tooltipId = `tooltip-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         
-        element.classList.add('help-trigger');
-        element.dataset.helpId = tooltipId;
+        // Only add help-trigger class if this is meant to be clickable for help
+        if (options.clickable !== false) {
+            element.classList.add('help-trigger');
+            element.dataset.helpId = tooltipId;
+        }
         
         this.tooltips.set(tooltipId, {
             element,
