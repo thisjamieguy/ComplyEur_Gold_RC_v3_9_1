@@ -93,9 +93,34 @@ def init_db():
         CREATE TABLE IF NOT EXISTS admin (
             id INTEGER PRIMARY KEY,
             password_hash TEXT NOT NULL,
+            company_name TEXT,
+            full_name TEXT,
+            email TEXT,
+            phone TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+    
+    # Add new columns to existing admin table if they don't exist
+    try:
+        c.execute('ALTER TABLE admin ADD COLUMN company_name TEXT')
+    except sqlite3.OperationalError:
+        pass
+    
+    try:
+        c.execute('ALTER TABLE admin ADD COLUMN full_name TEXT')
+    except sqlite3.OperationalError:
+        pass
+    
+    try:
+        c.execute('ALTER TABLE admin ADD COLUMN email TEXT')
+    except sqlite3.OperationalError:
+        pass
+    
+    try:
+        c.execute('ALTER TABLE admin ADD COLUMN phone TEXT')
+    except sqlite3.OperationalError:
+        pass
     
     # Create indexes for better performance
     c.execute('CREATE INDEX IF NOT EXISTS idx_trips_employee_id ON trips(employee_id)')

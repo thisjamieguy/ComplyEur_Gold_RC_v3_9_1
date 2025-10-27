@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sign up for EU Trip Tracker - Start your free 30-day trial and manage EU travel compliance effortlessly.">
+    <title>Sign Up - EU Trip Tracker</title>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}?v=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/hubspot-style.css') }}?v=3.0">
+</head>
+<body class="signup-page">
+    <!-- Navigation Bar -->
+    <nav class="landing-nav">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="{{ url_for('main.landing') }}">
+                    <span class="logo-icon">🇪🇺</span>
+                    <span class="logo-text">EU Trip Tracker</span>
+                </a>
+            </div>
+            <div class="nav-links">
+                <a href="{{ url_for('main.landing') }}#features" class="nav-link">Features</a>
+                <a href="{{ url_for('main.landing') }}#how-it-works" class="nav-link">How It Works</a>
+                <a href="{{ url_for('main.login') }}" class="btn-nav-login">Sign In</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sign Up Section -->
+    <section class="signup-section">
+        <div class="container">
+            <div class="signup-container">
+                <!-- Left Side - Benefits -->
+                <div class="signup-benefits">
+                    <div class="benefits-content">
+                        <h1 class="benefits-title">Start Your Free Trial</h1>
+                        <p class="benefits-subtitle">
+                            Join HR teams across the UK managing EU travel compliance with confidence.
+                        </p>
+                        
+                        <div class="benefits-list">
+                            <div class="benefit-item">
+                                <div class="benefit-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                        <polyline points="22 4 12 14.01 9 11.01"/>
+                                    </svg>
+                                </div>
+                                <div class="benefit-text">
+                                    <h3>30-Day Free Trial</h3>
+                                    <p>Full access to all features, no credit card required</p>
+                                </div>
+                            </div>
+                            
+                            <div class="benefit-item">
+                                <div class="benefit-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="3" width="7" height="7"/>
+                                        <rect x="14" y="3" width="7" height="7"/>
+                                        <rect x="14" y="14" width="7" height="7"/>
+                                        <rect x="3" y="14" width="7" height="7"/>
+                                    </svg>
+                                </div>
+                                <div class="benefit-text">
+                                    <h3>Real-Time Monitoring</h3>
+                                    <p>Track compliance across all employees instantly</p>
+                                </div>
+                            </div>
+                            
+                            <div class="benefit-item">
+                                <div class="benefit-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                        <line x1="12" y1="9" x2="12" y2="13"/>
+                                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                    </svg>
+                                </div>
+                                <div class="benefit-text">
+                                    <h3>Smart Alerts</h3>
+                                    <p>Never miss a compliance deadline again</p>
+                                </div>
+                            </div>
+                            
+                            <div class="benefit-item">
+                                <div class="benefit-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                    </svg>
+                                </div>
+                                <div class="benefit-text">
+                                    <h3>GDPR Compliant</h3>
+                                    <p>Built-in data protection and privacy controls</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="testimonial">
+                            <blockquote>
+                                "EU Trip Tracker has transformed how we manage compliance. 
+                                What used to take hours now takes minutes."
+                            </blockquote>
+                            <div class="testimonial-author">
+                                <div class="author-info">
+                                    <strong>Sarah Mitchell</strong>
+                                    <span>HR Director, TechCorp UK</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Side - Sign Up Form -->
+                <div class="signup-form-container">
+                    <div class="signup-form-card">
+                        <div class="form-header">
+                            <h2 class="form-title">Create Your Account</h2>
+                            <p class="form-subtitle">Get started in under 2 minutes</p>
+                        </div>
+                        
+                        {% if error %}
+                        <div class="error-message">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="15" y1="9" x2="9" y2="15"/>
+                                <line x1="9" y1="9" x2="15" y2="15"/>
+                            </svg>
+                            {{ error }}
+                        </div>
+                        {% endif %}
+                        
+                        {% if success %}
+                        <div class="success-message">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                <polyline points="22 4 12 14.01 9 11.01"/>
+                            </svg>
+                            {{ success }}
+                        </div>
+                        {% endif %}
+                        
+                        <form method="POST" id="signupForm" class="signup-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label required" for="company_name">Company Name</label>
+                                    <input type="text" 
+                                           id="company_name" 
+                                           name="company_name" 
+                                           class="form-input" 
+                                           placeholder="Your company name"
+                                           required
+                                           autocomplete="organization">
+                                    <div class="form-error" id="company_name_error"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label required" for="full_name">Full Name</label>
+                                    <input type="text" 
+                                           id="full_name" 
+                                           name="full_name" 
+                                           class="form-input" 
+                                           placeholder="Your full name"
+                                           required
+                                           autocomplete="name">
+                                    <div class="form-error" id="full_name_error"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label required" for="email">Email Address</label>
+                                    <input type="email" 
+                                           id="email" 
+                                           name="email" 
+                                           class="form-input" 
+                                           placeholder="your.email@company.com"
+                                           required
+                                           autocomplete="email">
+                                    <div class="form-error" id="email_error"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="phone">Phone Number (Optional)</label>
+                                    <input type="tel" 
+                                           id="phone" 
+                                           name="phone" 
+                                           class="form-input" 
+                                           placeholder="+44 20 1234 5678"
+                                           autocomplete="tel">
+                                    <div class="form-error" id="phone_error"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label required" for="password">Password</label>
+                                    <div class="password-input-container">
+                                        <input type="password" 
+                                               id="password" 
+                                               name="password" 
+                                               class="form-input" 
+                                               placeholder="Create a strong password"
+                                               required
+                                               minlength="8"
+                                               autocomplete="new-password">
+                                        <button type="button" class="password-toggle" id="passwordToggle">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                                <circle cx="12" cy="12" r="3"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <div class="password-strength" id="passwordStrength">
+                                        <div class="strength-bar">
+                                            <div class="strength-fill" id="strengthFill"></div>
+                                        </div>
+                                        <div class="strength-text" id="strengthText">Password strength</div>
+                                    </div>
+                                    <div class="form-error" id="password_error"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label required" for="confirm_password">Confirm Password</label>
+                                    <div class="password-input-container">
+                                        <input type="password" 
+                                               id="confirm_password" 
+                                               name="confirm_password" 
+                                               class="form-input" 
+                                               placeholder="Confirm your password"
+                                               required
+                                               autocomplete="new-password">
+                                        <button type="button" class="password-toggle" id="confirmPasswordToggle">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                                <circle cx="12" cy="12" r="3"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <div class="form-error" id="confirm_password_error"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group checkbox-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" 
+                                               id="terms" 
+                                               name="terms" 
+                                               required>
+                                        <span class="checkbox-custom"></span>
+                                        <span class="checkbox-text">
+                                            I agree to the <a href="{{ url_for('main.privacy') }}" target="_blank">Terms of Service</a> 
+                                            and <a href="{{ url_for('main.privacy') }}" target="_blank">Privacy Policy</a>
+                                        </span>
+                                    </label>
+                                    <div class="form-error" id="terms_error"></div>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn-primary btn-large btn-full" id="signupBtn">
+                                <span class="btn-text">Start Free Trial</span>
+                                <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                                </svg>
+                            </button>
+                        </form>
+                        
+                        <div class="form-footer">
+                            <p>Already have an account? <a href="{{ url_for('main.login') }}">Sign in here</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="landing-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <span class="logo-icon">🇪🇺</span>
+                        <span class="logo-text">EU Trip Tracker</span>
+                    </div>
+                    <p class="footer-description">
+                        Automated EU travel compliance for UK businesses.
+                    </p>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="{{ url_for('main.landing') }}#features">Features</a></li>
+                        <li><a href="{{ url_for('main.landing') }}#how-it-works">How It Works</a></li>
+                        <li><a href="{{ url_for('main.landing') }}#pricing">Pricing</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="{{ url_for('main.help_page') }}">Help Center</a></li>
+                        <li><a href="{{ url_for('main.entry_requirements') }}">EU Entry Requirements</a></li>
+                        <li><a href="{{ url_for('main.privacy') }}">Privacy Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 EU Trip Tracker. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/landing.js') }}?v=1.0"></script>
+    <script>
+    // Signup-specific JavaScript
+    document.addEventListener('DOMContentLoaded', function() {
+        const signupForm = document.getElementById('signupForm');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirm_password');
+        const passwordToggle = document.getElementById('passwordToggle');
+        const confirmPasswordToggle = document.getElementById('confirmPasswordToggle');
+        const signupBtn = document.getElementById('signupBtn');
+        
+        // Password visibility toggle
+        passwordToggle.addEventListener('click', function() {
+            togglePasswordVisibility(passwordInput, passwordToggle);
+        });
+        
+        confirmPasswordToggle.addEventListener('click', function() {
+            togglePasswordVisibility(confirmPasswordInput, confirmPasswordToggle);
+        });
+        
+        // Password strength indicator
+        passwordInput.addEventListener('input', function() {
+            updatePasswordStrength(this.value);
+        });
+        
+        // Real-time validation
+        confirmPasswordInput.addEventListener('input', function() {
+            validatePasswordMatch();
+        });
+        
+        // Form submission
+        signupForm.addEventListener('submit', function(e) {
+            if (!validateForm()) {
+                e.preventDefault();
+            } else {
+                setLoadingState(signupBtn, true, 'Creating account...');
+            }
+        });
+        
+        function togglePasswordVisibility(input, toggle) {
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+            toggle.querySelector('svg').innerHTML = isPassword ? 
+                '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>' :
+                '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+        }
+        
+        function updatePasswordStrength(password) {
+            const strengthFill = document.getElementById('strengthFill');
+            const strengthText = document.getElementById('strengthText');
+            
+            let strength = 0;
+            let strengthLabel = 'Very Weak';
+            let strengthColor = '#ef4444';
+            
+            if (password.length >= 8) strength += 1;
+            if (password.match(/[a-z]/)) strength += 1;
+            if (password.match(/[A-Z]/)) strength += 1;
+            if (password.match(/[0-9]/)) strength += 1;
+            if (password.match(/[^a-zA-Z0-9]/)) strength += 1;
+            
+            switch (strength) {
+                case 0:
+                case 1:
+                    strengthLabel = 'Very Weak';
+                    strengthColor = '#ef4444';
+                    break;
+                case 2:
+                    strengthLabel = 'Weak';
+                    strengthColor = '#f59e0b';
+                    break;
+                case 3:
+                    strengthLabel = 'Fair';
+                    strengthColor = '#f59e0b';
+                    break;
+                case 4:
+                    strengthLabel = 'Good';
+                    strengthColor = '#10b981';
+                    break;
+                case 5:
+                    strengthLabel = 'Strong';
+                    strengthColor = '#10b981';
+                    break;
+            }
+            
+            strengthFill.style.width = (strength / 5 * 100) + '%';
+            strengthFill.style.backgroundColor = strengthColor;
+            strengthText.textContent = strengthLabel;
+            strengthText.style.color = strengthColor;
+        }
+        
+        function validatePasswordMatch() {
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+            const errorDiv = document.getElementById('confirm_password_error');
+            
+            if (confirmPassword && password !== confirmPassword) {
+                showFieldError(confirmPasswordInput, 'Passwords do not match');
+                return false;
+            } else {
+                clearFieldError(confirmPasswordInput);
+                return true;
+            }
+        }
+        
+        function validateForm() {
+            let isValid = true;
+            
+            // Clear previous errors
+            clearAllErrors();
+            
+            // Validate required fields
+            const requiredFields = ['company_name', 'full_name', 'email', 'password', 'confirm_password'];
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (!field.value.trim()) {
+                    showFieldError(field, 'This field is required');
+                    isValid = false;
+                }
+            });
+            
+            // Validate email format
+            const email = document.getElementById('email');
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (email.value && !emailRegex.test(email.value)) {
+                showFieldError(email, 'Please enter a valid email address');
+                isValid = false;
+            }
+            
+            // Validate password strength
+            const password = document.getElementById('password');
+            if (password.value && password.value.length < 8) {
+                showFieldError(password, 'Password must be at least 8 characters long');
+                isValid = false;
+            }
+            
+            // Validate password match
+            if (!validatePasswordMatch()) {
+                isValid = false;
+            }
+            
+            // Validate terms checkbox
+            const terms = document.getElementById('terms');
+            if (!terms.checked) {
+                showFieldError(terms, 'You must agree to the terms and conditions');
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+        
+        function showFieldError(field, message) {
+            const errorDiv = document.getElementById(field.id + '_error');
+            if (errorDiv) {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+            }
+            field.classList.add('error');
+        }
+        
+        function clearFieldError(field) {
+            const errorDiv = document.getElementById(field.id + '_error');
+            if (errorDiv) {
+                errorDiv.textContent = '';
+                errorDiv.style.display = 'none';
+            }
+            field.classList.remove('error');
+        }
+        
+        function clearAllErrors() {
+            const errorDivs = document.querySelectorAll('.form-error');
+            errorDivs.forEach(div => {
+                div.textContent = '';
+                div.style.display = 'none';
+            });
+            
+            const errorFields = document.querySelectorAll('.form-input.error, .checkbox-group.error');
+            errorFields.forEach(field => field.classList.remove('error'));
+        }
+        
+        function setLoadingState(button, isLoading, text) {
+            if (isLoading) {
+                button.disabled = true;
+                button.querySelector('.btn-text').textContent = text;
+                button.classList.add('loading');
+            } else {
+                button.disabled = false;
+                button.querySelector('.btn-text').textContent = 'Start Free Trial';
+                button.classList.remove('loading');
+            }
+        }
+    });
+    </script>
+</body>
+</html>

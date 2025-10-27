@@ -194,7 +194,11 @@ def allowed_file(filename):
 
 @main_bp.route('/')
 def index():
-    return redirect(url_for('main.login'))
+    return render_template('landing.html')
+
+@main_bp.route('/landing')
+def landing():
+    return render_template('landing.html')
 
 @main_bp.route('/healthz')
 def healthz():
@@ -409,6 +413,89 @@ def login():
         write_audit(CONFIG['AUDIT_LOG_PATH'], 'login_failure', 'admin', {'ip': ip})
         return render_template('login.html', error='Invalid password')
     return render_template('login.html')
+
+@main_bp.route('/signup', methods=['GET', 'POST'])
+def signup():
+    """User registration for new accounts"""
+    if request.method == 'POST':
+        # Get form data
+        company_name = request.form.get('company_name', '').strip()
+        full_name = request.form.get('full_name', '').strip()
+        email = request.form.get('email', '').strip()
+        phone = request.form.get('phone', '').strip()
+        password = request.form.get('password', '')
+        confirm_password = request.form.get('confirm_password', '')
+        terms = request.form.get('terms')
+        
+        # Validation
+        errors = []
+        
+        if not company_name:
+            errors.append('Company name is required')
+        if not full_name:
+            errors.append('Full name is required')
+        if not email:
+            errors.append('Email address is required')
+        elif '@' not in email:
+            errors.append('Please enter a valid email address')
+        if not password:
+            errors.append('Password is required')
+        elif len(password) < 8:
+            errors.append('Password must be at least 8 characters long')
+        if password != confirm_password:
+            errors.append('Passwords do not match')
+        if not terms:
+            errors.append('You must agree to the terms and conditions')
+        
+        if errors:
+            return render_template('signup.html', error=errors[0])
+        
+        # Check if admin already exists (for now, only allow one admin)
+        conn = get_db()
+        c = conn.cursor()
+        c.execute('SELECT id FROM admin WHERE id = 1')
+        existing_admin = c.fetchone()
+        
+        if existing_admin:
+            conn.close()
+            return render_template('signup.html', error='An admin account already exists. Please contact support for access.')
+        
+        try:
+            # Create new admin account with company info
+            hasher = Hasher()
+            password_hash = hasher.hash(password)
+            
+            c.execute('''
+                INSERT INTO admin (id, password_hash, company_name, full_name, email, phone, created_at)
+                VALUES (1, ?, ?, ?, ?, ?, ?)
+            ''', (password_hash, company_name, full_name, email, phone, datetime.utcnow()))
+            
+            conn.commit()
+            conn.close()
+            
+            # Log successful signup
+            from flask import current_app
+            CONFIG = current_app.config['CONFIG']
+            write_audit(CONFIG['AUDIT_LOG_PATH'], 'admin_signup', 'system', {
+                'company_name': company_name,
+                'email': email,
+                'full_name': full_name
+            })
+            
+            return render_template('login.html', success='Account created successfully! Please log in with your credentials.')
+            
+        except Exception as e:
+            conn.rollback()
+            conn.close()
+            logger.error(f"Signup error: {e}")
+            return render_template('signup.html', error='An error occurred during registration. Please try again.')
+    
+    return render_template('signup.html')
+
+@main_bp.route('/get-started')
+def get_started():
+    """Alias for signup page"""
+    return redirect(url_for('main.signup'))
 
 @main_bp.route('/setup', methods=['GET', 'POST'])
 def setup():

@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Stay compliant with EU's 90/180-day rule. Track employee travel, monitor compliance, and avoid violations with automated alerts.">
+    <title>EU Trip Tracker - 90/180 Day Compliance Made Simple</title>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}?v=1.0">
+    
+    <!-- Preload critical assets -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="landing-nav">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span class="logo-icon">🇪🇺</span>
+                <span class="logo-text">EU Trip Tracker</span>
+            </div>
+            <div class="nav-links">
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#how-it-works" class="nav-link">How It Works</a>
+                <a href="#pricing" class="nav-link">Pricing</a>
+                <a href="{{ url_for('main.login') }}" class="btn-nav-login">Sign In</a>
+                <a href="{{ url_for('main.signup') }}" class="btn-nav-cta">Get Started</a>
+            </div>
+            <button class="mobile-menu-toggle" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-background">
+            <div class="gradient-overlay"></div>
+            <div class="animated-shapes">
+                <div class="shape shape-1"></div>
+                <div class="shape shape-2"></div>
+                <div class="shape shape-3"></div>
+            </div>
+        </div>
+        
+        <div class="hero-content">
+            <div class="hero-badge animate-fade-in">
+                <span class="badge-icon">✨</span>
+                <span>Trusted by HR teams across Europe</span>
+            </div>
+            
+            <h1 class="hero-title animate-fade-in-up">
+                Never Violate the<br>
+                <span class="gradient-text">90/180 Day Rule</span><br>
+                Again
+            </h1>
+            
+            <p class="hero-subtitle animate-fade-in-up">
+                Automated compliance tracking for UK businesses with employees traveling to EU/Schengen countries. 
+                Stay compliant, avoid penalties, and focus on what matters.
+            </p>
+            
+            <div class="hero-cta animate-fade-in-up">
+                <a href="{{ url_for('main.signup') }}" class="btn-primary btn-large">
+                    Start Free Trial
+                    <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </a>
+                <a href="#how-it-works" class="btn-secondary btn-large">
+                    See How It Works
+                </a>
+            </div>
+            
+            <div class="hero-stats animate-fade-in">
+                <div class="stat-item">
+                    <div class="stat-number" data-target="90">0</div>
+                    <div class="stat-label">Days Tracked</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-number" data-target="180">0</div>
+                    <div class="stat-label">Day Window</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-number" data-target="100">0</div>
+                    <div class="stat-label">% Compliance</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="hero-scroll-indicator">
+            <span>Scroll to explore</span>
+            <svg class="scroll-arrow" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12l7 7 7-7"/>
+            </svg>
+        </div>
+    </section>
+
+    <!-- Problem/Solution Section -->
+    <section class="problem-solution-section">
+        <div class="container">
+            <div class="section-grid">
+                <!-- The Challenge -->
+                <div class="problem-card scroll-animate">
+                    <div class="card-icon problem-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                    </div>
+                    <h2 class="card-title">The Challenge</h2>
+                    <p class="card-description">
+                        UK citizens can only spend 90 days in any 180-day period across EU/Schengen countries. 
+                        Manual tracking is complex, error-prone, and puts your business at risk of costly violations.
+                    </p>
+                    <ul class="challenge-list">
+                        <li>Rolling 180-day calculation complexity</li>
+                        <li>Multiple employees, multiple trips</li>
+                        <li>Immigration penalties and entry bans</li>
+                        <li>Manual spreadsheets are unreliable</li>
+                    </ul>
+                </div>
+                
+                <!-- The Solution -->
+                <div class="solution-card scroll-animate">
+                    <div class="card-icon solution-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                    </div>
+                    <h2 class="card-title">The Solution</h2>
+                    <p class="card-description">
+                        EU Trip Tracker automatically calculates compliance for every employee, 
+                        sends alerts before limits are reached, and forecasts future travel safety.
+                    </p>
+                    <ul class="solution-list">
+                        <li>Real-time compliance monitoring</li>
+                        <li>Automated alerts and forecasting</li>
+                        <li>GDPR-compliant data storage</li>
+                        <li>One-click Excel imports</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section" id="features">
+        <div class="container">
+            <div class="section-header scroll-animate">
+                <h2 class="section-title">Everything You Need for Compliance</h2>
+                <p class="section-subtitle">Powerful features designed for HR teams managing EU travel</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card scroll-animate">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7"/>
+                            <rect x="14" y="3" width="7" height="7"/>
+                            <rect x="14" y="14" width="7" height="7"/>
+                            <rect x="3" y="14" width="7" height="7"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Real-Time Dashboard</h3>
+                    <p class="feature-description">
+                        Monitor all employees at a glance with color-coded risk levels, 
+                        days remaining, and upcoming trips.
+                    </p>
+                </div>
+                
+                <div class="feature-card scroll-animate">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Smart Alerts</h3>
+                    <p class="feature-description">
+                        Get notified when employees approach their 90-day limit, 
+                        with detailed forecasts for planned trips.
+                    </p>
+                </div>
+                
+                <div class="feature-card scroll-animate">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Compliance Planner</h3>
+                    <p class="feature-description">
+                        Test "what-if" scenarios before booking trips. 
+                        Know if travel will be compliant weeks in advance.
+                    </p>
+                </div>
+                
+                <div class="feature-card scroll-animate">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14,2 14,8 20,8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Easy Import</h3>
+                    <p class="feature-description">
+                        Import existing trip data from Excel in seconds. 
+                        No manual data entry required.
+                    </p>
+                </div>
+                
+                <div class="feature-card scroll-animate">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Visual Calendar</h3>
+                    <p class="feature-description">
+                        See trip history and safe re-entry dates on an intuitive 
+                        calendar view for each employee.
+                    </p>
+                </div>
+                
+                <div class="feature-card scroll-animate">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">GDPR Compliant</h3>
+                    <p class="feature-description">
+                        Built-in data retention policies, audit logs, and DSAR tools. 
+                        Your data is secure and compliant.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Screenshots Carousel Section -->
+    <section class="screenshots-section">
+        <div class="container">
+            <div class="section-header scroll-animate">
+                <h2 class="section-title">See It In Action</h2>
+                <p class="section-subtitle">A glimpse of the powerful features that keep you compliant</p>
+            </div>
+            
+            <div class="carousel-container scroll-animate">
+                <div class="carousel-track">
+                    <div class="carousel-slide active">
+                        <div class="screenshot-container">
+                            <img src="{{ url_for('static', filename='images/screenshots/dashboard-screenshot.png') }}" 
+                                 alt="Dashboard View - Real-time compliance monitoring"
+                                 class="screenshot-image"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="screenshot-placeholder" style="display: none;">
+                                <div class="placeholder-content">
+                                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                                        <rect x="3" y="3" width="7" height="7"/>
+                                        <rect x="14" y="3" width="7" height="7"/>
+                                        <rect x="14" y="14" width="7" height="7"/>
+                                        <rect x="3" y="14" width="7" height="7"/>
+                                    </svg>
+                                    <p>Dashboard View</p>
+                                    <span class="placeholder-note">Screenshot: Real-time compliance monitoring</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-slide">
+                        <div class="screenshot-container">
+                            <img src="{{ url_for('static', filename='images/screenshots/employee-detail-screenshot.png') }}" 
+                                 alt="Employee Detail - Complete trip history & forecasts"
+                                 class="screenshot-image"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="screenshot-placeholder" style="display: none;">
+                                <div class="placeholder-content">
+                                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="12" cy="7" r="4"/>
+                                    </svg>
+                                    <p>Employee Detail</p>
+                                    <span class="placeholder-note">Screenshot: Complete trip history & forecasts</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-slide">
+                        <div class="screenshot-container">
+                            <img src="{{ url_for('static', filename='images/screenshots/calendar-screenshot.png') }}" 
+                                 alt="Calendar View - Visual trip timeline"
+                                 class="screenshot-image"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="screenshot-placeholder" style="display: none;">
+                                <div class="placeholder-content">
+                                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                        <line x1="16" y1="2" x2="16" y2="6"/>
+                                        <line x1="8" y1="2" x2="8" y2="6"/>
+                                        <line x1="3" y1="10" x2="21" y2="10"/>
+                                    </svg>
+                                    <p>Calendar View</p>
+                                    <span class="placeholder-note">Screenshot: Visual trip timeline</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="carousel-controls">
+                    <button class="carousel-btn prev-btn" aria-label="Previous screenshot">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 18l-6-6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="carousel-dots"></div>
+                    <button class="carousel-btn next-btn" aria-label="Next screenshot">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18l6-6-6-6"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works-section" id="how-it-works">
+        <div class="container">
+            <div class="section-header scroll-animate">
+                <h2 class="section-title">How It Works</h2>
+                <p class="section-subtitle">Get started in three simple steps</p>
+            </div>
+            
+            <div class="steps-container">
+                <div class="step-card scroll-animate">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Sign Up & Add Employees</h3>
+                        <p class="step-description">
+                            Create your account in 60 seconds. Add your employees and 
+                            import existing trip data from Excel if you have it.
+                        </p>
+                    </div>
+                    <div class="step-icon">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="8.5" cy="7" r="4"/>
+                            <line x1="20" y1="8" x2="20" y2="14"/>
+                            <line x1="23" y1="11" x2="17" y2="11"/>
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="step-connector scroll-animate"></div>
+                
+                <div class="step-card scroll-animate">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Log Trips & Monitor Usage</h3>
+                        <p class="step-description">
+                            Enter trip details as employees travel. The system automatically 
+                            calculates days used and remaining in the 180-day window.
+                        </p>
+                    </div>
+                    <div class="step-icon">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="step-connector scroll-animate"></div>
+                
+                <div class="step-card scroll-animate">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Stay Compliant Automatically</h3>
+                        <p class="step-description">
+                            Receive alerts when employees approach limits. Use the planner 
+                            to forecast future trips and ensure ongoing compliance.
+                        </p>
+                    </div>
+                    <div class="step-icon">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing-section" id="pricing">
+        <div class="container">
+            <div class="section-header scroll-animate">
+                <h2 class="section-title">Simple, Transparent Pricing</h2>
+                <p class="section-subtitle">Start free, upgrade as you grow</p>
+            </div>
+            
+            <div class="pricing-grid">
+                <div class="pricing-card scroll-animate">
+                    <div class="pricing-header">
+                        <h3 class="pricing-plan">Free Trial</h3>
+                        <div class="pricing-price">
+                            <span class="price-currency">£</span>
+                            <span class="price-amount">0</span>
+                            <span class="price-period">/30 days</span>
+                        </div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>Up to 5 employees</li>
+                        <li>All core features</li>
+                        <li>Email support</li>
+                        <li>30-day trial period</li>
+                    </ul>
+                    <a href="{{ url_for('main.signup') }}" class="btn-pricing">Start Free Trial</a>
+                </div>
+                
+                <div class="pricing-card featured scroll-animate">
+                    <div class="featured-badge">Most Popular</div>
+                    <div class="pricing-header">
+                        <h3 class="pricing-plan">Professional</h3>
+                        <div class="pricing-price">
+                            <span class="price-currency">£</span>
+                            <span class="price-amount">29</span>
+                            <span class="price-period">/month</span>
+                        </div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>Unlimited employees</li>
+                        <li>All features included</li>
+                        <li>Priority support</li>
+                        <li>Excel import/export</li>
+                        <li>GDPR compliance tools</li>
+                    </ul>
+                    <a href="{{ url_for('main.signup') }}" class="btn-pricing btn-pricing-featured">Get Started</a>
+                </div>
+                
+                <div class="pricing-card scroll-animate">
+                    <div class="pricing-header">
+                        <h3 class="pricing-plan">Enterprise</h3>
+                        <div class="pricing-price">
+                            <span class="price-amount">Custom</span>
+                        </div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>Custom employee limits</li>
+                        <li>Dedicated support</li>
+                        <li>Custom integrations</li>
+                        <li>SLA guarantees</li>
+                        <li>Training sessions</li>
+                    </ul>
+                    <a href="mailto:sales@eutriptracker.com" class="btn-pricing">Contact Sales</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA Section -->
+    <section class="final-cta-section">
+        <div class="container">
+            <div class="cta-content scroll-animate">
+                <h2 class="cta-title">Ready to Stay Compliant?</h2>
+                <p class="cta-subtitle">
+                    Join HR teams across the UK using EU Trip Tracker to manage EU travel compliance. 
+                    Start your free 30-day trial today - no credit card required.
+                </p>
+                <div class="cta-buttons">
+                    <a href="{{ url_for('main.signup') }}" class="btn-primary btn-large">
+                        Start Free Trial
+                        <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                    <a href="{{ url_for('main.login') }}" class="btn-secondary btn-large">
+                        Sign In
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="landing-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <span class="logo-icon">🇪🇺</span>
+                        <span class="logo-text">EU Trip Tracker</span>
+                    </div>
+                    <p class="footer-description">
+                        Automated EU travel compliance for UK businesses. 
+                        Never violate the 90/180 day rule again.
+                    </p>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#how-it-works">How It Works</a></li>
+                        <li><a href="#pricing">Pricing</a></li>
+                        <li><a href="{{ url_for('main.signup') }}">Sign Up</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="{{ url_for('main.help_page') }}">Help Center</a></li>
+                        <li><a href="{{ url_for('main.entry_requirements') }}">EU Entry Requirements</a></li>
+                        <li><a href="{{ url_for('main.privacy') }}">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="mailto:support@eutriptracker.com">Contact Us</a></li>
+                        <li><a href="#">About</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 EU Trip Tracker. All rights reserved.</p>
+                <p class="footer-note">Built for compliance professionals by Maavsi</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/landing.js') }}?v=1.0"></script>
+</body>
+</html>
+
