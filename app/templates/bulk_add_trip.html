@@ -31,11 +31,11 @@
         <div class="error-message" style="margin-bottom: 24px;">{{ error }}</div>
         {% endif %}
         
-        <form method="POST">
+        <form method="POST" id="bulkTripForm">
             <div class="form-inline">
                 <div class="form-group">
-                    <label class="form-label">Country</label>
-                    <select name="country_code" class="form-input" required>
+                    <label class="form-label required">Country</label>
+                    <select name="country_code" class="form-select" required>
                         <option value="">Select country</option>
                         <option value="PRIVATE">🔒 Personal Trip (Dates Only)</option>
                         <option value="AT">🇦🇹 Austria (AT)</option>
@@ -70,16 +70,19 @@
                         <option value="SE">🇸🇪 Sweden (SE)</option>
                         <option value="CH">🇨🇭 Switzerland (CH)</option>
                     </select>
+                    <div class="form-hint">Select the destination country for all selected employees</div>
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">Entry Date</label>
+                    <label class="form-label required">Entry Date</label>
                     <input type="date" name="entry_date" class="form-input" required>
+                    <div class="form-hint">Date all employees will enter the country</div>
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">Exit Date</label>
+                    <label class="form-label required">Exit Date</label>
                     <input type="date" name="exit_date" class="form-input" required>
+                    <div class="form-hint">Date all employees will exit the country</div>
                 </div>
             </div>
             
@@ -119,14 +122,14 @@
                         <button type="button" onclick="selectAll()" class="btn btn-secondary btn-sm">Select All</button>
                         <button type="button" onclick="selectNone()" class="btn btn-secondary btn-sm">Select None</button>
                     </div>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" id="bulkSubmitBtn">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                             <circle cx="8.5" cy="7" r="4"></circle>
                             <line x1="20" y1="8" x2="20" y2="14"></line>
                             <line x1="23" y1="11" x2="17" y2="11"></line>
                         </svg>
-                        Add Trip to Selected Employees
+                        <span class="btn-text">Add Trip to Selected Employees</span>
                     </button>
                 </div>
                 {% else %}
@@ -241,6 +244,80 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function escapeRegex(str) {
         return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+    
+    // Enhanced form validation and confirmation
+    const bulkTripForm = document.getElementById('bulkTripForm');
+    const bulkSubmitBtn = document.getElementById('bulkSubmitBtn');
+    
+    if (bulkTripForm) {
+        bulkTripForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get selected employees
+            const selectedEmployees = Array.from(document.querySelectorAll('input[name="employee_ids"]:checked'));
+            
+            if (selectedEmployees.length === 0) {
+                showNotification('Please select at least one employee', 'error');
+                return false;
+            }
+            
+            // Validate form
+            const validation = validateForm(bulkTripForm, {
+                dateRange: true
+            });
+            
+            if (!validation.isValid) {
+                showNotification(validation.errors.join(', '), 'error');
+                return false;
+            }
+            
+            // Show confirmation dialog
+            const country = bulkTripForm.querySelector('select[name="country_code"]').selectedOptions[0].text;
+            const entryDate = bulkTripForm.querySelector('input[name="entry_date"]').value;
+            const exitDate = bulkTripForm.querySelector('input[name="exit_date"]').value;
+            
+            confirmAction({
+                title: 'Confirm Bulk Trip Addition',
+                message: `Add trip to ${country} (${entryDate} - ${exitDate}) for ${selectedEmployees.length} employee${selectedEmployees.length !== 1 ? 's' : ''}?`,
+                details: `This will add the same trip details to: ${selectedEmployees.map(emp => emp.closest('.employee-checkbox').querySelector('span').textContent).join(', ')}`,
+                confirmText: 'Add Trip to All Selected',
+                danger: false
+            }).then(confirmed => {
+                if (confirmed) {
+                    // Show loading state
+                    setLoadingState(bulkSubmitBtn, true, 'Adding trips...');
+                    
+                    // Submit the form
+                    bulkTripForm.submit();
+                }
+            });
+        });
+        
+        // Real-time date validation
+        const entryDate = bulkTripForm.querySelector('input[name="entry_date"]');
+        const exitDate = bulkTripForm.querySelector('input[name="exit_date"]');
+        
+        function validateDateRange() {
+            if (entryDate.value && exitDate.value) {
+                const entry = new Date(entryDate.value);
+                const exit = new Date(exitDate.value);
+                
+                if (entry >= exit) {
+                    showFieldError(entryDate, 'Entry date must be before exit date');
+                    showFieldError(exitDate, 'Exit date must be after entry date');
+                } else {
+                    // Clear errors if dates are valid
+                    entryDate.classList.remove('error');
+                    exitDate.classList.remove('error');
+                    const errors = bulkTripForm.querySelectorAll('.form-error');
+                    errors.forEach(error => error.remove());
+                }
+            }
+        }
+        
+        entryDate.addEventListener('change', validateDateRange);
+        exitDate.addEventListener('change', validateDateRange);
     }
 });
 </script>

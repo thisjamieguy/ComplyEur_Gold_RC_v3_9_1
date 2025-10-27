@@ -17,12 +17,16 @@
         <div class="success-message">{{ success }}</div>
         {% endif %}
         
-        <form method="POST">
+        <form method="POST" id="loginForm">
             <div class="form-group">
-                <label class="form-label" for="password">Admin Password</label>
-                <input type="password" id="password" name="password" class="form-input" required autofocus>
+                <label class="form-label required" for="password">Admin Password</label>
+                <input type="password" id="password" name="password" class="form-input" required autofocus minlength="6">
+                <div class="form-hint">Minimum 6 characters required</div>
+                <div id="passwordStrength" class="form-hint" style="display: none;"></div>
             </div>
-            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 16px; font-size: 16px;">Login</button>
+            <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;" id="loginBtn">
+                <span class="btn-text">Login</span>
+            </button>
         </form>
         
         <div class="card" style="margin-top: 24px; background: #f9fafb; border-left: 4px solid #f97316;">
@@ -34,4 +38,75 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordInput = document.getElementById('password');
+    const passwordStrength = document.getElementById('passwordStrength');
+    const loginForm = document.getElementById('loginForm');
+    const loginBtn = document.getElementById('loginBtn');
+    
+    // Password strength indicator
+    passwordInput.addEventListener('input', function() {
+        const password = this.value;
+        const length = password.length;
+        
+        if (length === 0) {
+            passwordStrength.style.display = 'none';
+            return;
+        }
+        
+        passwordStrength.style.display = 'block';
+        
+        if (length < 6) {
+            passwordStrength.innerHTML = '❌ Too short (minimum 6 characters)';
+            passwordStrength.style.color = '#ef4444';
+        } else if (length < 8) {
+            passwordStrength.innerHTML = '⚠️ Weak password';
+            passwordStrength.style.color = '#f59e0b';
+        } else if (length < 12) {
+            passwordStrength.innerHTML = '✅ Good password';
+            passwordStrength.style.color = '#10b981';
+        } else {
+            passwordStrength.innerHTML = '✅ Strong password';
+            passwordStrength.style.color = '#10b981';
+        }
+    });
+    
+    // Form submission with loading state
+    loginForm.addEventListener('submit', function(e) {
+        const password = passwordInput.value.trim();
+        
+        if (password.length < 6) {
+            e.preventDefault();
+            showNotification('Password must be at least 6 characters long', 'error');
+            passwordInput.focus();
+            return false;
+        }
+        
+        // Show loading state
+        setLoadingState(loginBtn, true, 'Logging in...');
+        
+        // Re-enable after 3 seconds in case of network issues
+        setTimeout(() => {
+            setLoadingState(loginBtn, false);
+        }, 3000);
+    });
+    
+    // Real-time validation
+    passwordInput.addEventListener('blur', function() {
+        if (this.value.trim() && this.value.length < 6) {
+            showFieldError(this, 'Password must be at least 6 characters long');
+        }
+    });
+    
+    passwordInput.addEventListener('input', function() {
+        if (this.classList.contains('error') && this.value.length >= 6) {
+            this.classList.remove('error');
+            const errorDiv = this.parentNode.querySelector('.form-error');
+            if (errorDiv) errorDiv.remove();
+        }
+    });
+});
+</script>
 {% endblock %}

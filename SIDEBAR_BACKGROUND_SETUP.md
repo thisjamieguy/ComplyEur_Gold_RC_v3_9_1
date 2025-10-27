@@ -36,3 +36,4 @@ background-color: rgba(78, 90, 98, 0.75); /* Change 0.75 to adjust opacity */
 - Works on desktop, mobile, and collapsed states
 
 The effect creates a subtle, professional look where your image is visible behind the gray overlay without interfering with text readability.
+

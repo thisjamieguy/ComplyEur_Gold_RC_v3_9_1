@@ -807,7 +807,7 @@
       "country": "Switzerland",
       "is_schengen_member": true,
       "schengen_notes": "Schengen member since 2008; non-EU country.",
-      "short_stay_rule": "90 days in any 180-day Schengen period.",
+      "short_stay_rule": "Special Company-Level Rule: 90 days in any 180-day period applied to the company as a whole, not per individual employee.",
       "passport_validity": "Valid for minimum 3 months beyond departure; issued in last 10 years.",
       "documents_at_border": [
         "Passport",
@@ -818,7 +818,7 @@
         "Business invitation letter if relevant"
       ],
       "health_insurance": "Schengen travel insurance recommended; EHIC/GHIC accepted.",
-      "work_vs_business": "Business meetings visa-free. Paid work requires Swiss permit or visa.",
+      "work_vs_business": "For company-related work (installations, services, assignments under service contract), the 90-day limit is applied to the company as a whole, not per individual employee. All employees working in Switzerland under the same contract share a combined 90-day allowance within any 180-day window. Once the company's total presence reaches 90 days, no further staff can work in Switzerland until the 180-day period resets. Individual limits still apply for personal or non-work visits (tourism, meetings, etc.).",
       "local_registration_rules": "Hotels register guests automatically. Private stay registration for longer stays needed.",
       "etias_status": "ETIAS mandatory for UK nationals starting Q4 2026.",
       "ees_status": "EES effective from 12 Oct 2025 with biometric checks at all external borders.",
@@ -831,7 +831,7 @@
         "https://home-affairs.ec.europa.eu/policies/schengen-area_en"
       ],
       "last_checked_utc": "2025-10-08T20:32:00Z",
-      "notes_for_hr": "Business travel OK; paid work requires Swiss permits. Prepare for EES and ETIAS requirements."
+      "notes_for_hr": "CRITICAL: Switzerland has a special company-level 90/180 rule. All employees working under the same contract share a combined 90-day allowance. Once the company's total presence reaches 90 days, no further staff can work in Switzerland until the 180-day period resets. A short-term work permit (L Permit) or notification procedure may be required for stays exceeding 8 days, or once the company allowance is used. Check SECO guidance before travel."
     },
     {
       "country": "Andorra",

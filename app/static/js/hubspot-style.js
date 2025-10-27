@@ -325,25 +325,394 @@ function validateForm(formId) {
     return isValid;
 }
 
-// Add error styles for form validation
-const style = document.createElement('style');
-style.textContent = `
-    .form-input.error {
-        border-color: #ef4444;
-        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+// ===========================================
+// PHASE 1 USABILITY FIXES - ENHANCED JAVASCRIPT
+// ===========================================
+
+// Enhanced notification system
+function showNotification(message, type = 'info', options = {}) {
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type}`;
+    
+    const iconMap = {
+        error: '⚠️',
+        warning: '⚠️',
+        info: 'ℹ️',
+        success: '✅'
+    };
+    
+    notification.innerHTML = `
+        <div class="alert-icon">${iconMap[type] || iconMap.info}</div>
+        <div class="alert-content">
+            ${options.title ? `<div class="alert-title">${options.title}</div>` : ''}
+            <div>${message}</div>
+        </div>
+        <button class="alert-dismiss" onclick="this.parentElement.remove()">×</button>
+    `;
+    
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 3000;
+        max-width: 400px;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => notification.style.transform = 'translateX(0)', 10);
+    
+    // Auto-dismiss after delay
+    const delay = options.delay || 5000;
+    if (delay > 0) {
+        setTimeout(() => {
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => notification.remove(), 300);
+        }, delay);
+    }
+}
+
+// Enhanced confirmation dialog
+function confirmAction(options) {
+    return new Promise((resolve) => {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay active';
+        modal.innerHTML = `
+            <div class="modal-container">
+                <div class="modal-header">
+                    <h3 class="modal-title">${options.title || 'Confirm Action'}</h3>
+                </div>
+                <div class="modal-body">
+                    <p>${options.message}</p>
+                    ${options.details ? `<div class="alert alert-warning" style="margin-top: 16px;">${options.details}</div>` : ''}
+                    ${options.requireText ? `
+                        <div class="form-group" style="margin-top: 20px;">
+                            <label class="form-label">Type "${options.requireText}" to confirm:</label>
+                            <input type="text" id="confirmText" class="form-input" placeholder="${options.requireText}">
+                        </div>
+                    ` : ''}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeConfirmModal(false)">Cancel</button>
+                    <button type="button" class="btn ${options.danger ? 'btn-danger' : 'btn-primary'}" 
+                            id="confirmBtn" onclick="closeConfirmModal(true)" 
+                            ${options.requireText ? 'disabled' : ''}>
+                        ${options.confirmText || 'Confirm'}
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        document.body.style.overflow = 'hidden';
+        
+        // Handle text confirmation
+        if (options.requireText) {
+            const textInput = modal.querySelector('#confirmText');
+            const confirmBtn = modal.querySelector('#confirmBtn');
+            
+            textInput.addEventListener('input', function() {
+                confirmBtn.disabled = this.value !== options.requireText;
+            });
+            
+            textInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !confirmBtn.disabled) {
+                    closeConfirmModal(true);
+                }
+            });
+            
+            textInput.focus();
+        }
+        
+        // Store resolve function globally for the close function
+        window._confirmResolve = resolve;
+    });
+}
+
+function closeConfirmModal(confirmed) {
+    const modal = document.querySelector('.modal-overlay.active');
+    if (modal) {
+        modal.remove();
+        document.body.style.overflow = '';
+        if (window._confirmResolve) {
+            window._confirmResolve(confirmed);
+            delete window._confirmResolve;
+        }
+    }
+}
+
+// Enhanced form validation
+function validateForm(form, options = {}) {
+    const errors = [];
+    const inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
+    
+    // Clear previous errors
+    form.querySelectorAll('.form-error').forEach(error => error.remove());
+    form.querySelectorAll('.form-input.error, .form-select.error').forEach(input => {
+        input.classList.remove('error');
+    });
+    
+    inputs.forEach(input => {
+        const value = input.value.trim();
+        const fieldName = input.getAttribute('name') || input.getAttribute('id') || 'field';
+        
+        // Required field validation
+        if (!value) {
+            errors.push(`${fieldName} is required`);
+            showFieldError(input, `${fieldName} is required`);
+            return;
+        }
+        
+        // Email validation
+        if (input.type === 'email' && value) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(value)) {
+                errors.push(`${fieldName} must be a valid email address`);
+                showFieldError(input, `${fieldName} must be a valid email address`);
+                return;
+            }
+        }
+        
+        // Date validation
+        if (input.type === 'date' && value) {
+            const date = new Date(value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (options.minDate && date < new Date(options.minDate)) {
+                errors.push(`${fieldName} must be after ${options.minDate}`);
+                showFieldError(input, `${fieldName} must be after ${options.minDate}`);
+                return;
+            }
+            
+            if (options.maxDate && date > new Date(options.maxDate)) {
+                errors.push(`${fieldName} must be before ${options.maxDate}`);
+                showFieldError(input, `${fieldName} must be before ${options.maxDate}`);
+                return;
+            }
+        }
+        
+        // Password validation
+        if (input.type === 'password' && value) {
+            if (value.length < 6) {
+                errors.push(`${fieldName} must be at least 6 characters long`);
+                showFieldError(input, `${fieldName} must be at least 6 characters long`);
+                return;
+            }
+        }
+        
+        // Custom validation
+        if (options.customValidation && options.customValidation[fieldName]) {
+            const customError = options.customValidation[fieldName](value, input);
+            if (customError) {
+                errors.push(customError);
+                showFieldError(input, customError);
+                return;
+            }
+        }
+    });
+    
+    // Date range validation
+    if (options.dateRange) {
+        const entryDate = form.querySelector('input[name="entry_date"]');
+        const exitDate = form.querySelector('input[name="exit_date"]');
+        
+        if (entryDate && exitDate && entryDate.value && exitDate.value) {
+            const entry = new Date(entryDate.value);
+            const exit = new Date(exitDate.value);
+            
+            if (entry >= exit) {
+                errors.push('Entry date must be before exit date');
+                showFieldError(entryDate, 'Entry date must be before exit date');
+                showFieldError(exitDate, 'Exit date must be after entry date');
+            }
+        }
     }
     
-    .tooltip {
-        position: absolute;
-        background: #1f2937;
-        color: white;
-        padding: 8px 12px;
-        border-radius: 6px;
-        font-size: 12px;
-        z-index: 1000;
-        pointer-events: none;
-        white-space: nowrap;
+    return {
+        isValid: errors.length === 0,
+        errors: errors
+    };
+}
+
+function showFieldError(input, message) {
+    input.classList.add('error');
+    
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'form-error';
+    errorDiv.textContent = message;
+    
+    const formGroup = input.closest('.form-group');
+    if (formGroup) {
+        formGroup.appendChild(errorDiv);
     }
-`;
-document.head.appendChild(style);
+}
+
+// Progress indicator
+function showProgress(container, message = 'Processing...') {
+    const progressDiv = document.createElement('div');
+    progressDiv.className = 'progress-container';
+    progressDiv.innerHTML = `
+        <div class="progress-bar" style="width: 0%"></div>
+    `;
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.style.cssText = 'text-align: center; margin-top: 8px; color: #6b7280; font-size: 14px;';
+    messageDiv.textContent = message;
+    
+    container.appendChild(progressDiv);
+    container.appendChild(messageDiv);
+    
+    // Animate progress
+    setTimeout(() => {
+        const bar = progressDiv.querySelector('.progress-bar');
+        bar.style.width = '100%';
+    }, 100);
+    
+    return {
+        update: (percent) => {
+            const bar = progressDiv.querySelector('.progress-bar');
+            bar.style.width = `${percent}%`;
+        },
+        complete: () => {
+            const bar = progressDiv.querySelector('.progress-bar');
+            bar.style.width = '100%';
+            setTimeout(() => {
+                progressDiv.remove();
+                messageDiv.remove();
+            }, 500);
+        },
+        remove: () => {
+            progressDiv.remove();
+            messageDiv.remove();
+        }
+    };
+}
+
+// Loading state management
+function setLoadingState(element, loading = true, text = 'Loading...') {
+    if (loading) {
+        element.disabled = true;
+        element.dataset.originalText = element.textContent;
+        element.innerHTML = `<span class="loading-spinner"></span> ${text}`;
+    } else {
+        element.disabled = false;
+        element.textContent = element.dataset.originalText || element.textContent;
+        delete element.dataset.originalText;
+    }
+}
+
+// File upload validation
+function validateFileUpload(input, options = {}) {
+    const file = input.files[0];
+    const errors = [];
+    
+    if (!file) {
+        return { isValid: false, errors: ['Please select a file'] };
+    }
+    
+    // File type validation
+    if (options.allowedTypes && options.allowedTypes.length > 0) {
+        const fileExtension = file.name.split('.').pop().toLowerCase();
+        if (!options.allowedTypes.includes(fileExtension)) {
+            errors.push(`File must be one of: ${options.allowedTypes.join(', ')}`);
+        }
+    }
+    
+    // File size validation
+    if (options.maxSize) {
+        const maxSizeBytes = options.maxSize * 1024 * 1024; // Convert MB to bytes
+        if (file.size > maxSizeBytes) {
+            errors.push(`File size must be less than ${options.maxSize}MB`);
+        }
+    }
+    
+    return {
+        isValid: errors.length === 0,
+        errors: errors,
+        file: file
+    };
+}
+
+// Enhanced tooltip system
+function initTooltips() {
+    const tooltipElements = document.querySelectorAll('[data-tooltip]');
+    
+    tooltipElements.forEach(element => {
+        element.addEventListener('mouseenter', showTooltip);
+        element.addEventListener('mouseleave', hideTooltip);
+    });
+}
+
+function showTooltip(e) {
+    const text = e.target.getAttribute('data-tooltip');
+    if (!text) return;
+    
+    const tooltip = document.createElement('div');
+    tooltip.className = 'tooltip';
+    tooltip.textContent = text;
+    
+    document.body.appendChild(tooltip);
+    
+    const rect = e.target.getBoundingClientRect();
+    tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
+    tooltip.style.top = rect.top - tooltip.offsetHeight - 8 + 'px';
+    
+    setTimeout(() => tooltip.classList.add('show'), 10);
+    
+    e.target._tooltip = tooltip;
+}
+
+function hideTooltip(e) {
+    if (e.target._tooltip) {
+        e.target._tooltip.remove();
+        delete e.target._tooltip;
+    }
+}
+
+// Initialize enhanced functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize existing functionality
+    initSidebar();
+    initMobileMenu();
+    initModals();
+    initTooltips();
+    
+    // Add form validation to all forms
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const validation = validateForm(form, {
+                dateRange: form.querySelector('input[name="entry_date"]') && form.querySelector('input[name="exit_date"]')
+            });
+            
+            if (!validation.isValid) {
+                e.preventDefault();
+                showNotification(validation.errors.join(', '), 'error');
+                return false;
+            }
+        });
+    });
+    
+    // Add real-time validation to inputs
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            if (this.hasAttribute('required') && !this.value.trim()) {
+                showFieldError(this, 'This field is required');
+            }
+        });
+        
+        input.addEventListener('input', function() {
+            if (this.classList.contains('error') && this.value.trim()) {
+                this.classList.remove('error');
+                const errorDiv = this.parentNode.querySelector('.form-error');
+                if (errorDiv) errorDiv.remove();
+            }
+        });
+    });
+});
 

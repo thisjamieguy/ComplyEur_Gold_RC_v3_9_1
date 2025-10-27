@@ -27,17 +27,15 @@
         <div class="card">
             <div class="card-header">
                 <h2 class="card-title">Upload File</h2>
-                <form method="POST" action="{{ url_for('main.delete_all_data') }}" onsubmit="return confirm('WARNING: This will delete all BUSINESS TRAVEL data from the database. Personal holiday trips will be preserved. This action cannot be undone. Are you sure you want to continue?');" style="margin-left: auto;">
-                    <button type="submit" class="btn btn-outline" style="color: #dc2626; border-color: #dc2626;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="3,6 5,6 21,6"></polyline>
-                            <path d="M19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
-                            <line x1="10" y1="11" x2="10" y2="17"></line>
-                            <line x1="14" y1="11" x2="14" y2="17"></line>
-                        </svg>
-                        Clear All Data
-                    </button>
-                </form>
+                <button type="button" class="btn btn-danger" onclick="confirmClearAllData()" style="margin-left: auto;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3,6 5,6 21,6"></polyline>
+                        <path d="M19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
+                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                    </svg>
+                    Clear All Data
+                </button>
             </div>
             
             {% with messages = get_flashed_messages() %}
@@ -48,16 +46,17 @@
                 {% endif %}
             {% endwith %}
             
-            <form method="POST" enctype="multipart/form-data" onsubmit="return startImport(this)">
+            <form method="POST" enctype="multipart/form-data" id="importForm" onsubmit="return startImport(this)">
                 <div class="form-group">
-                    <label class="form-label">Excel File (.xlsx or .xls)</label>
-                    <input type="file" name="excel_file" accept=".xlsx,.xls" class="form-input" required>
-                    <div style="font-size: 14px; color: #6b7280; margin-top: 8px;">
-                        Supported formats: Excel files (.xlsx, .xls)
-                    </div>
+                    <label class="form-label required">Excel File (.xlsx or .xls)</label>
+                    <input type="file" name="excel_file" accept=".xlsx,.xls" class="form-input" required id="excelFile">
+                    <div class="form-hint">Supported formats: Excel files (.xlsx, .xls) - Maximum 10MB</div>
+                    <div id="filePreview" class="form-hint" style="display: none; margin-top: 8px;"></div>
                 </div>
                 
-                <button id="importBtn" type="submit" class="btn btn-primary" style="width: 100%;">
+                <div id="progressContainer" style="display: none;"></div>
+                
+                <button id="importBtn" type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                         <polyline points="7,10 12,15 17,10"></polyline>
@@ -234,12 +233,131 @@
 function startImport(form) {
     const btn = document.getElementById('importBtn');
     const text = document.getElementById('importBtnText');
+    const progressContainer = document.getElementById('progressContainer');
+    
     if (btn && text) {
-        btn.disabled = true;
-        text.textContent = 'Processing… Please wait';
+        // Validate file first
+        const fileInput = document.getElementById('excelFile');
+        const validation = validateFileUpload(fileInput, {
+            allowedTypes: ['xlsx', 'xls'],
+            maxSize: 10
+        });
+        
+        if (!validation.isValid) {
+            showNotification(validation.errors.join(', '), 'error');
+            return false;
+        }
+        
+        // Show loading state
+        setLoadingState(btn, true, 'Processing...');
+        
+        // Show progress indicator
+        if (progressContainer) {
+            progressContainer.style.display = 'block';
+            const progress = showProgress(progressContainer, 'Uploading and processing Excel file...');
+            
+            // Simulate progress updates
+            let progressValue = 0;
+            const progressInterval = setInterval(() => {
+                progressValue += Math.random() * 20;
+                if (progressValue >= 90) {
+                    progressValue = 90;
+                    clearInterval(progressInterval);
+                }
+                progress.update(progressValue);
+            }, 200);
+        }
     }
     return true; // allow submit
 }
+
+// Enhanced file validation and preview
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('excelFile');
+    const filePreview = document.getElementById('filePreview');
+    const importForm = document.getElementById('importForm');
+    
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            
+            if (file) {
+                // Validate file
+                const validation = validateFileUpload(this, {
+                    allowedTypes: ['xlsx', 'xls'],
+                    maxSize: 10
+                });
+                
+                if (validation.isValid) {
+                    const fileSize = (file.size / 1024 / 1024).toFixed(2);
+                    filePreview.innerHTML = `
+                        <div style="color: #10b981; display: flex; align-items: center; gap: 8px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14,2 14,8 20,8"></polyline>
+                            </svg>
+                            <span>Selected: ${file.name} (${fileSize} MB)</span>
+                        </div>
+                    `;
+                    filePreview.style.display = 'block';
+                } else {
+                    filePreview.innerHTML = `
+                        <div style="color: #ef4444; display: flex; align-items: center; gap: 8px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="15" y1="9" x2="9" y2="15"></line>
+                                <line x1="9" y1="9" x2="15" y2="15"></line>
+                            </svg>
+                            <span>${validation.errors.join(', ')}</span>
+                        </div>
+                    `;
+                    filePreview.style.display = 'block';
+                }
+            } else {
+                filePreview.style.display = 'none';
+            }
+        });
+    }
+    
+    // Enhanced form validation
+    if (importForm) {
+        importForm.addEventListener('submit', function(e) {
+            const fileInput = document.getElementById('excelFile');
+            const validation = validateFileUpload(fileInput, {
+                allowedTypes: ['xlsx', 'xls'],
+                maxSize: 10
+            });
+            
+            if (!validation.isValid) {
+                e.preventDefault();
+                showNotification(validation.errors.join(', '), 'error');
+                return false;
+            }
+        });
+    }
+});
+
+// Enhanced clear all data confirmation
+function confirmClearAllData() {
+    confirmAction({
+        title: 'Clear All Business Travel Data',
+        message: 'This will permanently delete all business travel data from the database.',
+        details: 'Personal holiday trips will be preserved. This action cannot be undone and will affect all employees.',
+        danger: true,
+        confirmText: 'Clear All Data',
+        requireText: 'CLEAR ALL DATA'
+    }).then(confirmed => {
+        if (confirmed) {
+            // Create and submit the clear data form
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ url_for("main.delete_all_data") }}';
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+
 function sortImportedTrips() {
     const table = document.getElementById('importedTripsTable');
     const tbody = table.querySelector('tbody');

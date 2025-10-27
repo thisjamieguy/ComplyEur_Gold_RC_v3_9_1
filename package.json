@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/thisjamieguy/eu-trip-tracker#readme",
   "devDependencies": {
-    "@playwright/test": "^1.56.1"
+    "@playwright/test": "^1.56.1",
+    "playwright": "^1.56.1"
   }
 }

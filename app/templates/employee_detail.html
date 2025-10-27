@@ -149,12 +149,12 @@
         </div>
         {% endif %}
         
-        <form method="POST" action="{{ url_for('main.add_trip') }}">
+        <form method="POST" action="{{ url_for('main.add_trip') }}" id="addTripForm">
             <input type="hidden" name="employee_id" value="{{ employee.id }}">
             
             <div class="form-inline">
                 <div class="form-group">
-                    <label class="form-label">Country</label>
+                    <label class="form-label required">Country</label>
                     <div class="dropdown-container">
                         <input type="text" name="country_display" class="form-input dropdown-input" placeholder="Select country" required readonly onclick="toggleDropdown('countryDropdown')">
                         <div class="dropdown-arrow">▼</div>
@@ -197,17 +197,21 @@
                 <input type="hidden" name="country_code" id="country_code" value="">
                 
                 <div class="form-group">
-                    <label class="form-label">Entry Date</label>
+                    <label class="form-label required">Entry Date</label>
                     <input type="date" name="entry_date" class="form-input" required>
+                    <div class="form-hint">Date of entry into the country</div>
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">Exit Date</label>
+                    <label class="form-label required">Exit Date</label>
                     <input type="date" name="exit_date" class="form-input" required>
+                    <div class="form-hint">Date of exit from the country</div>
                 </div>
                 
                 <div class="form-group">
-                    <button type="submit" class="btn btn-primary" style="margin-top: 24px;">Add Trip</button>
+                    <button type="submit" class="btn btn-primary" style="margin-top: 24px;" id="addTripBtn">
+                        <span class="btn-text">Add Trip</span>
+                    </button>
                 </div>
             </div>
         </form>
@@ -311,16 +315,13 @@
                                 </svg>
                                 Edit
                             </button>
-                            <form method="POST" action="{{ url_for('main.delete_trip', trip_id=trip.id) }}" style="display: inline;">
-                                <input type="hidden" name="employee_id" value="{{ employee.id }}">
-                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this trip?')">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="3,6 5,6 21,6"></polyline>
-                                        <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"></path>
-                                    </svg>
-                                    Delete
-                                </button>
-                            </form>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="confirmDeleteTrip({{ trip.id }}, '{{ trip.country }}', '{{ trip.entry_date|format_date }}')">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3,6 5,6 21,6"></polyline>
+                                    <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"></path>
+                                </svg>
+                                Delete
+                            </button>
                         </td>
                     </tr>
                     {% if trip.validation_note %}
@@ -627,6 +628,88 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Error saving changes');
             }
         });
+    }
+});
+
+// Enhanced delete trip confirmation
+function confirmDeleteTrip(tripId, country, entryDate) {
+    confirmAction({
+        title: 'Delete Trip',
+        message: `Are you sure you want to delete this trip to ${country} starting ${entryDate}?`,
+        details: 'This action cannot be undone and will permanently remove the trip from the employee\'s travel history.',
+        danger: true,
+        confirmText: 'Delete Trip',
+        requireText: 'DELETE'
+    }).then(confirmed => {
+        if (confirmed) {
+            // Create and submit the delete form
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/delete_trip/${tripId}`;
+            
+            const employeeIdInput = document.createElement('input');
+            employeeIdInput.type = 'hidden';
+            employeeIdInput.name = 'employee_id';
+            employeeIdInput.value = '{{ employee.id }}';
+            
+            form.appendChild(employeeIdInput);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+
+// Enhanced form validation for add trip
+document.addEventListener('DOMContentLoaded', function() {
+    const addTripForm = document.getElementById('addTripForm');
+    const addTripBtn = document.getElementById('addTripBtn');
+    
+    if (addTripForm) {
+        addTripForm.addEventListener('submit', function(e) {
+            const validation = validateForm(addTripForm, {
+                dateRange: true,
+                customValidation: {
+                    country_display: (value) => {
+                        if (!value.trim()) return 'Please select a country';
+                        return null;
+                    }
+                }
+            });
+            
+            if (!validation.isValid) {
+                e.preventDefault();
+                showNotification(validation.errors.join(', '), 'error');
+                return false;
+            }
+            
+            // Show loading state
+            setLoadingState(addTripBtn, true, 'Adding trip...');
+        });
+        
+        // Real-time date validation
+        const entryDate = addTripForm.querySelector('input[name="entry_date"]');
+        const exitDate = addTripForm.querySelector('input[name="exit_date"]');
+        
+        function validateDateRange() {
+            if (entryDate.value && exitDate.value) {
+                const entry = new Date(entryDate.value);
+                const exit = new Date(exitDate.value);
+                
+                if (entry >= exit) {
+                    showFieldError(entryDate, 'Entry date must be before exit date');
+                    showFieldError(exitDate, 'Exit date must be after entry date');
+                } else {
+                    // Clear errors if dates are valid
+                    entryDate.classList.remove('error');
+                    exitDate.classList.remove('error');
+                    const errors = addTripForm.querySelectorAll('.form-error');
+                    errors.forEach(error => error.remove());
+                }
+            }
+        }
+        
+        entryDate.addEventListener('change', validateDateRange);
+        exitDate.addEventListener('change', validateDateRange);
     }
 });
 </script>
