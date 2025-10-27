@@ -868,6 +868,16 @@ document.addEventListener('DOMContentLoaded', function() {
     z-index: 1;
 }
 
+/* Override card overflow for form containers with dropdowns */
+#trip-warnings {
+    overflow: visible !important;
+}
+
+/* Ensure form containers don't clip dropdowns */
+.form-inline {
+    overflow: visible !important;
+}
+
 /* Sortable Table Styles */
 .sortable {
     cursor: pointer;
