@@ -330,14 +330,18 @@ def help_page():
 def entry_requirements():
     """Display EU entry requirements for UK citizens."""
     from flask import current_app
-    return render_template('entry_requirements.html', countries=current_app.config['EU_ENTRY_DATA'])
+    # Sort countries alphabetically by name
+    countries = sorted(current_app.config['EU_ENTRY_DATA'], key=lambda x: x['country'])
+    return render_template('entry_requirements.html', countries=countries)
 
 @main_bp.route('/api/entry-requirements')
 @login_required
 def entry_requirements_api():
     """API endpoint returning EU entry requirements as JSON."""
     from flask import current_app
-    return jsonify(current_app.config['EU_ENTRY_DATA'])
+    # Sort countries alphabetically by name
+    countries = sorted(current_app.config['EU_ENTRY_DATA'], key=lambda x: x['country'])
+    return jsonify(countries)
 
 @main_bp.route('/api/entry-requirements/reload', methods=['POST'])
 @login_required
