@@ -741,9 +741,31 @@ p, td, li, button, input, label { font-weight: 400; }
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--hubspot-bg);
+    background-color: #3182ce; /* Primary blue */
+    background-image: url('../images/sideBarImageEurope.jpg?v=2'); /* Same image as sidebar */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     padding: 20px;
     position: relative;
+}
+
+/* Overlay to make background subtle */
+.login-page::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(49, 130, 206, 0.8); /* Stronger blue overlay for better text readability */
+    z-index: 1;
+}
+
+/* Ensure all login content appears above the overlay */
+.login-page > * {
+    position: relative;
+    z-index: 2;
 }
 
 /* Login Navigation */
