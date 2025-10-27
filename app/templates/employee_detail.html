@@ -818,11 +818,11 @@ document.addEventListener('DOMContentLoaded', function() {
     border: 1px solid var(--border-color);
     border-top: none;
     border-radius: 0 0 8px 8px;
-    max-height: 240px;
+    max-height: 400px;
     overflow-y: auto;
-    z-index: 100;
+    z-index: 9999;
     display: none;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 .dropdown-item {
     padding: 12px 16px;
@@ -852,6 +852,20 @@ document.addEventListener('DOMContentLoaded', function() {
     color: #6b7280;
     pointer-events: none;
     font-size: 12px;
+}
+
+/* Responsive dropdown adjustments */
+@media (max-width: 768px) {
+    .dropdown-list {
+        max-height: 300px;
+        z-index: 10000;
+    }
+}
+
+/* Ensure dropdown appears above all other elements */
+.dropdown-container {
+    position: relative;
+    z-index: 1;
 }
 
 /* Sortable Table Styles */
