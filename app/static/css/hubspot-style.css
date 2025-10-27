@@ -687,10 +687,15 @@ p, td, li, button, input, label { font-weight: 400; }
     .sidebar {
         transform: translateX(-100%);
         width: 250px;
+        z-index: 1001;
     }
     
     .sidebar.open {
         transform: translateX(0);
+    }
+    
+    .mobile-overlay.active {
+        display: block;
     }
     
     .main-content {
@@ -733,11 +738,12 @@ p, td, li, button, input, label { font-weight: 400; }
 
 @media (max-width: 768px) {
     .content-body {
-        padding: 16px;
+        padding: 12px 8px;
     }
     
     .card {
-        padding: 16px;
+        padding: 12px;
+        margin-bottom: 16px;
     }
     
     .form-inline {
@@ -751,11 +757,22 @@ p, td, li, button, input, label { font-weight: 400; }
     
     .table-container {
         overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .table {
+        font-size: 12px;
+    }
+    
+    .table th,
+    .table td {
+        padding: 8px 6px;
+        white-space: nowrap;
     }
     
     .modal-content {
-        padding: 24px;
-        margin: 16px;
+        padding: 20px;
+        margin: 12px;
     }
     
     /* Hide Help text on mobile, show only icon */
@@ -765,6 +782,81 @@ p, td, li, button, input, label { font-weight: 400; }
     
     .topbar-right .btn-outline {
         padding: 8px !important;
+    }
+    
+    .content-title {
+        font-size: 20px;
+    }
+    
+    .content-subtitle {
+        font-size: 14px;
+    }
+    
+    /* Make buttons wrap on mobile */
+    .card-header {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .card-header h2 {
+        width: 100%;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+    .sidebar {
+        width: 200px;
+    }
+    
+    .table {
+        font-size: 11px;
+    }
+    
+    .table th,
+    .table td {
+        padding: 6px 4px;
+    }
+    
+    .btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+    
+    .card {
+        padding: 10px;
+    }
+    
+    .content-body {
+        padding: 8px 4px;
+    }
+    
+    footer {
+        margin-bottom: 60px !important; /* Account for mobile browser UI */
+    }
+    
+    /* Hide table view on very small screens, force card view */
+    #tableView {
+        display: none !important;
+    }
+    
+    #cardView {
+        display: grid !important;
+    }
+    
+    #tableBtn, #cardsBtn {
+        display: none !important;
+    }
+    
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Hide view toggle buttons on mobile */
+@media (max-width: 768px) {
+    #tableBtn, #cardsBtn {
+        display: none !important;
     }
 }
 

@@ -349,10 +349,57 @@
 {% endblock %}
 
 {% block extra_js %}
+<style>
+/* Mobile-specific fixes */
+@media (max-width: 768px) {
+    /* Force card view on mobile for better UX */
+    #tableView {
+        display: none !important;
+    }
+    
+    #cardView {
+        display: grid !important;
+    }
+    
+    /* Hide view toggle buttons */
+    #tableBtn, #cardsBtn {
+        display: none !important;
+    }
+    
+    /* Single column layout for cards */
+    #cardView.grid-2 {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Make card header buttons wrap */
+    .card-header > div {
+        flex-wrap: wrap;
+    }
+    
+    .card-header h2 {
+        width: 100%;
+    }
+}
+</style>
+
 <script>
-// Initialize table view by default
+// Initialize view - card view on mobile, table view on desktop
 document.addEventListener('DOMContentLoaded', function() {
-    showTableView();
+    const isMobile = window.innerWidth < 768;
+    
+    if (isMobile) {
+        showCardView();
+    } else {
+        showTableView();
+    }
+    
+    // Handle window resize
+    window.addEventListener('resize', function() {
+        const isMobile = window.innerWidth < 768;
+        if (isMobile) {
+            showCardView();
+        }
+    });
 });
 
 function showTableView() {
