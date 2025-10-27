@@ -42,8 +42,8 @@ p, td, li, button, input, label { font-weight: 400; }
 
 /* Sidebar - Enterprise Level Design */
 .sidebar {
-    background-color: #4E5A62; /* IES logo grey */
-    background-image: url('images/sideBarImageEurope.jpg?v=1'); /* Added cache buster */
+    background-color: #3182ce; /* Primary blue */
+    background-image: url('../images/sideBarImageEurope.jpg?v=2'); /* Fixed path with cache buster */
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -69,7 +69,7 @@ p, td, li, button, input, label { font-weight: 400; }
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(78, 90, 98, 0.2); /* Very light overlay for testing */
+    background-color: rgba(49, 130, 206, 0.8); /* Stronger blue overlay for better text readability */
     z-index: 1;
 }
 
@@ -112,6 +112,7 @@ p, td, li, button, input, label { font-weight: 400; }
     letter-spacing: 0.5px;
     margin: 0;
     line-height: 1.2;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .sidebar-toggle {
@@ -162,6 +163,7 @@ p, td, li, button, input, label { font-weight: 400; }
     cursor: pointer;
     width: calc(100% - 32px);
     text-align: left;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 .nav-item:hover {
@@ -223,6 +225,103 @@ p, td, li, button, input, label { font-weight: 400; }
 
 .sidebar.collapsed .nav-divider {
     display: none;
+}
+
+/* User Info Card Section */
+.sidebar-user-section {
+    padding: 16px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    position: relative;
+}
+
+.sidebar-user-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+}
+
+.sidebar-user-card:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-user-avatar {
+    width: 40px;
+    height: 40px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 16px;
+    color: #ffffff;
+    flex-shrink: 0;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.sidebar-user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.sidebar-user-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 2px;
+    line-height: 1.2;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.sidebar-user-role {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.2;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.sidebar-user-arrow {
+    flex-shrink: 0;
+    color: rgba(255, 255, 255, 0.7);
+    transition: transform 0.2s ease;
+}
+
+.sidebar-user-card:hover .sidebar-user-arrow {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Collapsed state for user card */
+.sidebar.collapsed .sidebar-user-section {
+    padding: 16px 8px;
+    display: flex;
+    justify-content: center;
+}
+
+.sidebar.collapsed .sidebar-user-card {
+    justify-content: center;
+    padding: 8px;
+    width: 48px;
+    height: 48px;
+}
+
+.sidebar.collapsed .sidebar-user-info {
+    display: none;
+}
+
+.sidebar.collapsed .sidebar-user-arrow {
+    display: none;
+}
+
+.sidebar.collapsed .sidebar-user-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
 }
 
 /* Mobile overlay */
@@ -724,6 +823,24 @@ p, td, li, button, input, label { font-weight: 400; }
         font-size: 0.8rem;
     }
     
+    .sidebar-user-section {
+        padding: 12px 20px;
+    }
+    
+    .sidebar-user-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+    
+    .sidebar-user-name {
+        font-size: 13px;
+    }
+    
+    .sidebar-user-role {
+        font-size: 11px;
+    }
+    
     .nav-item {
         padding: 8px 20px;
         font-size: 13px;
@@ -807,6 +924,24 @@ p, td, li, button, input, label { font-weight: 400; }
 @media (max-width: 480px) {
     .sidebar {
         width: 200px;
+    }
+    
+    .sidebar-user-section {
+        padding: 10px 16px;
+    }
+    
+    .sidebar-user-avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 12px;
+    }
+    
+    .sidebar-user-name {
+        font-size: 12px;
+    }
+    
+    .sidebar-user-role {
+        font-size: 10px;
     }
     
     .table {

@@ -14,14 +14,64 @@ document.addEventListener('DOMContentLoaded', function() {
     initTooltips();
 });
 
+// Also try to initialize when window loads (fallback)
+window.addEventListener('load', function() {
+    // Re-initialize sidebar if it wasn't initialized before
+    const sidebar = document.querySelector('.sidebar');
+    const toggleBtn = document.querySelector('.sidebar-toggle');
+    if (sidebar && toggleBtn && !toggleBtn.hasAttribute('data-initialized')) {
+        console.log('Re-initializing sidebar on window load');
+        initSidebar();
+    }
+});
+
+// Fallback: Direct event listener attachment
+setTimeout(function() {
+    const sidebar = document.querySelector('.sidebar');
+    const mainContent = document.querySelector('.main-content');
+    const toggleBtn = document.querySelector('.sidebar-toggle');
+    
+    if (sidebar && mainContent && toggleBtn && !toggleBtn.hasAttribute('data-initialized')) {
+        console.log('Fallback: Direct sidebar toggle setup');
+        toggleBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Fallback sidebar toggle clicked');
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('sidebar-collapsed');
+        });
+        toggleBtn.setAttribute('data-initialized', 'true');
+    }
+}, 1000);
+
 // Sidebar functionality
 function initSidebar() {
     const sidebar = document.querySelector('.sidebar');
     const mainContent = document.querySelector('.main-content');
     const toggleBtn = document.querySelector('.sidebar-toggle');
     
+    console.log('Sidebar elements found:', {
+        sidebar: !!sidebar,
+        mainContent: !!mainContent,
+        toggleBtn: !!toggleBtn
+    });
     
-    if (!sidebar || !mainContent || !toggleBtn) return;
+    if (!sidebar || !mainContent || !toggleBtn) {
+        console.error('Missing sidebar elements:', { sidebar, mainContent, toggleBtn });
+        // Try alternative selectors
+        const altToggleBtn = document.querySelector('button[aria-label="Toggle Sidebar"]');
+        if (altToggleBtn) {
+            console.log('Found toggle button with alternative selector');
+            return initSidebarWithButton(sidebar, mainContent, altToggleBtn);
+        }
+        return;
+    }
+    
+    initSidebarWithButton(sidebar, mainContent, toggleBtn);
+}
+
+function initSidebarWithButton(sidebar, mainContent, toggleBtn) {
+    // Mark as initialized to prevent double initialization
+    toggleBtn.setAttribute('data-initialized', 'true');
     
     // Check if sidebar should be collapsed by default on desktop
     const isDesktop = window.innerWidth >= 1024;
@@ -32,9 +82,12 @@ function initSidebar() {
         mainContent.classList.add('sidebar-collapsed');
     }
     
-    toggleBtn.addEventListener('click', function() {
+    toggleBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('Sidebar toggle clicked');
         sidebar.classList.toggle('collapsed');
         mainContent.classList.toggle('sidebar-collapsed');
+        console.log('Sidebar collapsed:', sidebar.classList.contains('collapsed'));
         
         // No persistence of this preference
     });
