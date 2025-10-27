@@ -52,43 +52,8 @@ class CustomizationSystem {
     }
 
     createCustomizationUI() {
-        // Add customization button to topbar
-        const topbarRight = document.querySelector('.topbar-right');
-        if (topbarRight && !document.querySelector('.customization-button')) {
-            const customButton = document.createElement('button');
-            customButton.className = 'customization-button';
-            customButton.innerHTML = `
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3"></path>
-                </svg>
-                <span>Customize</span>
-            `;
-            customButton.style.cssText = `
-                display: flex;
-                align-items: center;
-                gap: 6px;
-                padding: 8px 14px;
-                font-size: 14px;
-                background: transparent;
-                border: 1px solid #e5e7eb;
-                border-radius: 6px;
-                cursor: pointer;
-                color: #374151;
-                transition: all 0.2s;
-            `;
-            customButton.onmouseover = () => {
-                customButton.style.backgroundColor = '#f9fafb';
-                customButton.style.borderColor = '#4C739F';
-            };
-            customButton.onmouseout = () => {
-                customButton.style.backgroundColor = 'transparent';
-                customButton.style.borderColor = '#e5e7eb';
-            };
-            customButton.onclick = () => this.showCustomizationPanel();
-            
-            topbarRight.insertBefore(customButton, topbarRight.firstChild);
-        }
+        // Customization button is now handled by the Admin Settings page
+        // No longer injecting button into topbar
     }
 
     showCustomizationPanel() {
