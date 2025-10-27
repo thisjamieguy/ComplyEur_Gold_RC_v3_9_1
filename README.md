@@ -1,4 +1,4 @@
-# EU 90/180 Employee Travel Tracker v1.5.1
+# EU 90/180 Employee Travel Tracker v1.6
 
 A Flask web application for tracking employee travel to EU/Schengen countries and ensuring compliance with the 90/180-day rule.
 
@@ -12,6 +12,7 @@ A Flask web application for tracking employee travel to EU/Schengen countries an
 - **Data Export**: Export trip data to CSV and generate PDF reports
 - **GDPR Compliance**: Built-in data retention and DSAR (Data Subject Access Request) tools
 - **Security**: Secure authentication, audit logging, and session management
+- **EU Travel News**: Real-time news feed filtered for EU/Schengen travel advisories and policy updates
 
 ## Quick Start
 
@@ -152,6 +153,77 @@ The application includes configurable settings accessible through the admin pane
 - **dsar.py**: GDPR data subject access requests
 - **retention.py**: Data retention and anonymization
 - **backup.py**: Database backup functionality
+- **news_fetcher.py**: EU travel news filtering and RSS feed management
+
+## News Filtering System
+
+The application includes an intelligent news filtering system that displays only EU/Schengen-relevant travel news and advisories.
+
+### Features
+
+- **EU Country Filtering**: Automatically filters news for all EU27 countries plus Iceland, Norway, Switzerland, and Liechtenstein
+- **EU Policy Keywords**: Detects EU-wide policy updates including ETIAS, EES, Schengen, and European Commission announcements
+- **Country Aliases**: Supports country name variations (e.g., "Czechia"/"Czech Republic", "Netherlands"/"Holland")
+- **Case-Insensitive**: Works with any text case and unicode characters
+- **Admin Controls**: Toggle between EU-only and all-regions news filtering
+
+### Configuration
+
+#### Environment Variables
+
+Set the news filter region in your environment:
+
+```bash
+# Filter to EU/Schengen only (default)
+NEWS_FILTER_REGION=EU_ONLY
+
+# Show all regions
+NEWS_FILTER_REGION=ALL
+```
+
+#### Admin Settings
+
+1. **Via Settings Modal**: Click your profile → Settings → General → News Filter
+2. **Via Home Page Toggle**: Use the quick toggle buttons on the home page header (admin only)
+
+### News Sources
+
+The system automatically seeds per-country GOV.UK travel advice feeds for all EU/Schengen countries:
+
+- **EU Commission Feeds**: European Commission News, EU Home Affairs
+- **Country-Specific Feeds**: Individual GOV.UK travel advice for each EU/Schengen country
+- **Global Feeds**: Disabled by default, can be enabled via admin settings
+
+### Adding/Removing Countries
+
+To modify the country allow-list, edit `app/services/news_fetcher.py`:
+
+```python
+EU_COUNTRIES = {
+    "Country Name": ["Country Name", "Alias 1", "Alias 2"],
+    # Add new countries here
+}
+```
+
+### Adding/Removing Keywords
+
+To modify EU-wide keywords, edit `app/services/news_fetcher.py`:
+
+```python
+EU_KEYWORDS = [
+    "schengen", "etias", "ees", "european commission", "eu", 
+    "home affairs", "border checks", "visa waiver"
+    # Add new keywords here
+]
+```
+
+### Testing
+
+Run the news filter tests:
+
+```bash
+python3 -m pytest tests/test_news_filter.py -v
+```
 
 ## License
 

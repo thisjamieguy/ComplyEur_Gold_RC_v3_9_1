@@ -122,11 +122,92 @@ def init_db():
     except sqlite3.OperationalError:
         pass
     
+    # Create news_sources table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS news_sources (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            url TEXT NOT NULL,
+            enabled INTEGER DEFAULT 1,
+            license_note TEXT
+        )
+    ''')
+    
+    # Create news_cache table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS news_cache (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            source_id INTEGER,
+            title TEXT NOT NULL,
+            url TEXT UNIQUE,
+            published_at DATETIME,
+            summary TEXT,
+            fetched_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (source_id) REFERENCES news_sources (id)
+        )
+    ''')
+    
+    # Seed news_sources if empty
+    c.execute('SELECT COUNT(*) FROM news_sources')
+    if c.fetchone()[0] == 0:
+        # EU Commission and Home Affairs feeds (enabled by default)
+        eu_sources = [
+            ('EU Home Affairs', 'https://home-affairs.ec.europa.eu/news/rss_en.xml', 1, None),
+            ('European Commission News', 'https://ec.europa.eu/news/rss_en.xml', 1, None),
+        ]
+        
+        # Per-country GOV.UK travel advice feeds (enabled by default)
+        country_sources = [
+            ('Austria Travel Advice', 'https://www.gov.uk/foreign-travel-advice/austria', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Belgium Travel Advice', 'https://www.gov.uk/foreign-travel-advice/belgium', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Bulgaria Travel Advice', 'https://www.gov.uk/foreign-travel-advice/bulgaria', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Croatia Travel Advice', 'https://www.gov.uk/foreign-travel-advice/croatia', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Cyprus Travel Advice', 'https://www.gov.uk/foreign-travel-advice/cyprus', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Czech Republic Travel Advice', 'https://www.gov.uk/foreign-travel-advice/czech-republic', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Denmark Travel Advice', 'https://www.gov.uk/foreign-travel-advice/denmark', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Estonia Travel Advice', 'https://www.gov.uk/foreign-travel-advice/estonia', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Finland Travel Advice', 'https://www.gov.uk/foreign-travel-advice/finland', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('France Travel Advice', 'https://www.gov.uk/foreign-travel-advice/france', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Germany Travel Advice', 'https://www.gov.uk/foreign-travel-advice/germany', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Greece Travel Advice', 'https://www.gov.uk/foreign-travel-advice/greece', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Hungary Travel Advice', 'https://www.gov.uk/foreign-travel-advice/hungary', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Ireland Travel Advice', 'https://www.gov.uk/foreign-travel-advice/ireland', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Italy Travel Advice', 'https://www.gov.uk/foreign-travel-advice/italy', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Latvia Travel Advice', 'https://www.gov.uk/foreign-travel-advice/latvia', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Lithuania Travel Advice', 'https://www.gov.uk/foreign-travel-advice/lithuania', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Luxembourg Travel Advice', 'https://www.gov.uk/foreign-travel-advice/luxembourg', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Malta Travel Advice', 'https://www.gov.uk/foreign-travel-advice/malta', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Netherlands Travel Advice', 'https://www.gov.uk/foreign-travel-advice/netherlands', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Poland Travel Advice', 'https://www.gov.uk/foreign-travel-advice/poland', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Portugal Travel Advice', 'https://www.gov.uk/foreign-travel-advice/portugal', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Romania Travel Advice', 'https://www.gov.uk/foreign-travel-advice/romania', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Slovakia Travel Advice', 'https://www.gov.uk/foreign-travel-advice/slovakia', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Slovenia Travel Advice', 'https://www.gov.uk/foreign-travel-advice/slovenia', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Spain Travel Advice', 'https://www.gov.uk/foreign-travel-advice/spain', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Sweden Travel Advice', 'https://www.gov.uk/foreign-travel-advice/sweden', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Iceland Travel Advice', 'https://www.gov.uk/foreign-travel-advice/iceland', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Norway Travel Advice', 'https://www.gov.uk/foreign-travel-advice/norway', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Switzerland Travel Advice', 'https://www.gov.uk/foreign-travel-advice/switzerland', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('Liechtenstein Travel Advice', 'https://www.gov.uk/foreign-travel-advice/liechtenstein', 1, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+        ]
+        
+        # Generic global feed (disabled by default)
+        global_sources = [
+            ('GOV.UK Foreign Travel', 'https://www.gov.uk/government/organisations/foreign-commonwealth-development-office.atom', 0, 'Contains public-sector information licensed under the Open Government Licence v3.0.'),
+            ('SchengenVisaInfo', 'https://www.schengenvisainfo.com/feed/', 0, None)
+        ]
+        
+        # Insert all sources
+        all_sources = eu_sources + country_sources + global_sources
+        c.executemany('INSERT INTO news_sources (name, url, enabled, license_note) VALUES (?, ?, ?, ?)', all_sources)
+    
     # Create indexes for better performance
     c.execute('CREATE INDEX IF NOT EXISTS idx_trips_employee_id ON trips(employee_id)')
     c.execute('CREATE INDEX IF NOT EXISTS idx_trips_entry_date ON trips(entry_date)')
     c.execute('CREATE INDEX IF NOT EXISTS idx_trips_exit_date ON trips(exit_date)')
     c.execute('CREATE INDEX IF NOT EXISTS idx_trips_dates ON trips(entry_date, exit_date)')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_news_cache_source ON news_cache(source_id)')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_news_cache_fetched ON news_cache(fetched_at)')
 
     # Ensure default admin exists (used by tests and first-run local dev)
     try:

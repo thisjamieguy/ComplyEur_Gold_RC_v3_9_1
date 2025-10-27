@@ -405,7 +405,7 @@ def login():
             from datetime import timezone
             session['last_activity'] = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
             write_audit(CONFIG['AUDIT_LOG_PATH'], 'login_success', 'admin', {'ip': ip})
-            return redirect(url_for('main.dashboard'))
+            return redirect(url_for('main.home'))
         # failed
         conn.close()
         count, first_ts = LOGIN_ATTEMPTS.get(ip, (0, now))
@@ -534,6 +534,74 @@ def profile():
     admin_name = session.get('username', 'Admin')
     last_login = session.get('last_activity')
     return render_template('profile.html', admin_name=admin_name, last_login=last_login)
+
+@main_bp.route('/home')
+@login_required
+def home():
+    """Home page with quick info and EU travel news"""
+    from flask import current_app
+    CONFIG = current_app.config['CONFIG']
+    
+    # Get admin name if available
+    admin_name = 'Admin'
+    try:
+        conn = get_db()
+        c = conn.cursor()
+        c.execute('SELECT full_name FROM admin WHERE id = 1')
+        row = c.fetchone()
+        if row and row[0]:
+            admin_name = row[0].split()[0] if row[0] else 'Admin'  # Use first name only
+        conn.close()
+    except Exception:
+        pass
+    
+    # Get quick stats
+    conn = get_db()
+    c = conn.cursor()
+    
+    # Active employees count
+    c.execute('SELECT COUNT(*) FROM employees')
+    total_employees = c.fetchone()[0]
+    
+    # Trips logged this month
+    from datetime import date
+    this_month = date.today().replace(day=1).strftime('%Y-%m-%d')
+    c.execute('SELECT COUNT(*) FROM trips WHERE entry_date >= ?', (this_month,))
+    trips_this_month = c.fetchone()[0]
+    
+    # At risk of 90-day limit (days_remaining < 10)
+    today = date.today()
+    at_risk_count = 0
+    c.execute('SELECT id FROM employees')
+    employees = c.fetchall()
+    for emp in employees:
+        c.execute('SELECT entry_date, exit_date, country FROM trips WHERE employee_id = ?', (emp['id'],))
+        trips = [{'entry_date': t['entry_date'], 'exit_date': t['exit_date'], 'country': t['country']} for t in c.fetchall()]
+        if trips:
+            from .services.rolling90 import presence_days, days_used_in_window, calculate_days_remaining
+            presence = presence_days(trips)
+            days_used = days_used_in_window(presence, today)
+            days_remaining = calculate_days_remaining(presence, today)
+            if 0 <= days_remaining < 10:
+                at_risk_count += 1
+    
+    conn.close()
+    
+    # Get news
+    try:
+        from .services.news_fetcher import fetch_news_from_sources
+        db_path = current_app.config['DATABASE']
+        news_items = fetch_news_from_sources(db_path)
+    except Exception as e:
+        logger.error(f"Error fetching news: {e}")
+        news_items = []
+    
+    return render_template('home.html',
+                         admin_name=admin_name,
+                         total_employees=total_employees,
+                         trips_this_month=trips_this_month,
+                         at_risk_count=at_risk_count,
+                         news_items=news_items)
 
 @main_bp.route('/dashboard')
 @login_required
@@ -1459,12 +1527,92 @@ def dsar_anonymize(employee_id: int):
         write_audit(CONFIG['AUDIT_LOG_PATH'], 'dsar_anonymize_error', 'admin', {'employee_id': employee_id, 'error': str(e)})
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@main_bp.route('/admin_settings')
+@main_bp.route('/admin_settings', methods=['GET', 'POST'])
 @login_required
 def admin_settings():
-    """Display admin settings"""
-    from flask import current_app
+    """Display admin settings and handle form submission"""
+    from flask import current_app, request, flash, redirect, url_for
     CONFIG = current_app.config['CONFIG']
+    
+    if request.method == 'POST':
+        try:
+            # Update configuration values
+            config_updates = {}
+            
+            # Data Retention
+            if 'retention_months' in request.form:
+                config_updates['RETENTION_MONTHS'] = int(request.form['retention_months'])
+            
+            # Session Settings
+            if 'session_timeout' in request.form:
+                config_updates['SESSION_IDLE_TIMEOUT_MINUTES'] = int(request.form['session_timeout'])
+            
+            if 'session_cookie_secure' in request.form:
+                config_updates['SESSION_COOKIE_SECURE'] = True
+            else:
+                config_updates['SESSION_COOKIE_SECURE'] = False
+            
+            # Password Settings
+            if 'password_scheme' in request.form:
+                config_updates['PASSWORD_HASH_SCHEME'] = request.form['password_scheme']
+            
+            # Export Settings
+            if 'export_dir' in request.form:
+                config_updates['DSAR_EXPORT_DIR'] = request.form['export_dir']
+            
+            if 'audit_log' in request.form:
+                config_updates['AUDIT_LOG_PATH'] = request.form['audit_log']
+            
+            # Future Job Compliance
+            if 'warning_threshold' in request.form:
+                config_updates['FUTURE_JOB_WARNING_THRESHOLD'] = int(request.form['warning_threshold'])
+            
+            # Risk Level Thresholds
+            if 'risk_threshold_green' in request.form and 'risk_threshold_amber' in request.form:
+                risk_thresholds = CONFIG.get('RISK_THRESHOLDS', {})
+                risk_thresholds['green'] = int(request.form['risk_threshold_green'])
+                risk_thresholds['amber'] = int(request.form['risk_threshold_amber'])
+                config_updates['RISK_THRESHOLDS'] = risk_thresholds
+            
+            # News Filter Region
+            if 'news_filter_region' in request.form:
+                config_updates['NEWS_FILTER_REGION'] = request.form['news_filter_region']
+            
+            # Update the configuration
+            if config_updates:
+                CONFIG.update(config_updates)
+                # Save configuration to file
+                import json
+                import re
+                with open('config.py', 'r') as f:
+                    content = f.read()
+                
+                # Update the configuration values in the file
+                for key, value in config_updates.items():
+                    if key == 'RISK_THRESHOLDS':
+                        content = re.sub(
+                            rf'{key}\s*=\s*{{[^}}]*}}',
+                            f'{key} = {value}',
+                            content
+                        )
+                    else:
+                        content = re.sub(
+                            rf'{key}\s*=\s*[^\n]*',
+                            f'{key} = {repr(value)}',
+                            content
+                        )
+                
+                with open('config.py', 'w') as f:
+                    f.write(content)
+                
+                flash('Settings updated successfully!', 'success')
+            else:
+                flash('No changes were made.', 'info')
+                
+        except Exception as e:
+            flash(f'Error updating settings: {str(e)}', 'error')
+            logger.error(f"Settings update error: {e}")
+    
     return render_template('admin_settings.html', config=CONFIG)
 
 # Minimal API endpoints expected by tests

@@ -294,6 +294,24 @@ def create_app():
 
     logger.info("Application initialization completed successfully")
 
+    # Register CLI commands
+    @app.cli.command('news-fetch')
+    def news_fetch_command():
+        """Fetch fresh news from RSS feeds"""
+        try:
+            from .services.news_fetcher import fetch_news_from_sources, clear_old_news
+            with app.app_context():
+                db_path = app.config['DATABASE']
+                items = fetch_news_from_sources(db_path)
+                print(f"✓ Fetched {len(items)} news items")
+                
+                # Clean up old news (older than 7 days)
+                clear_old_news(db_path, days_to_keep=7)
+                print("✓ Cleaned up old news items")
+        except Exception as e:
+            logger.error(f"Error fetching news: {e}")
+            print(f"✗ Error: {e}")
+
     # Global error handlers (ensure friendly pages for non-blueprint routes)
     @app.errorhandler(404)
     def app_not_found_error(error):

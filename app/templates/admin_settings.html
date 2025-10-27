@@ -4,17 +4,16 @@
 
 {% block content %}
 <div class="content-header">
-    <h1 class="content-title">Admin Settings</h1>
-    <p class="content-subtitle">Configure system settings and compliance parameters</p>
+    <h1 class="content-title">Settings</h1>
+    <p class="content-subtitle">Settings are now available in the dropdown menu. Click on your profile in the top right corner and select "Settings".</p>
     
-    <!-- Customize Interface Button -->
-    <div style="margin-top: 16px;">
-        <button onclick="customizationSystem.showCustomizationPanel()" class="btn btn-outline" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; font-size: 14px; font-weight: 500;">
+    <div style="margin-top: 20px;">
+        <button onclick="showSettingsModal()" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px; padding: 12px 20px; font-size: 14px; font-weight: 500;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="3"></circle>
                 <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3"></path>
             </svg>
-            <span>Customize Interface</span>
+            <span>Open Settings</span>
         </button>
     </div>
 </div>
@@ -32,248 +31,21 @@
     </div>
     {% endif %}
 
-    <form method="POST" action="{{ url_for('main.admin_settings') }}">
-        <!-- Retention Settings -->
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">Data Retention</h2>
-            </div>
-            <div class="card-body">
-                <div class="form-group">
-                    <label for="retention_months">Retention Period (months)</label>
-                    <input type="number" id="retention_months" name="retention_months" 
-                           value="{{ config.RETENTION_MONTHS }}" min="1" max="120"
-                           class="form-control">
-                    <small class="form-text">Trips will be deleted this many months after their exit date.</small>
-                </div>
-            </div>
-        </div>
-
-        <!-- Session Settings -->
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">Session Security</h2>
-            </div>
-            <div class="card-body">
-                <div class="form-group">
-                    <label for="session_timeout">Session Idle Timeout (minutes)</label>
-                    <input type="number" id="session_timeout" name="session_timeout" 
-                           value="{{ config.SESSION_IDLE_TIMEOUT_MINUTES }}" min="5" max="480"
-                           class="form-control">
-                    <small class="form-text">Automatically log out after this many minutes of inactivity.</small>
-                </div>
-
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" name="session_cookie_secure" 
-                               {% if config.SESSION_COOKIE_SECURE %}checked{% endif %}>
-                        Use Secure Cookies (HTTPS only)
-                    </label>
-                    <small class="form-text">Enable this when using HTTPS. Disable for local HTTP development.</small>
-                </div>
-            </div>
-        </div>
-
-        <!-- Password Settings -->
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">Password Security</h2>
-            </div>
-            <div class="card-body">
-                <div class="form-group">
-                    <label for="password_scheme">Password Hashing Scheme</label>
-                    <select id="password_scheme" name="password_scheme" class="form-control">
-                        <option value="argon2" {% if config.PASSWORD_HASH_SCHEME == 'argon2' %}selected{% endif %}>
-                            Argon2 (Recommended)
-                        </option>
-                        <option value="bcrypt" {% if config.PASSWORD_HASH_SCHEME == 'bcrypt' %}selected{% endif %}>
-                            bcrypt
-                        </option>
-                    </select>
-                    <small class="form-text">Argon2 is recommended for maximum security.</small>
-                </div>
-            </div>
-        </div>
-
-        <!-- Export Settings -->
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">Export & Audit</h2>
-            </div>
-            <div class="card-body">
-                <div class="form-group">
-                    <label for="export_dir">DSAR Export Directory</label>
-                    <input type="text" id="export_dir" name="export_dir" 
-                           value="{{ config.DSAR_EXPORT_DIR }}" class="form-control">
-                    <small class="form-text">Directory where DSAR export ZIP files are saved.</small>
-                </div>
-
-                <div class="form-group">
-                    <label for="audit_log">Audit Log Path</label>
-                    <input type="text" id="audit_log" name="audit_log" 
-                           value="{{ config.AUDIT_LOG_PATH }}" class="form-control">
-                    <small class="form-text">Path to the audit log file.</small>
-                </div>
-            </div>
-        </div>
-
-        <!-- Future Job Compliance Settings -->
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">Future Job Compliance Forecast</h2>
-            </div>
-            <div class="card-body">
-                <div class="form-group">
-                    <label for="warning_threshold">Warning Threshold (days)</label>
-                    <input type="number" id="warning_threshold" name="warning_threshold" 
-                           value="{{ config.get('FUTURE_JOB_WARNING_THRESHOLD', 80) }}" 
-                           min="1" max="90" class="form-control">
-                    <small class="form-text">
-                        Show yellow warning when future trips would use this many days or more (must be between 1-90).
-                        Default is 80 days. Red warnings always show for trips that would exceed 90 days.
-                    </small>
-                </div>
-            </div>
-        </div>
-
-        <!-- Risk Level Thresholds -->
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">Risk Level Thresholds</h2>
-            </div>
-            <div class="card-body">
-                <div class="form-group">
-                    <label for="risk_threshold_green">Green Threshold (days remaining)</label>
-                    <input type="number" id="risk_threshold_green" name="risk_threshold_green" 
-                           value="{{ config.get('RISK_THRESHOLDS', {}).get('green', 30) }}" 
-                           min="1" max="90" class="form-control">
-                    <small class="form-text">
-                        Days remaining >= this value will show green badges. Default is 30 days.
-                    </small>
-                </div>
-
-                <div class="form-group">
-                    <label for="risk_threshold_amber">Amber Threshold (days remaining)</label>
-                    <input type="number" id="risk_threshold_amber" name="risk_threshold_amber" 
-                           value="{{ config.get('RISK_THRESHOLDS', {}).get('amber', 10) }}" 
-                           min="0" max="89" class="form-control">
-                    <small class="form-text">
-                        Days remaining between this value and green threshold will show amber badges. 
-                        Days remaining < this value will show red badges. Default is 10 days.
-                    </small>
-                </div>
-            </div>
-        </div>
-
-        <div style="margin-top: 24px;">
-            <button type="submit" class="btn btn-primary">Save Settings</button>
-            <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">Cancel</a>
-        </div>
-    </form>
-
-    <!-- Change Password Section -->
-    <div class="card" style="margin-top: 24px;">
-        <div class="card-header">
-            <h2 class="card-title">Change Admin Password</h2>
-        </div>
+    <div class="card">
         <div class="card-body">
-            <form method="POST" action="{{ url_for('main.change_password') }}">
-                <div class="form-group">
-                    <label for="new_password">New Password</label>
-                    <input type="password" id="new_password" name="new_password" 
-                           class="form-control" minlength="8" required>
-                    <small class="form-text">Minimum 8 characters, must contain letters and numbers.</small>
-                </div>
-                <button type="submit" class="btn btn-warning">Change Password</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- GDPR Compliance: Delete All Data Section -->
-    <div class="card" style="margin-top: 24px; border: 2px solid #fc8181;">
-        <div class="card-header" style="background: #fed7d7;">
-            <h2 class="card-title" style="color: #742a2a;">Danger Zone - Delete All Data</h2>
-        </div>
-        <div class="card-body">
-            <p style="color: #742a2a; margin-bottom: 16px;">
-                <strong>WARNING:</strong> This action will permanently delete all BUSINESS TRAVEL data and exported files from the system.
-                Personal holiday trips will be preserved. This cannot be undone. Use only for GDPR compliance or complete system reset.
-            </p>
-            <form method="POST" action="{{ url_for('main.delete_all_data') }}" onsubmit="return confirmDeleteAll()">
-                <div class="form-group">
-                    <label for="confirmation">Type "DELETE ALL DATA" to confirm:</label>
-                    <input type="text" id="confirmation" name="confirmation" 
-                           class="form-control" required 
-                           placeholder="DELETE ALL DATA"
-                           style="border-color: #fc8181;">
-                </div>
-                <button type="submit" class="btn" style="background: #c53030; color: white;">
-                    Delete All Data Permanently
-                </button>
-            </form>
+            <h3>Settings Moved to Modal</h3>
+            <p>All settings options are now available in a convenient modal popup. You can access them by:</p>
+            <ul>
+                <li>Clicking on your profile in the top right corner</li>
+                <li>Selecting "Settings" from the dropdown menu</li>
+                <li>Or clicking the "Open Settings" button above</li>
+            </ul>
+            <p>The new settings interface provides better organization with categorized sections and a cleaner layout.</p>
         </div>
     </div>
 </div>
 
-<script>
-function confirmDeleteAll() {
-    return confirm('Are you absolutely sure? This will delete ALL data and cannot be undone!');
-}
-</script>
-
 <style>
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-control {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #cbd5e0;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.form-text {
-    display: block;
-    margin-top: 4px;
-    color: #718096;
-    font-size: 13px;
-}
-
-label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 500;
-    color: #2d3748;
-}
-
-.btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    text-decoration: none;
-    display: inline-block;
-}
-
-.btn-primary {
-    background: #3182ce;
-    color: white;
-}
-
-.btn-secondary {
-    background: #718096;
-    color: white;
-}
-
-.btn-warning {
-    background: #dd6b20;
-    color: white;
-}
-
 .alert {
     padding: 12px 16px;
     border-radius: 4px;
@@ -290,6 +62,22 @@ label {
     background: #fed7d7;
     color: #742a2a;
     border: 1px solid #fc8181;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary {
+    background: #3182ce;
+    color: white;
 }
 </style>
 {% endblock %}

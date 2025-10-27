@@ -42,7 +42,7 @@ def logged_in_client(client):
 def test_app_startup(client):
     """Test that the Flask app starts correctly"""
     response = client.get('/')
-    assert response.status_code == 302  # Redirect to login
+    assert response.status_code == 200  # Landing page loads
     
 
 def test_login_page_loads(client):

@@ -15,7 +15,8 @@ DEFAULTS = {
         'green': 30,  # >= 30 days remaining = green
         'amber': 10   # 10-29 days remaining = amber, < 10 = red
     },
-    'FUTURE_JOB_WARNING_THRESHOLD': 80  # Warn when future trips would use 80+ days
+    'FUTURE_JOB_WARNING_THRESHOLD': 80,  # Warn when future trips would use 80+ days
+    'NEWS_FILTER_REGION': 'EU_ONLY'  # News filtering: EU_ONLY or ALL
 }
 
 

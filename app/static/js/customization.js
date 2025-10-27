@@ -277,10 +277,12 @@ class CustomizationSystem {
     }
 
     setTheme(theme) {
+        console.log('CustomizationSystem: Setting theme to', theme);
         this.preferences.theme = theme;
         this.savePreferences();
         this.applyTheme(theme);
         this.updateActiveButtons('.theme-option', 'data-theme', theme);
+        console.log('CustomizationSystem: Theme applied, current preferences:', this.preferences);
     }
 
     setDensity(density) {
@@ -335,8 +337,19 @@ class CustomizationSystem {
     }
 
     applyTheme(theme) {
+        console.log('CustomizationSystem: Applying theme', theme);
+        
+        // Remove all existing theme classes
         document.body.className = document.body.className.replace(/theme-\w+/g, '');
+        document.documentElement.className = document.documentElement.className.replace(/theme-\w+/g, '');
+        
+        // Add new theme class to both body and html
         document.body.classList.add(`theme-${theme}`);
+        document.documentElement.classList.add(`theme-${theme}`);
+        
+        console.log('CustomizationSystem: Added theme class', `theme-${theme}`);
+        console.log('CustomizationSystem: Body classes:', document.body.className);
+        console.log('CustomizationSystem: HTML classes:', document.documentElement.className);
         
         // Add theme-specific CSS
         if (!document.querySelector('#theme-styles')) {
@@ -347,6 +360,11 @@ class CustomizationSystem {
         
         const themeStyles = document.getElementById('theme-styles');
         themeStyles.textContent = this.getThemeCSS(theme);
+        
+        console.log('CustomizationSystem: Applied theme CSS');
+        
+        // Force a reflow to ensure styles are applied
+        document.body.offsetHeight;
     }
 
     getThemeCSS(theme) {
@@ -359,6 +377,17 @@ class CustomizationSystem {
                     --text-secondary: #6b7280;
                     --border-color: #e5e7eb;
                 }
+                .theme-light {
+                    background-color: var(--bg-primary) !important;
+                    color: var(--text-primary) !important;
+                }
+                .theme-light .card, .theme-light .panel, .theme-light .settings-modal-container {
+                    background-color: var(--bg-primary) !important;
+                    color: var(--text-primary) !important;
+                }
+                .theme-light .sidebar {
+                    background-color: var(--bg-secondary) !important;
+                }
             `,
             dark: `
                 :root {
@@ -369,12 +398,30 @@ class CustomizationSystem {
                     --border-color: #4b5563;
                 }
                 .theme-dark {
-                    background-color: var(--bg-primary);
-                    color: var(--text-primary);
+                    background-color: var(--bg-primary) !important;
+                    color: var(--text-primary) !important;
                 }
-                .theme-dark .card, .theme-dark .panel {
-                    background-color: var(--bg-secondary);
-                    border-color: var(--border-color);
+                .theme-dark .card, .theme-dark .panel, .theme-dark .settings-modal-container {
+                    background-color: var(--bg-secondary) !important;
+                    color: var(--text-primary) !important;
+                    border-color: var(--border-color) !important;
+                }
+                .theme-dark .sidebar {
+                    background-color: var(--bg-secondary) !important;
+                }
+                .theme-dark .topbar {
+                    background-color: var(--bg-secondary) !important;
+                    border-color: var(--border-color) !important;
+                }
+                .theme-dark .form-control, .theme-dark .form-input {
+                    background-color: var(--bg-primary) !important;
+                    color: var(--text-primary) !important;
+                    border-color: var(--border-color) !important;
+                }
+                .theme-dark .btn-secondary {
+                    background-color: var(--bg-secondary) !important;
+                    color: var(--text-primary) !important;
+                    border-color: var(--border-color) !important;
                 }
             `,
             'high-contrast': `
@@ -386,12 +433,17 @@ class CustomizationSystem {
                     --border-color: #000000;
                 }
                 .theme-high-contrast {
-                    background-color: var(--bg-primary);
-                    color: var(--text-primary);
+                    background-color: var(--bg-primary) !important;
+                    color: var(--text-primary) !important;
                 }
-                .theme-high-contrast .card, .theme-high-contrast .panel {
-                    background-color: var(--bg-secondary);
-                    border: 2px solid var(--border-color);
+                .theme-high-contrast .card, .theme-high-contrast .panel, .theme-high-contrast .settings-modal-container {
+                    background-color: var(--bg-secondary) !important;
+                    color: var(--text-primary) !important;
+                    border: 2px solid var(--border-color) !important;
+                }
+                .theme-high-contrast .sidebar {
+                    background-color: var(--bg-secondary) !important;
+                    border: 2px solid var(--border-color) !important;
                 }
             `
         };
