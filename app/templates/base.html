@@ -18,6 +18,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/hubspot-style.css') }}?v=3.0">
     <!-- Page-specific enhancements -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=1">
+    <!-- Phase 3 visual enhancements -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/phase3-enhancements.css') }}?v=1">
     
     <!-- Using system Helvetica Neue stack; removed external font imports -->
     
@@ -228,6 +230,11 @@
     <!-- Bootstrap 5 JS Bundle (for dropdowns, modals, etc.) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
     <script src="{{ url_for('static', filename='js/hubspot-style.js') }}"></script>
+    
+    <!-- Phase 3 Enhancement Scripts -->
+    <script src="{{ url_for('static', filename='js/help-system.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/customization.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/interactive-tutorials.js') }}"></script>
     
     <script>
     // Debug: Check if password modal is being opened automatically

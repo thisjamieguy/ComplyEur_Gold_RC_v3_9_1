@@ -246,12 +246,12 @@
             <h3>🎓 New to the System?</h3>
             <p>Take a quick guided tour to learn the main features and get started in minutes.</p>
         </div>
-        <button onclick="startTutorial()" class="btn btn-primary">
+        <button onclick="interactiveTutorials.showTutorialMenu()" class="btn btn-primary">
             <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"></circle>
                 <polygon points="10,8 16,12 10,16"></polygon>
             </svg>
-            Start Tutorial
+            Interactive Tutorials
         </button>
     </div>
 
@@ -396,6 +396,9 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Help Search System -->
+<script src="{{ url_for('static', filename='js/help-search.js') }}"></script>
+
 <script>
 // Toggle FAQ sections
 function toggleSection(header) {
