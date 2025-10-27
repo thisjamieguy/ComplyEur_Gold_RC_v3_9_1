@@ -53,6 +53,13 @@
       "expanded": false
     },
     {
+      "id": "private-trips",
+      "icon": "lock",
+      "title": "Adding Private Holiday Trips",
+      "content": "Employees can have their personal holiday trips recorded with maximum privacy protection.\n\n**How to Add Private Trips:**\n1. Employee notifies admin of holiday dates (verbally or by email)\n2. Admin goes to employee's detail page\n3. Click 'Add Trip'\n4. Select '🔒 Personal Trip (Dates Only)' from country dropdown\n5. Enter entry and exit dates\n6. Save the trip\n\n**Privacy Protection:**\n• Only dates are stored (no destination country)\n• Country appears as 'Personal Trip' in all admin views\n• Details are completely hidden from admin interface\n• Days still count toward 90/180 compliance\n\n**Important Notes:**\n• Private trips are protected from 'Clear All Data' operations\n• Can be manually deleted if employee plans change\n• DSAR exports include full details for the employee\n• Excel imports never include private trips (business travel only)\n\n**When to Use:**\n• Employee taking personal holiday to EU/Schengen area\n• Vacation time that affects 90/180 compliance\n• Any personal travel that needs to be counted\n\n**Admin Workflow:**\n• Employee: 'I'm taking holiday Aug 1-10'\n• Admin: Add trip with 'Personal Trip' country\n• System: Stores dates only, counts toward compliance\n• Result: Employee's compliance calculated correctly, privacy preserved",
+      "expanded": false
+    },
+    {
       "id": "excel-import",
       "icon": "upload",
       "title": "Excel Import Guide",

@@ -159,37 +159,38 @@
                         <input type="text" name="country_display" class="form-input dropdown-input" placeholder="Select country" required readonly onclick="toggleDropdown('countryDropdown')">
                         <div class="dropdown-arrow">▼</div>
                         <div id="countryDropdown" class="dropdown-list">
-                            <div class="dropdown-item" onclick="selectCountry('Austria', 'AT')">🇦🇹 Austria (AT)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Belgium', 'BE')">🇧🇪 Belgium (BE)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Bulgaria', 'BG')">🇧🇬 Bulgaria (BG)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Croatia', 'HR')">🇭🇷 Croatia (HR)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Cyprus', 'CY')">🇨🇾 Cyprus (CY)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Czech Republic', 'CZ')">🇨🇿 Czech Republic (CZ)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Denmark', 'DK')">🇩🇰 Denmark (DK)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Estonia', 'EE')">🇪🇪 Estonia (EE)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Finland', 'FI')">🇫🇮 Finland (FI)</div>
-                            <div class="dropdown-item" onclick="selectCountry('France', 'FR')">🇫🇷 France (FR)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Germany', 'DE')">🇩🇪 Germany (DE)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Greece', 'GR')">🇬🇷 Greece (GR)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Hungary', 'HU')">🇭🇺 Hungary (HU)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Iceland', 'IS')">🇮🇸 Iceland (IS)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Ireland', 'IE')">🇮🇪 Ireland (IE)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Italy', 'IT')">🇮🇹 Italy (IT)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Latvia', 'LV')">🇱🇻 Latvia (LV)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Liechtenstein', 'LI')">🇱🇮 Liechtenstein (LI)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Lithuania', 'LT')">🇱🇹 Lithuania (LT)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Luxembourg', 'LU')">🇱🇺 Luxembourg (LU)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Malta', 'MT')">🇲🇹 Malta (MT)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Netherlands', 'NL')">🇳🇱 Netherlands (NL)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Norway', 'NO')">🇳🇴 Norway (NO)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Poland', 'PL')">🇵🇱 Poland (PL)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Portugal', 'PT')">🇵🇹 Portugal (PT)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Romania', 'RO')">🇷🇴 Romania (RO)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Slovakia', 'SK')">🇸🇰 Slovakia (SK)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Slovenia', 'SI')">🇸🇮 Slovenia (SI)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Spain', 'ES')">🇪🇸 Spain (ES)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Sweden', 'SE')">🇸🇪 Sweden (SE)</div>
-                            <div class="dropdown-item" onclick="selectCountry('Switzerland', 'CH')">🇨🇭 Switzerland (CH)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Personal Trip', 'PRIVATE', this)">🔒 Personal Trip (Dates Only)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Austria', 'AT', this)">🇦🇹 Austria (AT)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Belgium', 'BE', this)">🇧🇪 Belgium (BE)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Bulgaria', 'BG', this)">🇧🇬 Bulgaria (BG)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Croatia', 'HR', this)">🇭🇷 Croatia (HR)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Cyprus', 'CY', this)">🇨🇾 Cyprus (CY)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Czech Republic', 'CZ', this)">🇨🇿 Czech Republic (CZ)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Denmark', 'DK', this)">🇩🇰 Denmark (DK)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Estonia', 'EE', this)">🇪🇪 Estonia (EE)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Finland', 'FI', this)">🇫🇮 Finland (FI)</div>
+                            <div class="dropdown-item" onclick="selectCountry('France', 'FR', this)">🇫🇷 France (FR)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Germany', 'DE', this)">🇩🇪 Germany (DE)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Greece', 'GR', this)">🇬🇷 Greece (GR)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Hungary', 'HU', this)">🇭🇺 Hungary (HU)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Iceland', 'IS', this)">🇮🇸 Iceland (IS)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Ireland', 'IE', this)">🇮🇪 Ireland (IE)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Italy', 'IT', this)">🇮🇹 Italy (IT)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Latvia', 'LV', this)">🇱🇻 Latvia (LV)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Liechtenstein', 'LI', this)">🇱🇮 Liechtenstein (LI)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Lithuania', 'LT', this)">🇱🇹 Lithuania (LT)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Luxembourg', 'LU', this)">🇱🇺 Luxembourg (LU)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Malta', 'MT', this)">🇲🇹 Malta (MT)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Netherlands', 'NL', this)">🇳🇱 Netherlands (NL)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Norway', 'NO', this)">🇳🇴 Norway (NO)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Poland', 'PL', this)">🇵🇱 Poland (PL)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Portugal', 'PT', this)">🇵🇹 Portugal (PT)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Romania', 'RO', this)">🇷🇴 Romania (RO)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Slovakia', 'SK', this)">🇸🇰 Slovakia (SK)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Slovenia', 'SI', this)">🇸🇮 Slovenia (SI)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Spain', 'ES', this)">🇪🇸 Spain (ES)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Sweden', 'SE', this)">🇸🇪 Sweden (SE)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Switzerland', 'CH', this)">🇨🇭 Switzerland (CH)</div>
                         </div>
                     </div>
                 </div>
@@ -212,35 +213,7 @@
         </form>
     </div>
 
-    <!-- Trip Planning Tool -->
-    <div class="card">
-        <div class="card-header">
-            <h2 class="card-title">Trip Planning Tool</h2>
-        </div>
-        <p class="text-muted" style="margin-bottom: 20px;">
-            Plan a future trip to see how it would affect your 90-day limit without adding it to your record.
-        </p>
-        
-        <div class="form-inline">
-            <div class="form-group">
-                <label class="form-label">Planned Country</label>
-                <input type="text" id="planCountry" class="form-input" placeholder="Enter country">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Entry Date</label>
-                <input type="date" id="planEntryDate" class="form-input">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Exit Date</label>
-                <input type="date" id="planExitDate" class="form-input">
-            </div>
-            <div class="form-group">
-                <button onclick="planTrip()" class="btn btn-outline" style="margin-top: 24px;">Plan Trip</button>
-            </div>
-        </div>
-        
-        <div id="tripPlanResult" style="display: none; margin-top: 20px;"></div>
-    </div>
+    
 
     <!-- Trip History -->
     <div class="card">
@@ -270,9 +243,14 @@
                     {% for trip in trips %}
                     <tr data-trip-id="{{ trip.id }}">
                         <td style="font-weight: 500;">
-                            {{ trip.country }}
-                            {% if trip.country|is_ireland %}
-                                <br><small style="color: #9ca3af; font-size: 11px;">(Non-Schengen)</small>
+                            {% if trip.is_private %}
+                                <span style="color: #6b7280;">🔒 Personal Trip</span>
+                                <br><small style="color: #9ca3af; font-size: 11px;">(Details Hidden)</small>
+                            {% else %}
+                                {{ trip.country }}
+                                {% if trip.country|is_ireland %}
+                                    <br><small style="color: #9ca3af; font-size: 11px;">(Non-Schengen)</small>
+                                {% endif %}
                             {% endif %}
                             {% if trip.validation_note %}
                                 <br><small style="color: #f59e0b; font-size: 11px;" title="Validation override: {{ trip.validation_note }}">Override</small>
@@ -557,9 +535,20 @@ function toggleDropdown(dropdownId) {
     dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
 }
 
-function selectCountry(country, code) {
+function selectCountry(country, code, el) {
     document.querySelector('input[name="country_display"]').value = country;
     document.getElementById('country_code').value = code;
+    // Update visual selection in the dropdown
+    try {
+        document.querySelectorAll('#countryDropdown .dropdown-item').forEach(function(item) {
+            item.classList.remove('selected');
+        });
+        if (el) {
+            el.classList.add('selected');
+        }
+    } catch (e) {
+        // No-op if DOM not available
+    }
     document.getElementById('countryDropdown').style.display = 'none';
 }
 
@@ -570,102 +559,7 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Trip planning functionality
-function planTrip() {
-    const country = document.getElementById('planCountry').value;
-    const entryDate = document.getElementById('planEntryDate').value;
-    const exitDate = document.getElementById('planExitDate').value;
-    
-    if (!country || !entryDate || !exitDate) {
-        alert('Please fill in all fields');
-        return;
-    }
-    
-    if (new Date(exitDate) <= new Date(entryDate)) {
-        alert('Exit date must be after entry date');
-        return;
-    }
-    
-    // Calculate trip duration
-    const entry = new Date(entryDate);
-    const exit = new Date(exitDate);
-    const duration = Math.ceil((exit - entry) / (1000 * 60 * 60 * 24)) + 1;
-    
-    // Send request to forecast endpoint
-    fetch('/forecast-trip', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            employee_id: {{ employee.id }},
-            country: country,
-            entry_date: entryDate,
-            exit_date: exitDate
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            alert('Error: ' + data.error);
-            return;
-        }
-        
-        const resultDiv = document.getElementById('tripPlanResult');
-        resultDiv.style.display = 'block';
-        
-        let statusClass = '';
-        if (data.status === 'over_limit') {
-            statusClass = 'status-danger';
-        } else if (data.status === 'warning') {
-            statusClass = 'status-warning';
-        } else {
-            statusClass = 'status-safe';
-        }
-        
-        resultDiv.innerHTML = `
-            <div class="card ${statusClass}" style="padding: 20px;">
-                <h3 style="margin: 0 0 12px 0;">Trip Forecast</h3>
-                <p style="margin: 0 0 12px 0; font-weight: 500;">${data.message}</p>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-top: 16px;">
-                    <div>
-                        <div style="font-size: 24px; font-weight: 700; color: #6b7280;">${data.current_days_used}</div>
-                        <div style="font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Current Days</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 24px; font-weight: 700; color: #6b7280;">${duration}</div>
-                        <div style="font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Trip Duration</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 24px; font-weight: 700; color: #6b7280;">${data.total_days_after}</div>
-                        <div style="font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Total After Trip</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 24px; font-weight: 700; color: #6b7280;">${data.remaining_days}</div>
-                        <div style="font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Days Remaining</div>
-                    </div>
-                </div>
-            </div>
-        `;
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while planning the trip');
-    });
-}
-
-// Set default dates for trip planning
-document.addEventListener('DOMContentLoaded', function() {
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    const nextWeek = new Date(today);
-    nextWeek.setDate(nextWeek.getDate() + 7);
-    
-    document.getElementById('planEntryDate').value = tomorrow.toISOString().split('T')[0];
-    document.getElementById('planExitDate').value = nextWeek.toISOString().split('T')[0];
-});
+// (Trip Planning Tool removed)
 
 // Edit Trip Modal functionality
 function openEditModal(tripId) {
@@ -743,7 +637,7 @@ document.addEventListener('DOMContentLoaded', function() {
 .dropdown-input {
     width: 100%;
     padding: 12px 44px 12px 16px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 14px;
     cursor: pointer;
@@ -762,7 +656,7 @@ document.addEventListener('DOMContentLoaded', function() {
     left: 0;
     right: 0;
     background: var(--base-bg);
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border-color);
     border-top: none;
     border-radius: 0 0 8px 8px;
     max-height: 240px;
@@ -774,7 +668,7 @@ document.addEventListener('DOMContentLoaded', function() {
 .dropdown-item {
     padding: 12px 16px;
     cursor: pointer;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--border-color);
     color: #6b7280;
     transition: background-color 0.15s;
     display: flex;
@@ -786,6 +680,11 @@ document.addEventListener('DOMContentLoaded', function() {
     color: #f97316;
 }
 .dropdown-item:last-child { border-bottom: none; }
+.dropdown-item.selected {
+    background: #fff7ed; /* orange-50 */
+    color: #c2410c; /* orange-700 */
+    border-left: 3px solid #f97316;
+}
 .dropdown-arrow {
     position: absolute;
     right: 16px;

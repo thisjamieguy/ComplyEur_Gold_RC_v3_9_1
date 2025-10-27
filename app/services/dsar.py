@@ -21,9 +21,9 @@ def get_employee_data(db_path: str, employee_id: int) -> Optional[Dict]:
         conn.close()
         return None
     
-    # Get trips
+    # Get trips (including private trip data for DSAR)
     c.execute('''
-        SELECT id, country, entry_date, exit_date, travel_days, created_at
+        SELECT id, country, entry_date, exit_date, travel_days, created_at, is_private, purpose
         FROM trips
         WHERE employee_id = ?
         ORDER BY entry_date ASC
@@ -102,6 +102,7 @@ LAWFUL BASIS:
 DATA STORED:
 - Employee name (for identification)
 - Trip records: country code, entry date, exit date, travel days, creation timestamp
+- Private trips: stored with dates only, country redacted as "XX", purpose as "PRIVATE_REDACTED"
 - No special category data
 - No profiling or automated decision-making
 

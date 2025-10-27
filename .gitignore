@@ -89,6 +89,8 @@ $RECYCLE.BIN/
 
 # Node modules (for hubspot-ui)
 hubspot-ui/node_modules/
+node_modules/
+test-results/
 
 # Don't commit actual database
 eu_tracker.db

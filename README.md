@@ -1,4 +1,4 @@
-# EU 90/180 Employee Travel Tracker
+# EU 90/180 Employee Travel Tracker v1.5.1
 
 A Flask web application for tracking employee travel to EU/Schengen countries and ensuring compliance with the 90/180-day rule.
 

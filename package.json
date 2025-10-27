@@ -1,0 +1,28 @@
+{
+  "name": "eu-trip-tracker-(v1.5.1)",
+  "version": "1.5.1",
+  "description": "A Flask web application for tracking employee travel to EU/Schengen countries and ensuring compliance with the 90/180-day rule.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thisjamieguy/eu-trip-tracker.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/thisjamieguy/eu-trip-tracker/issues"
+  },
+  "homepage": "https://github.com/thisjamieguy/eu-trip-tracker#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.56.1"
+  }
+}

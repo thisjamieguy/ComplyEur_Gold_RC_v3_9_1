@@ -81,6 +81,18 @@ input, select, textarea {
     background-color: var(--color-background);
 }
 
+/* Ensure dropdown input matches other form inputs */
+.dropdown-input {
+    border: 1px solid var(--color-grey);
+    border-radius: 4px;
+}
+
+/* Ensure select elements have same border as text inputs */
+select.form-input {
+    border: 1px solid var(--color-grey) !important;
+    border-radius: 4px;
+}
+
 /* Map existing theme variables to brand tokens so all components inherit */
 :root {
     --text-primary: var(--color-text);

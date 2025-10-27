@@ -240,10 +240,109 @@ def find_extended_date_headers(worksheet, header_row: int, max_cols_to_scan: int
     
     return extended_dates
 
+def extract_all_employee_names(worksheet, header_row: int) -> List[str]:
+    """
+    Extract all employee names from the Excel worksheet for planning purposes.
+    Returns a list of unique employee names found in column A after the header row.
+    """
+    employee_names = []
+    
+    # Use actual worksheet dimensions to ensure we read all employee rows
+    actual_max_row = getattr(worksheet, 'max_row', None)
+    if actual_max_row:
+        max_rows_to_scan = actual_max_row
+        logger.info(f"Scanning up to {actual_max_row} rows for employee names")
+    else:
+        max_rows_to_scan = header_row + 10000  # Fallback
+        logger.info(f"Using fallback row limit: {max_rows_to_scan} rows for employee names")
+    
+    consecutive_empty_names = 0
+    
+    for cells in worksheet.iter_rows(min_row=header_row + 1, max_row=max_rows_to_scan, min_col=1, max_col=1, values_only=True):
+        # Column A (index 0) is employee name
+        employee_val = cells[0] if cells and len(cells) > 0 else None
+        if not employee_val or not str(employee_val).strip():
+            consecutive_empty_names += 1
+            # Stop after a reasonable number of consecutive empty rows
+            if consecutive_empty_names >= 200:
+                logger.info(f"Stopping employee name extraction after {consecutive_empty_names} consecutive empty rows")
+                break
+            continue
+        consecutive_empty_names = 0
+        
+        employee_name = str(employee_val).strip()
+        
+        # Skip "Unallocated" or similar sections
+        if employee_name.lower() in ['unallocated', 'unassigned', '']:
+            continue
+        
+        # Add unique employee names only
+        if employee_name not in employee_names:
+            employee_names.append(employee_name)
+            logger.debug(f"Found employee: {employee_name}")
+    
+    logger.info(f"Extracted {len(employee_names)} unique employee names from Excel sheet")
+    return employee_names
+
+def create_all_employees(employee_names: List[str]) -> int:
+    """
+    Create all employees in the database regardless of whether they have trips.
+    Returns the number of employees created/updated.
+    """
+    if not employee_names:
+        return 0
+    
+    # Get database path
+    db_path = None
+    try:
+        from flask import current_app
+        if current_app and current_app.config.get('DATABASE'):
+            db_path = current_app.config['DATABASE']
+    except Exception:
+        # Not in an application context
+        pass
+
+    if not db_path:
+        # Fallback to local paths
+        candidate = os.path.join(os.path.dirname(__file__), 'eu_tracker.db')
+        db_path = candidate if os.path.exists(candidate) else os.path.join(os.path.dirname(__file__), 'data', 'eu_tracker.db')
+    
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    
+    employees_created = 0
+    
+    try:
+        for employee_name in employee_names:
+            # Check if employee already exists
+            cursor.execute('SELECT id FROM employees WHERE name = ?', (employee_name,))
+            existing_employee = cursor.fetchone()
+            
+            if not existing_employee:
+                # Create new employee
+                cursor.execute('INSERT INTO employees (name) VALUES (?)', (employee_name,))
+                employees_created += 1
+                logger.debug(f"Created new employee: {employee_name}")
+            else:
+                logger.debug(f"Employee already exists: {employee_name}")
+        
+        conn.commit()
+        logger.info(f"Created {employees_created} new employees in database")
+        return employees_created
+        
+    except Exception as e:
+        conn.rollback()
+        logger.error(f"Error creating employees in database: {e}")
+        raise
+    finally:
+        conn.close()
+
 def process_excel_file(file_path: str, enable_extended_scan: bool = True) -> Dict:
     """
     Process Excel file and return import summary.
     OPTIMIZED: Focuses on 180 days back + 180 days forward for rolling compliance tracking and planning.
+    ENHANCED: Imports ALL employee names from Excel sheet for planning purposes, even if they have no trips.
     
     Args:
         file_path: Path to the Excel file to process
@@ -266,7 +365,15 @@ def process_excel_file(file_path: str, enable_extended_scan: bool = True) -> Dic
         
         logger.info(f"Detected header row at position: {header_row}")
         
-        # Process employee rows
+        # ENHANCED: Extract all employee names first for planning purposes
+        all_employee_names = extract_all_employee_names(worksheet, header_row)
+        logger.info(f"Found {len(all_employee_names)} total employee names in Excel sheet")
+        
+        # Create all employees in database regardless of trip data
+        employees_created = create_all_employees(all_employee_names)
+        logger.info(f"Created/updated {employees_created} employees in database")
+        
+        # Process employee rows for trip data
         trip_records = []
         employees_processed = 0
         
@@ -391,6 +498,11 @@ def process_excel_file(file_path: str, enable_extended_scan: bool = True) -> Dic
             'duplicates_skipped': save_result.get('duplicates_skipped', 0),
             'uk_jobs_skipped': save_result.get('uk_jobs_skipped', 0),
             'empty_cells_skipped': save_result.get('empty_cells_skipped', 0),
+            # NEW: Employee planning features
+            'employees_created': employees_created,
+            'total_employee_names_found': len(all_employee_names),
+            'employees_with_trips': employees_processed,
+            'employees_without_trips': len(all_employee_names) - employees_processed,
             # New comprehensive metrics
             'worksheet_dimensions': {
                 'total_rows': max_rows_to_scan,
@@ -404,7 +516,8 @@ def process_excel_file(file_path: str, enable_extended_scan: bool = True) -> Dic
             }
         }
         
-        logger.info(f"Processing complete. Summary: {processing_summary['employees_processed']} employees, {processing_summary['trips_added']} trips added")
+        logger.info(f"Processing complete. Summary: {processing_summary['employees_processed']} employees with trips, {processing_summary['trips_added']} trips added")
+        logger.info(f"Employee planning: {processing_summary['total_employee_names_found']} total names found, {processing_summary['employees_created']} new employees created")
         logger.info(f"Focused on 180 days back + 180 days forward for rolling compliance tracking and planning")
         return processing_summary
         

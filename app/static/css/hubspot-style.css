@@ -43,9 +43,13 @@ p, td, li, button, input, label { font-weight: 400; }
 /* Sidebar - Enterprise Level Design */
 .sidebar {
     background-color: #4E5A62; /* IES logo grey */
+    background-image: url('images/sideBarImageEurope.jpg?v=1'); /* Added cache buster */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     color: #ffffff;
     width: 250px;
-    min-height: 100vh;
+    height: 100vh;
     display: flex;
     flex-direction: column;
     position: fixed;
@@ -53,7 +57,26 @@ p, td, li, button, input, label { font-weight: 400; }
     left: 0;
     z-index: 1000;
     transition: all 0.3s ease;
-    overflow-y: auto;
+    overflow: hidden; /* delegate scroll to .sidebar-nav */
+    overscroll-behavior: contain;
+}
+
+/* Overlay to make background subtle */
+.sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(78, 90, 98, 0.2); /* Very light overlay for testing */
+    z-index: 1;
+}
+
+/* Ensure all sidebar content appears above the overlay */
+.sidebar > * {
+    position: relative;
+    z-index: 2;
 }
 
 .sidebar.collapsed {
@@ -80,12 +103,6 @@ p, td, li, button, input, label { font-weight: 400; }
 
 .brand-link:hover {
     opacity: 0.9;
-}
-
-.ies-logo {
-    height: 48px;
-    margin-bottom: 6px;
-    width: auto;
 }
 
 .sidebar-title {
@@ -118,6 +135,8 @@ p, td, li, button, input, label { font-weight: 400; }
     flex: 1;
     padding: 0;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS/macOS */
+    overscroll-behavior: contain;
 }
 
 .nav-list {
@@ -180,11 +199,6 @@ p, td, li, button, input, label { font-weight: 400; }
 
 .sidebar.collapsed .brand-link {
     align-items: center;
-}
-
-.sidebar.collapsed .ies-logo {
-    height: 36px;
-    margin-bottom: 0;
 }
 
 .sidebar.collapsed .sidebar-title {
@@ -325,6 +339,7 @@ p, td, li, button, input, label { font-weight: 400; }
     margin-left: 256px;
     transition: margin-left 0.3s ease;
     min-height: 100vh;
+    overscroll-behavior: contain;
 }
 
 .main-content.sidebar-collapsed {
@@ -698,10 +713,6 @@ p, td, li, button, input, label { font-weight: 400; }
 @media (max-width: 768px) {
     .sidebar {
         width: 220px;
-    }
-    
-    .ies-logo {
-        height: 36px;
     }
     
     .sidebar-title {

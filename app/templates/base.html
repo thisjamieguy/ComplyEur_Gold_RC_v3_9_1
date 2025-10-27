@@ -9,10 +9,15 @@
     <meta name="csrf-token" content="{{ csrf_token }}">
     <title>{% block title %}EU Trip Tracker{% endblock %}</title>
     
+    <!-- Bootstrap 5 (CSS) loaded before app styles so site styles take precedence -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    
     <!-- Global stylesheet should load first -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}?v=3.0">
     <!-- Component/theme styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/hubspot-style.css') }}?v=3.0">
+    <!-- Page-specific enhancements -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=1">
     
     <!-- Using system Helvetica Neue stack; removed external font imports -->
     
@@ -28,9 +33,6 @@
         <aside class="sidebar" role="navigation" aria-label="Main Sidebar">
             <div class="sidebar-header">
                 <a href="/dashboard" class="brand-link" aria-label="Go to Dashboard">
-                    <img src="{{ url_for('static', filename='images/ieslogo.webp') }}" 
-                         alt="IES Logo" 
-                         class="ies-logo">
                     <h2 class="sidebar-title">EU Tracker</h2>
                 </a>
                 <button class="sidebar-toggle" title="Toggle Sidebar" aria-label="Toggle Sidebar">
@@ -100,27 +102,9 @@
                             <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
                             <line x1="12" y1="17" x2="12.01" y2="17"></line>
                         </svg>
-                        <span>What-If Scenario</span>
+                        <span>Compliance Planner</span>
                     </a></li>
                     
-                    <li class="nav-divider">
-                        <span class="nav-section-label">Administration</span>
-                    </li>
-                    
-                    <li><a href="{{ url_for('main.admin_privacy_tools') }}" class="nav-item {% if request.endpoint == 'main.admin_privacy_tools' %}active{% endif %}">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                        </svg>
-                        <span>Privacy Tools</span>
-                    </a></li>
-                    
-                    <li><a href="{{ url_for('main.admin_settings') }}" class="nav-item {% if request.endpoint == 'main.admin_settings' %}active{% endif %}">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="3"></circle>
-                            <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3"></path>
-                        </svg>
-                        <span>Settings</span>
-                    </a></li>
                     
                     <li class="nav-divider">
                         <span class="nav-section-label">Support</span>
@@ -140,26 +124,12 @@
                             <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
                             <line x1="12" y1="17" x2="12.01" y2="17"></line>
                         </svg>
-                        <span>Help & Tutorial</span>
+                        <span>Help</span>
                     </a></li>
                     
-                    <li><button class="nav-item" onclick="openModal('passwordModal')" style="background: none; border: none; cursor: pointer;">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                            <circle cx="12" cy="16" r="1"></circle>
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                        </svg>
-                        <span>Change Password</span>
-                    </button></li>
                     
-                    <li><a href="{{ url_for('main.logout') }}" class="nav-item">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                            <polyline points="16,17 21,12 16,7"></polyline>
-                            <line x1="21" y1="12" x2="9" y2="12"></line>
-                        </svg>
-                        <span>Logout</span>
-                    </a></li>
+                    
+                    
                 </ul>
             </nav>
         </aside>
@@ -203,12 +173,19 @@
                         </svg>
                         <span class="help-text">Help</span>
                     </a>
-                    <div class="user-menu">
-                        <div class="user-avatar">EU</div>
-                        <span style="font-weight: 500; font-size: 14px;">Admin</span>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6,9 12,15 18,9"></polyline>
-                        </svg>
+                    <div class="dropdown">
+                        <button class="btn btn-outline dropdown-toggle d-flex align-items-center" id="adminMenu" data-bs-toggle="dropdown" aria-expanded="false" style="gap:8px; padding: 8px 12px;">
+                            <span class="user-avatar" style="width: 28px; height: 28px; font-size: 13px;">EU</span>
+                            <span style="font-weight: 500; font-size: 14px;">Admin</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="adminMenu">
+                            <li><a class="dropdown-item" href="{{ url_for('main.profile') }}">Profile</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.admin_privacy_tools') }}">Privacy Tools</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.admin_settings') }}">Settings</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="openModal('passwordModal'); return false;">Change Password</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{{ url_for('main.logout') }}">Logout</a></li>
+                        </ul>
                     </div>
                 </div>
             </header>
@@ -217,20 +194,8 @@
             <main>
                 {% block content %}{% endblock %}
             </main>
-            <footer style="margin-top: 24px; padding: 16px 0; color: #6b7280; font-size: 12px; border-top: 1px solid #e5e7eb;">
-                <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;">
-                    <div>
-                        <a href="{{ url_for('main.privacy') }}" class="nav-item" style="padding: 0; color: #6b7280; text-decoration: underline; background: none;">Privacy Policy</a>
-                    </div>
-                    <div style="color: #9ca3af;">
-                        Version {{ app_version }}
-                    </div>
-                </div>
-                <div style="padding: 8px 12px; background: #f3f4f6; border-radius: 6px; font-size: 11px; color: #4b5563;">
-                    <strong>GDPR Compliant:</strong> All data is processed and stored locally on this server. 
-                    No personal data is transmitted externally or stored in third-party services. 
-                    Only essential trip information (employee name, country, dates) is stored for EU travel compliance tracking.
-                </div>
+            <footer class="text-center text-muted mt-4 mb-2 small" style="color: #9E9E9E; font-size: 12px;">
+                © Maavsi 2025 · Built for IES internal use · v{{ app_version }}
             </footer>
         </div>
     </div>
@@ -260,6 +225,8 @@
     {% endif %}
     
     <!-- JavaScript -->
+    <!-- Bootstrap 5 JS Bundle (for dropdowns, modals, etc.) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
     <script src="{{ url_for('static', filename='js/hubspot-style.js') }}"></script>
     
     <script>

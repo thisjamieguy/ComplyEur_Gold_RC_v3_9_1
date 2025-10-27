@@ -706,10 +706,11 @@
         <div class="country-card"
              data-country="{{ country.country|lower }}"
              data-schengen="{{ 'yes' if country.is_schengen_member else 'no' }}"
-             data-etias="{{ country.etias_status|lower }}">
+             data-etias="{{ country.etias_status|lower }}"
+             data-image="{{ url_for('static', filename=country_image_path('', country.country)) }}">
             
             <!-- Card Header with City Photo Background -->
-            <div class="card-header-banner" style="background-image: url('{{ url_for('static', filename='images/cityscapes/' + (country.country|lower|replace(' ', '-') ) + '.webp') }}');">
+            <div class="card-header-banner" style="background-image: url('{{ url_for('static', filename=country_image_path('', country.country)) }}');">
                 <div class="card-header-content">
                     <div class="country-name-header">
                         <span class="country-flag">
@@ -821,18 +822,26 @@
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-content">
             <!-- Modal Header with Photo -->
-            <div class="modal-header" id="modalHeader">
+            <div class="country-header mb-3">
                 <button class="modal-close" onclick="document.getElementById('modalOverlay').style.display='none'; document.body.style.overflow='';">
                     <svg viewBox="0 0 24 24" fill="none">
                         <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </button>
-                <div class="modal-header-content">
-                    <div class="modal-country-name">
-                        <span class="country-flag" id="modalFlag"></span>
-                        <h2 id="modalCountryName"></h2>
+                <img
+                    id="modalHeaderImage"
+                    src="{{ url_for('static', filename='images/cityscapes/default.webp') }}"
+                    alt=""
+                    class="country-image"
+                    onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/cityscapes/default.webp') }}';"
+                />
+                <div class="country-overlay"></div>
+                <div class="country-meta">
+                    <span class="country-flag" id="modalFlag" style="font-size: 32px;">🇪🇺</span>
+                    <div>
+                        <h2 class="country-title" id="modalCountryName"></h2>
+                        <p class="country-subtitle" id="modalSchengenStatus"></p>
                     </div>
-                    <div class="modal-schengen-status" id="modalSchengenStatus"></div>
                 </div>
             </div>
 
@@ -908,10 +917,10 @@ function showCountryDetails(button) {
         return;
     }
     
-    // Set header background image
-    const countrySlug = countryName.toLowerCase().replace(/\s+/g, '-');
-    if (modalHeader) {
-        modalHeader.style.backgroundImage = `url('${"{{ url_for('static', filename='images/cityscapes/') }}"}${countrySlug}.webp')`;
+    // Set header image src using precomputed URL (with fallback handled server-side)
+    const modalHeaderImage = document.getElementById('modalHeaderImage');
+    if (modalHeaderImage && card.dataset.image) {
+        modalHeaderImage.src = card.dataset.image;
     }
     
     // Set header content with error handling

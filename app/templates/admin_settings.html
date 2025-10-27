@@ -185,8 +185,8 @@
         </div>
         <div class="card-body">
             <p style="color: #742a2a; margin-bottom: 16px;">
-                <strong>WARNING:</strong> This action will permanently delete ALL employees, trips, and exported files from the system.
-                This cannot be undone. Use only for GDPR compliance or complete system reset.
+                <strong>WARNING:</strong> This action will permanently delete all BUSINESS TRAVEL data and exported files from the system.
+                Personal holiday trips will be preserved. This cannot be undone. Use only for GDPR compliance or complete system reset.
             </p>
             <form method="POST" action="{{ url_for('main.delete_all_data') }}" onsubmit="return confirmDeleteAll()">
                 <div class="form-group">

@@ -99,12 +99,19 @@ entities:
         purpose: "Audit trail"
         personal_data: false
         notes: "System metadata"
+      is_private:
+        type: "boolean"
+        description: "Flag indicating if trip is private/personal"
+        purpose: "Privacy protection and data handling"
+        personal_data: false
+        notes: "When true, country stored as 'XX' and purpose as 'PRIVATE_REDACTED'"
     lawful_basis: "Legal Obligation (Schengen 90/180-day rule compliance)"
     retention: "36 months after exit_date (configurable via RETENTION_MONTHS)"
     access: "Admin only"
     data_subject_rights:
       - "Included in employee DSAR export"
       - "Deleted when employee is deleted"
+      - "Private trips protected from bulk deletion operations"
 
 special_categories:
   present: false

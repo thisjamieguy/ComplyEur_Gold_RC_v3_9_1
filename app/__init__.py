@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Application Version
-APP_VERSION = "1.5.0 - Render Ready"
+APP_VERSION = "1.5.1"
 
 def create_app():
     """Application factory pattern"""
@@ -246,6 +246,17 @@ def create_app():
         except Exception:
             return str(date_str)
 
+    @app.template_filter('format_ddmmyyyy')
+    def format_ddmmyyyy_filter(dt):
+        """Format datetime object to DD-MM-YYYY string"""
+        if not dt:
+            return ''
+        try:
+            from .services.date_utils import format_ddmmyyyy
+            return format_ddmmyyyy(dt)
+        except Exception:
+            return str(dt)
+
     # Close DB connection at app context teardown
     @app.teardown_appcontext
     def close_db(exception):
@@ -256,6 +267,14 @@ def create_app():
                 conn.close()
         except Exception:
             pass
+
+    # Expose helpers to Jinja
+    try:
+        from utils.images import country_image_path
+        app.jinja_env.globals["country_image_path"] = country_image_path
+    except Exception:
+        # If helper import fails, continue without it
+        pass
 
     # Register blueprints
     try:

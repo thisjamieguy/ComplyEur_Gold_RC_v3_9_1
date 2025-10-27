@@ -81,6 +81,13 @@ def init_db():
         # Column already exists, ignore error
         pass
     
+    # Add is_private column if it doesn't exist (for existing databases)
+    try:
+        c.execute('ALTER TABLE trips ADD COLUMN is_private BOOLEAN DEFAULT 0')
+    except sqlite3.OperationalError:
+        # Column already exists, ignore error
+        pass
+    
     # Create admin table
     c.execute('''
         CREATE TABLE IF NOT EXISTS admin (
@@ -171,7 +178,8 @@ class Employee:
 
 class Trip:
     def __init__(self, id: int, employee_id: int, country: str, entry_date: str, 
-                 exit_date: str, purpose: Optional[str] = None, created_at: Optional[str] = None):
+                 exit_date: str, purpose: Optional[str] = None, created_at: Optional[str] = None, 
+                 is_private: bool = False):
         self.id = id
         self.employee_id = employee_id
         self.country = country
@@ -179,6 +187,7 @@ class Trip:
         self.exit_date = exit_date
         self.purpose = purpose
         self.created_at = created_at
+        self.is_private = is_private
     
     @classmethod
     def get_by_employee(cls, employee_id: int) -> List['Trip']:
@@ -202,14 +211,14 @@ class Trip:
     
     @classmethod
     def create(cls, employee_id: int, country: str, entry_date: str, 
-               exit_date: str, purpose: Optional[str] = None) -> 'Trip':
+               exit_date: str, purpose: Optional[str] = None, is_private: bool = False) -> 'Trip':
         """Create new trip"""
         conn = get_db()
         c = conn.cursor()
         c.execute('''
-            INSERT INTO trips (employee_id, country, entry_date, exit_date, purpose)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (employee_id, country, entry_date, exit_date, purpose))
+            INSERT INTO trips (employee_id, country, entry_date, exit_date, purpose, is_private)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (employee_id, country, entry_date, exit_date, purpose, is_private))
         trip_id = c.lastrowid
         conn.commit()
         conn.close()

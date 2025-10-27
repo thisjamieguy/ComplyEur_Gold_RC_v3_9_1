@@ -107,6 +107,17 @@ load_dotenv()
 # Create blueprint
 main_bp = Blueprint('main', __name__)
 
+def redact_private_trip_data(trip):
+    """Redact private trip data for admin display"""
+    if trip.get('is_private', False):
+        return {
+            'entry_date': trip['entry_date'],
+            'exit_date': trip['exit_date'],
+            'country': 'Personal Trip',
+            'is_private': True
+        }
+    return trip
+
 # Rate limiting for login attempts
 LOGIN_ATTEMPTS = {}
 MAX_ATTEMPTS = 5
@@ -425,6 +436,14 @@ def logout():
     write_audit(CONFIG['AUDIT_LOG_PATH'], 'logout', 'admin', {})
     return redirect(url_for('main.login'))
 
+@main_bp.route('/profile')
+@login_required
+def profile():
+    """Lightweight admin profile placeholder page."""
+    admin_name = session.get('username', 'Admin')
+    last_login = session.get('last_activity')
+    return render_template('profile.html', admin_name=admin_name, last_login=last_login)
+
 @main_bp.route('/dashboard')
 @login_required
 def dashboard():
@@ -461,8 +480,8 @@ def dashboard():
 
     for emp in employees:
         # Get all trips for this employee
-        c.execute('SELECT entry_date, exit_date, country FROM trips WHERE employee_id = ?', (emp['id'],))
-        trips = [{'entry_date': t['entry_date'], 'exit_date': t['exit_date'], 'country': t['country']} for t in c.fetchall()]
+        c.execute('SELECT entry_date, exit_date, country, is_private FROM trips WHERE employee_id = ?', (emp['id'],))
+        trips = [{'entry_date': t['entry_date'], 'exit_date': t['exit_date'], 'country': t['country'], 'is_private': t['is_private']} for t in c.fetchall()]
         
         # Calculate presence days and usage using new rolling90 module
         presence = presence_days(trips)
@@ -484,13 +503,14 @@ def dashboard():
         trip_count = c.fetchone()[0]
 
         # Get next upcoming trip
-        c.execute('SELECT country, entry_date FROM trips WHERE employee_id = ? AND entry_date > ? ORDER BY entry_date ASC LIMIT 1',
+        c.execute('SELECT country, entry_date, is_private FROM trips WHERE employee_id = ? AND entry_date > ? ORDER BY entry_date ASC LIMIT 1',
                  (emp['id'], today.strftime('%Y-%m-%d')))
-        next_trip = c.fetchone()
+        next_trip_row = c.fetchone()
+        next_trip = redact_private_trip_data(dict(next_trip_row)) if next_trip_row else None
 
         # Get recent trips for the card view
-        c.execute('SELECT country, entry_date, exit_date FROM trips WHERE employee_id = ? ORDER BY exit_date DESC LIMIT 5', (emp['id'],))
-        recent_trips = c.fetchall()
+        c.execute('SELECT country, entry_date, exit_date, is_private FROM trips WHERE employee_id = ? ORDER BY exit_date DESC LIMIT 5', (emp['id'],))
+        recent_trips = [redact_private_trip_data(dict(trip)) for trip in c.fetchall()]
         
         # Calculate future job forecasts for this employee
         forecasts = get_all_future_jobs_for_employee(emp['id'], trips, warning_threshold)
@@ -593,8 +613,14 @@ def employee_detail(employee_id):
             'duration': duration,
             'status': status,
             'validation_note': None,
+            'is_private': (row['is_private'] if 'is_private' in row.keys() else False)
         }
-        trips_list.append(trip_dict)
+        
+        # Apply redaction for display
+        redacted_trip = redact_private_trip_data(trip_dict)
+        trips_list.append(redacted_trip)
+        
+        # For compliance calculations, use original data (not redacted)
         simple_trips.append({'entry_date': entry_str, 'exit_date': exit_str, 'country': row['country']})
 
     # Compute rolling 90/180 stats for this employee
@@ -606,6 +632,7 @@ def employee_detail(employee_id):
     risk_level = get_risk_level(days_remaining, risk_thresholds)
     safe_entry = earliest_safe_entry(presence, ref_date)
     days_until_safe = None
+    compliant_date = None
     if days_remaining < 0:
         days_until_safe, compliant_date = days_until_compliant(presence, ref_date)
     
@@ -662,10 +689,19 @@ def add_trip():
     CONFIG = current_app.config['CONFIG']
     
     employee_id = request.form.get('employee_id')
-    country = request.form.get('country', '').strip()
+    # Accept either 'country_code' (preferred) or fallback to 'country'
+    country = (request.form.get('country_code') or request.form.get('country') or '').strip()
     entry_date = request.form.get('entry_date')
     exit_date = request.form.get('exit_date')
     purpose = request.form.get('purpose', '').strip()
+    
+    # Check if this is a private trip
+    is_private = (country == 'PRIVATE')
+    
+    # For private trips, set special values
+    if is_private:
+        country = 'XX'  # Internal placeholder for private trips
+        purpose = 'PRIVATE_REDACTED'
     
     if not all([employee_id, country, entry_date, exit_date]):
         return jsonify({'success': False, 'error': 'All fields are required'})
@@ -684,18 +720,20 @@ def add_trip():
     
     try:
         c.execute('''
-            INSERT INTO trips (employee_id, country, entry_date, exit_date, purpose)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (employee_id, country, entry_date, exit_date, purpose))
+            INSERT INTO trips (employee_id, country, entry_date, exit_date, purpose, is_private)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (employee_id, country, entry_date, exit_date, purpose, is_private))
         trip_id = c.lastrowid
         conn.commit()
         
-        write_audit(CONFIG['AUDIT_LOG_PATH'], 'trip_added', 'admin', {
+        audit_action = 'private_trip_added' if is_private else 'trip_added'
+        write_audit(CONFIG['AUDIT_LOG_PATH'], audit_action, 'admin', {
             'trip_id': trip_id,
             'employee_id': employee_id,
             'country': country,
             'entry_date': entry_date,
-            'exit_date': exit_date
+            'exit_date': exit_date,
+            'is_private': is_private
         })
         
         return jsonify({'success': True, 'trip_id': trip_id})
@@ -704,6 +742,8 @@ def add_trip():
         return jsonify({'success': False, 'error': str(e)})
     finally:
         conn.close()
+
+# Removed per-employee Trip Planning forecast endpoint (use global planner API instead)
 
 @main_bp.route('/bulk_add_trip')
 @login_required
@@ -881,9 +921,9 @@ def import_excel():
                 file_path = os.path.join(upload_dir, filename)
                 file.save(file_path)
                 
-                # Import the importer module
+                # Import the importer module (located at project root)
                 import sys
-                sys.path.append(os.path.dirname(__file__))
+                sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
                 from importer import import_excel as process_excel
                 
                 # Process the Excel file with extended scanning enabled
@@ -897,7 +937,9 @@ def import_excel():
                     write_audit(CONFIG['AUDIT_LOG_PATH'], 'excel_import_success', 'admin', {
                         'filename': filename,
                         'trips_added': result['trips_added'],
-                        'employees_processed': result['employees_processed']
+                        'employees_processed': result['employees_processed'],
+                        'employees_created': result.get('employees_created', 0),
+                        'total_employee_names_found': result.get('total_employee_names_found', 0)
                     })
                     
                     # Clean up uploaded file
@@ -1400,14 +1442,26 @@ def delete_all_data():
             employees_before = c.fetchone()[0]
         except Exception:
             employees_before = 0
-
-        # Delete all trips and employees
         try:
-            c.execute('DELETE FROM trips')
+            c.execute('SELECT COUNT(*) FROM trips WHERE is_private = 1')
+            private_trips_before = c.fetchone()[0]
+        except Exception:
+            private_trips_before = 0
+
+        # Delete only business trips (exclude private trips)
+        try:
+            c.execute('DELETE FROM trips WHERE is_private = 0 OR is_private IS NULL')
         except Exception:
             pass
+        
+        # Delete employees who have no trips remaining (business or private)
         try:
-            c.execute('DELETE FROM employees')
+            c.execute('''
+                DELETE FROM employees 
+                WHERE id NOT IN (
+                    SELECT DISTINCT employee_id FROM trips
+                )
+            ''')
         except Exception:
             pass
         try:
@@ -1434,13 +1488,17 @@ def delete_all_data():
         try:
             write_audit(CONFIG['AUDIT_LOG_PATH'], 'delete_all_data', 'admin', {
                 'employees_deleted': employees_before,
-                'trips_deleted': trips_before,
+                'trips_deleted': trips_before - private_trips_before,
+                'private_trips_preserved': private_trips_before,
                 'export_files_deleted': export_files_deleted
             })
         except Exception:
             pass
 
-        flash('All data has been cleared successfully.')
+        if private_trips_before > 0:
+            flash(f'All business travel data cleared successfully. {private_trips_before} personal holiday trip(s) preserved.')
+        else:
+            flash('All data has been cleared successfully.')
         return redirect_back()
     except Exception as e:
         logger.error(f"Delete all data error: {e}")
@@ -1466,6 +1524,43 @@ def reset_admin_password():
             return render_template('reset_password.html', error='Password must be at least 6 characters')
     
     return render_template('reset_password.html')
+
+@main_bp.route('/dev/admin-bootstrap', methods=['GET', 'POST'])
+def dev_admin_bootstrap():
+    """
+    Development-only admin bootstrap route.
+    Only available when FLASK_ENV=development and LOCAL_ADMIN_SETUP_TOKEN is set.
+    """
+    from flask import current_app
+    
+    # Check if this is development environment
+    if current_app.config.get('ENV') != 'development' and os.getenv('FLASK_ENV') != 'development':
+        return "Not available in production", 403
+    
+    # Check for setup token
+    setup_token = os.getenv('LOCAL_ADMIN_SETUP_TOKEN')
+    if not setup_token:
+        return "Setup token not configured", 403
+    
+    if request.method == 'POST':
+        provided_token = request.form.get('token', '')
+        new_password = request.form.get('password', '')
+        
+        if provided_token != setup_token:
+            return render_template('setup.html', error='Invalid setup token')
+        
+        if not new_password or len(new_password) < 6:
+            return render_template('setup.html', error='Password must be at least 6 characters')
+        
+        # Create admin account
+        from .models import Admin
+        hasher = Hasher()
+        password_hash = hasher.hash(new_password)
+        Admin.set_password_hash(password_hash)
+        
+        return render_template('login.html', success='Admin account created successfully. Please log in.')
+    
+    return render_template('setup.html', dev_mode=True)
 
 # Error handlers
 @main_bp.errorhandler(404)
