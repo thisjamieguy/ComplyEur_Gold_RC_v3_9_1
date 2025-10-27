@@ -17,7 +17,7 @@
         <div class="success-message">{{ success }}</div>
         {% endif %}
         
-        <form method="POST" id="loginForm">
+        <form method="POST" id="loginForm" data-validate="true">
             <div class="form-group">
                 <label class="form-label required" for="password">Admin Password</label>
                 <input type="password" id="password" name="password" class="form-input" required autofocus minlength="6">
@@ -79,32 +79,30 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (password.length < 6) {
             e.preventDefault();
-            showNotification('Password must be at least 6 characters long', 'error');
+            showError('Password must be at least 6 characters long');
             passwordInput.focus();
             return false;
         }
         
         // Show loading state
-        setLoadingState(loginBtn, true, 'Logging in...');
+        UIUtils.setButtonLoading(loginBtn, true, 'Logging in...');
         
         // Re-enable after 3 seconds in case of network issues
         setTimeout(() => {
-            setLoadingState(loginBtn, false);
+            UIUtils.setButtonLoading(loginBtn, false);
         }, 3000);
     });
     
     // Real-time validation
     passwordInput.addEventListener('blur', function() {
         if (this.value.trim() && this.value.length < 6) {
-            showFieldError(this, 'Password must be at least 6 characters long');
+            UIUtils.showFieldError(this, 'Password must be at least 6 characters long');
         }
     });
     
     passwordInput.addEventListener('input', function() {
         if (this.classList.contains('error') && this.value.length >= 6) {
-            this.classList.remove('error');
-            const errorDiv = this.parentNode.querySelector('.form-error');
-            if (errorDiv) errorDiv.remove();
+            UIUtils.clearFieldError(this);
         }
     });
 });

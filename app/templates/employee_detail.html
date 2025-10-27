@@ -2,6 +2,15 @@
 
 {% block title %}{{ employee.name }} - EU Trip Tracker{% endblock %}
 
+{% block breadcrumb_items %}
+<li class="breadcrumb-item">
+    <a href="/dashboard" class="breadcrumb-link">Dashboard</a>
+</li>
+<li class="breadcrumb-item">
+    <span class="breadcrumb-link">{{ employee.name }}</span>
+</li>
+{% endblock %}
+
 {% block content %}
 <div class="content-header">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
@@ -149,7 +158,7 @@
         </div>
         {% endif %}
         
-        <form method="POST" action="{{ url_for('main.add_trip') }}" id="addTripForm">
+        <form method="POST" action="{{ url_for('main.add_trip') }}" id="addTripForm" data-trip-form="true">
             <input type="hidden" name="employee_id" value="{{ employee.id }}">
             
             <div class="form-inline">
@@ -209,9 +218,14 @@
                 </div>
                 
                 <div class="form-group">
-                    <button type="submit" class="btn btn-primary" style="margin-top: 24px;" id="addTripBtn">
-                        <span class="btn-text">Add Trip</span>
-                    </button>
+                    <div style="display: flex; gap: 12px; margin-top: 24px;">
+                        <button type="submit" class="btn btn-primary" id="addTripBtn">
+                            <span class="btn-text">Add Trip</span>
+                        </button>
+                        <button type="button" class="btn btn-outline" id="cancelTripBtn" onclick="clearTripForm()">
+                            Cancel
+                        </button>
+                    </div>
                 </div>
             </div>
         </form>
@@ -664,6 +678,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const addTripForm = document.getElementById('addTripForm');
     const addTripBtn = document.getElementById('addTripBtn');
     
+    // Set max date to today for date inputs
+    const entryDate = addTripForm.querySelector('input[name="entry_date"]');
+    const exitDate = addTripForm.querySelector('input[name="exit_date"]');
+    
+    if (entryDate) {
+        entryDate.max = DateUtils.today();
+    }
+    if (exitDate) {
+        exitDate.max = DateUtils.today();
+    }
+    
     if (addTripForm) {
         addTripForm.addEventListener('submit', function(e) {
             const validation = validateForm(addTripForm, {
@@ -678,38 +703,88 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (!validation.isValid) {
                 e.preventDefault();
-                showNotification(validation.errors.join(', '), 'error');
+                showError(validation.errors.join(', '));
                 return false;
             }
             
             // Show loading state
-            setLoadingState(addTripBtn, true, 'Adding trip...');
+            UIUtils.setButtonLoading(addTripBtn, true, 'Adding trip...');
         });
         
         // Real-time date validation
-        const entryDate = addTripForm.querySelector('input[name="entry_date"]');
-        const exitDate = addTripForm.querySelector('input[name="exit_date"]');
-        
         function validateDateRange() {
             if (entryDate.value && exitDate.value) {
                 const entry = new Date(entryDate.value);
                 const exit = new Date(exitDate.value);
                 
                 if (entry >= exit) {
-                    showFieldError(entryDate, 'Entry date must be before exit date');
-                    showFieldError(exitDate, 'Exit date must be after entry date');
+                    UIUtils.showFieldError(entryDate, 'Entry date must be before exit date');
+                    UIUtils.showFieldError(exitDate, 'Exit date must be after entry date');
                 } else {
                     // Clear errors if dates are valid
-                    entryDate.classList.remove('error');
-                    exitDate.classList.remove('error');
-                    const errors = addTripForm.querySelectorAll('.form-error');
-                    errors.forEach(error => error.remove());
+                    UIUtils.clearFieldError(entryDate);
+                    UIUtils.clearFieldError(exitDate);
                 }
             }
         }
         
         entryDate.addEventListener('change', validateDateRange);
         exitDate.addEventListener('change', validateDateRange);
+    }
+});
+
+// Clear trip form function
+function clearTripForm() {
+    const form = document.getElementById('addTripForm');
+    if (form) {
+        form.reset();
+        // Clear any validation errors
+        form.querySelectorAll('.form-group').forEach(group => {
+            group.classList.remove('error', 'success');
+            const errorDiv = group.querySelector('.form-error');
+            if (errorDiv) errorDiv.remove();
+        });
+        // Clear country selection
+        const countryInput = form.querySelector('input[name="country_display"]');
+        const countryCodeInput = form.querySelector('input[name="country_code"]');
+        if (countryInput) countryInput.value = '';
+        if (countryCodeInput) countryCodeInput.value = '';
+        // Hide dropdown
+        const dropdown = form.querySelector('.dropdown-menu');
+        if (dropdown) dropdown.style.display = 'none';
+        
+        showInfo('Form cleared');
+    }
+}
+
+// Add form change detection for unsaved changes warning
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('addTripForm');
+    if (form) {
+        let formChanged = false;
+        
+        // Track form changes
+        form.addEventListener('input', function() {
+            formChanged = true;
+        });
+        
+        form.addEventListener('change', function() {
+            formChanged = true;
+        });
+        
+        // Reset change flag on successful submit
+        form.addEventListener('submit', function() {
+            formChanged = false;
+        });
+        
+        // Warn before leaving if form has changes
+        window.addEventListener('beforeunload', function(e) {
+            if (formChanged) {
+                e.preventDefault();
+                e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+                return e.returnValue;
+            }
+        });
     }
 });
 </script>

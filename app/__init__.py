@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Application Version
-APP_VERSION = "1.5.6"
+APP_VERSION = "1.6.1"
 
 def create_app():
     """Application factory pattern"""

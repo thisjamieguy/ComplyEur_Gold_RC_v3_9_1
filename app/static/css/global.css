@@ -28,6 +28,28 @@
     --icon-color-warning: #f59e0b;
     --icon-color-danger: #dc2626;
     --icon-color-muted: #9ca3af;
+    
+    /* Status color system - standardized across all components */
+    --status-safe: #16a34a;
+    --status-safe-bg: #d1fae5;
+    --status-safe-text: #065f46;
+    
+    --status-warning: #f59e0b;
+    --status-warning-bg: #fef3c7;
+    --status-warning-text: #92400e;
+    
+    --status-danger: #dc2626;
+    --status-danger-bg: #fee2e2;
+    --status-danger-text: #991b1b;
+    
+    --status-info: #3b82f6;
+    --status-info-bg: #dbeafe;
+    --status-info-text: #1e40af;
+    
+    /* Risk level colors for compliance tracking */
+    --risk-green: #16a34a;
+    --risk-amber: #f59e0b;
+    --risk-red: #dc2626;
 }
 
 body {

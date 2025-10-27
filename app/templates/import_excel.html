@@ -2,6 +2,15 @@
 
 {% block title %}Import Excel - EU Trip Tracker{% endblock %}
 
+{% block breadcrumb_items %}
+<li class="breadcrumb-item">
+    <a href="/dashboard" class="breadcrumb-link">Dashboard</a>
+</li>
+<li class="breadcrumb-item">
+    <span class="breadcrumb-link">Import Data</span>
+</li>
+{% endblock %}
+
 {% block content %}
 <div class="content-header">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
@@ -46,7 +55,7 @@
                 {% endif %}
             {% endwith %}
             
-            <form method="POST" enctype="multipart/form-data" id="importForm" onsubmit="return startImport(this)">
+            <form method="POST" enctype="multipart/form-data" id="importForm" data-validate="true" onsubmit="return startImport(this)">
                 <div class="form-group">
                     <label class="form-label required">Excel File (.xlsx or .xls)</label>
                     <input type="file" name="excel_file" accept=".xlsx,.xls" class="form-input" required id="excelFile">
@@ -244,12 +253,12 @@ function startImport(form) {
         });
         
         if (!validation.isValid) {
-            showNotification(validation.errors.join(', '), 'error');
+            showError(validation.errors.join(', '));
             return false;
         }
         
         // Show loading state
-        setLoadingState(btn, true, 'Processing...');
+        UIUtils.setButtonLoading(btn, true, 'Processing...');
         
         // Show progress indicator
         if (progressContainer) {
@@ -330,7 +339,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (!validation.isValid) {
                 e.preventDefault();
-                showNotification(validation.errors.join(', '), 'error');
+                showError(validation.errors.join(', '));
                 return false;
             }
         });

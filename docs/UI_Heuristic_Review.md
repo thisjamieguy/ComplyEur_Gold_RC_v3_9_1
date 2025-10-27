@@ -7,250 +7,296 @@
 
 ## Executive Summary
 
-This heuristic evaluation analyzed the EU Trip Tracker application across 7 key pages using Nielsen's 10 usability heuristics. The application demonstrates strong functionality and comprehensive features but has several usability issues that impact user experience, particularly around error prevention, consistency, and help/documentation.
+This heuristic evaluation examines the EU Trip Tracker application across all key pages (Login, Dashboard, Employees, Trips, Import, Forecast, Admin) using Nielsen's 10 usability heuristics. The application demonstrates strong functionality but has several usability issues that impact user experience, particularly around error prevention, help documentation, and consistency.
 
-**Overall Assessment:** 3.2/5 (Moderate usability with room for improvement)
+**Overall Assessment:** 3.2/5 (Moderate compliance with room for improvement)
 
-## Heuristic Analysis by Page
+## Detailed Analysis
 
-### 1. Login Page
-**Overall Score: 4.0/5**
+### 1. Visibility of System Status
+**Definition:** The system should always keep users informed about what is going on through appropriate feedback within reasonable time.
 
-| Heuristic | Score | Issues | Recommendations |
-|-----------|-------|--------|-----------------|
-| **Visibility of System Status** | 4/5 | Good error/success messaging | Add loading state during login |
-| **Match Real World** | 5/5 | Clear, familiar login pattern | - |
-| **User Control** | 4/5 | Standard login controls | - |
-| **Consistency** | 4/5 | Follows standard patterns | - |
-| **Error Prevention** | 3/5 | No password strength indicator | Add real-time password validation |
-| **Recognition** | 4/5 | Clear form labels | - |
-| **Flexibility** | 3/5 | No "remember me" option | Add optional remember functionality |
-| **Aesthetic Design** | 4/5 | Clean, professional design | - |
-| **Error Recovery** | 4/5 | Clear error messages | - |
-| **Help/Documentation** | 3/5 | Basic setup instructions | Add more comprehensive help |
+#### Violations Found:
+- **Login page:** Password strength indicator appears only after typing, not immediately visible
+- **Import process:** No clear progress indication during file processing
+- **Form submissions:** Limited feedback on successful actions (e.g., trip added)
+- **Search functionality:** Loading states are minimal and not always visible
 
-### 2. Dashboard
-**Overall Score: 3.4/5**
+#### Recommendations:
+- Add immediate visual feedback for password strength on login
+- Implement progress bars for import operations
+- Add success notifications for completed actions
+- Enhance loading indicators throughout the application
 
-| Heuristic | Score | Issues | Recommendations |
-|-----------|-------|--------|-----------------|
-| **Visibility of System Status** | 4/5 | Good status indicators | Add more real-time updates |
-| **Match Real World** | 4/5 | Intuitive data presentation | - |
-| **User Control** | 3/5 | Limited filtering options | Add advanced filters and search |
-| **Consistency** | 3/5 | Mixed button styles | Standardize button designs |
-| **Error Prevention** | 2/5 | No validation for bulk actions | Add confirmation dialogs |
-| **Recognition** | 4/5 | Clear data visualization | - |
-| **Flexibility** | 3/5 | Fixed view options | Add more customization |
-| **Aesthetic Design** | 4/5 | Clean, modern interface | - |
-| **Error Recovery** | 3/5 | Basic error handling | Improve error messages |
-| **Help/Documentation** | 2/5 | Limited contextual help | Add tooltips and guidance |
+**Scores by Page:**
+- Login: 3/5
+- Dashboard: 4/5
+- Employee Detail: 3/5
+- Import: 2/5
+- Future Alerts: 4/5
+- Admin: 3/5
 
-### 3. Employee Detail Page
-**Overall Score: 3.6/5**
+### 2. Match Between System and Real World
+**Definition:** The system should speak the users' language, with words, phrases and concepts familiar to the user.
 
-| Heuristic | Score | Issues | Recommendations |
-|-----------|-------|--------|-----------------|
-| **Visibility of System Status** | 4/5 | Good compliance indicators | Add more status details |
-| **Match Real World** | 4/5 | Natural workflow | - |
-| **User Control** | 3/5 | Limited editing options | Add inline editing |
-| **Consistency** | 3/5 | Inconsistent form styles | Standardize form components |
-| **Error Prevention** | 2/5 | Date validation issues | Improve date picker validation |
-| **Recognition** | 4/5 | Clear trip information | - |
-| **Flexibility** | 3/5 | Fixed table layout | Add column customization |
-| **Aesthetic Design** | 4/5 | Professional appearance | - |
-| **Error Recovery** | 3/5 | Basic error handling | Add better error recovery |
-| **Help/Documentation** | 3/5 | Some tooltips present | Add more contextual help |
+#### Violations Found:
+- **Technical jargon:** "180-day rolling window" not clearly explained
+- **Compliance terminology:** "Schengen" vs "Non-Schengen" countries not well explained
+- **Status labels:** "Days remaining" could be clearer as "Days available"
+- **Country codes:** Mix of full names and codes (e.g., "France" vs "FR")
 
-### 4. Calendar View
-**Overall Score: 3.8/5**
+#### Recommendations:
+- Add tooltips explaining EU compliance rules
+- Use consistent country naming throughout
+- Replace technical terms with user-friendly language
+- Add glossary or help section for compliance terminology
 
-| Heuristic | Score | Issues | Recommendations |
-|-----------|-------|--------|-----------------|
-| **Visibility of System Status** | 5/5 | Excellent visual timeline | - |
-| **Match Real World** | 4/5 | Intuitive calendar metaphor | - |
-| **User Control** | 3/5 | Limited interaction | Add zoom/pan controls |
-| **Consistency** | 3/5 | Different from other views | Align with app design system |
-| **Error Prevention** | 4/5 | Good hover states | - |
-| **Recognition** | 5/5 | Excellent visual clarity | - |
-| **Flexibility** | 3/5 | Fixed timeline range | Add date range selection |
-| **Aesthetic Design** | 4/5 | Clean, professional | - |
-| **Error Recovery** | 3/5 | Basic error handling | - |
-| **Help/Documentation** | 2/5 | No legend explanation | Add interactive legend |
+**Scores by Page:**
+- Login: 4/5
+- Dashboard: 3/5
+- Employee Detail: 3/5
+- Import: 4/5
+- Future Alerts: 3/5
+- Admin: 4/5
 
-### 5. Bulk Add Trip
-**Overall Score: 3.2/5**
+### 3. User Control and Freedom
+**Definition:** Users often choose system functions by mistake and will need a clearly marked "emergency exit" to leave the unwanted state.
 
-| Heuristic | Score | Issues | Recommendations |
-|-----------|-------|--------|-----------------|
-| **Visibility of System Status** | 3/5 | Limited progress feedback | Add progress indicators |
-| **Match Real World** | 4/5 | Intuitive bulk operation | - |
-| **User Control** | 3/5 | Limited selection options | Add "select all" functionality |
-| **Consistency** | 3/5 | Different form styling | Align with other forms |
-| **Error Prevention** | 2/5 | No validation before submit | Add pre-submit validation |
-| **Recognition** | 4/5 | Clear form structure | - |
-| **Flexibility** | 3/5 | Fixed workflow | Add more customization |
-| **Aesthetic Design** | 3/5 | Functional but basic | Improve visual design |
-| **Error Recovery** | 2/5 | Poor error handling | Improve error messages |
-| **Help/Documentation** | 2/5 | Minimal guidance | Add step-by-step help |
+#### Violations Found:
+- **Form submissions:** No easy way to cancel mid-process
+- **Bulk operations:** Limited undo functionality for imported data
+- **Navigation:** Some pages lack clear "back" or "cancel" options
+- **Modal dialogs:** No escape key support for closing modals
 
-### 6. Import Excel
-**Overall Score: 3.0/5**
+#### Recommendations:
+- Add cancel buttons to all forms
+- Implement undo functionality for bulk operations
+- Ensure consistent navigation patterns
+- Add keyboard shortcuts for modal dismissal
 
-| Heuristic | Score | Issues | Recommendations |
-|-----------|-------|--------|-----------------|
-| **Visibility of System Status** | 2/5 | Poor upload feedback | Add progress bars and status |
-| **Match Real World** | 4/5 | Familiar file upload pattern | - |
-| **User Control** | 3/5 | Limited file validation | Add file preview |
-| **Consistency** | 3/5 | Different from other pages | Align with app design |
-| **Error Prevention** | 2/5 | No file format validation | Add client-side validation |
-| **Recognition** | 3/5 | Basic instructions | Improve visual guidance |
-| **Flexibility** | 2/5 | Fixed import process | Add more import options |
-| **Aesthetic Design** | 3/5 | Functional design | Improve visual appeal |
-| **Error Recovery** | 2/5 | Poor error handling | Add detailed error messages |
-| **Help/Documentation** | 4/5 | Good instructions | Add interactive examples |
+**Scores by Page:**
+- Login: 4/5
+- Dashboard: 4/5
+- Employee Detail: 3/5
+- Import: 2/5
+- Future Alerts: 4/5
+- Admin: 3/5
 
-### 7. Future Job Alerts
-**Overall Score: 3.6/5**
+### 4. Consistency and Standards
+**Definition:** Users should not have to wonder whether different words, situations, or actions mean the same thing.
 
-| Heuristic | Score | Issues | Recommendations |
-|-----------|-------|--------|-----------------|
-| **Visibility of System Status** | 4/5 | Good risk indicators | Add more status details |
-| **Match Real World** | 4/5 | Intuitive risk presentation | - |
-| **User Control** | 4/5 | Good filtering options | Add more filter types |
-| **Consistency** | 3/5 | Mixed table styles | Standardize table design |
-| **Error Prevention** | 3/5 | Basic validation | Add more validation |
-| **Recognition** | 4/5 | Clear risk levels | - |
-| **Flexibility** | 3/5 | Limited customization | Add more view options |
-| **Aesthetic Design** | 4/5 | Clean, professional | - |
-| **Error Recovery** | 3/5 | Basic error handling | - |
-| **Help/Documentation** | 3/5 | Some tooltips | Add more contextual help |
+#### Violations Found:
+- **Button styles:** Inconsistent button colors and sizes across pages
+- **Form layouts:** Different form structures on similar pages
+- **Date formats:** Mix of DD-MM-YYYY and other formats
+- **Status indicators:** Different color schemes for similar statuses
 
-### 8. Compliance Planner (What-If Scenario)
-**Overall Score: 3.8/5**
+#### Recommendations:
+- Standardize button component library
+- Create consistent form templates
+- Use single date format throughout
+- Establish color coding standards for statuses
 
-| Heuristic | Score | Issues | Recommendations |
-|-----------|-------|--------|-----------------|
-| **Visibility of System Status** | 4/5 | Good result visualization | Add more status details |
-| **Match Real World** | 4/5 | Intuitive planning tool | - |
-| **User Control** | 4/5 | Good form controls | Add more input options |
-| **Consistency** | 3/5 | Different styling | Align with app design |
-| **Error Prevention** | 3/5 | Basic validation | Add real-time validation |
-| **Recognition** | 4/5 | Clear form structure | - |
-| **Flexibility** | 3/5 | Fixed workflow | Add more customization |
-| **Aesthetic Design** | 4/5 | Clean, modern | - |
-| **Error Recovery** | 3/5 | Basic error handling | Improve error messages |
-| **Help/Documentation** | 4/5 | Good tips section | Add interactive help |
+**Scores by Page:**
+- Login: 4/5
+- Dashboard: 3/5
+- Employee Detail: 3/5
+- Import: 3/5
+- Future Alerts: 3/5
+- Admin: 4/5
 
-### 9. Admin Privacy Tools
-**Overall Score: 3.4/5**
+### 5. Error Prevention
+**Definition:** Even better than good error messages is a careful design which prevents a problem from occurring in the first place.
 
-| Heuristic | Score | Issues | Recommendations |
-|-----------|-------|--------|-----------------|
-| **Visibility of System Status** | 3/5 | Limited status feedback | Add more status indicators |
-| **Match Real World** | 4/5 | Intuitive admin functions | - |
-| **User Control** | 3/5 | Limited search options | Add advanced search |
-| **Consistency** | 3/5 | Different modal styles | Standardize modal design |
-| **Error Prevention** | 2/5 | No confirmation for critical actions | Add better confirmations |
-| **Recognition** | 4/5 | Clear admin functions | - |
-| **Flexibility** | 3/5 | Fixed workflow | Add more options |
-| **Aesthetic Design** | 3/5 | Functional design | Improve visual design |
-| **Error Recovery** | 2/5 | Poor error handling | Improve error messages |
-| **Help/Documentation** | 4/5 | Good explanations | Add more examples |
+#### Violations Found:
+- **Date validation:** No prevention of future dates in past trip entry
+- **Duplicate entries:** No prevention of duplicate trip entries
+- **Invalid data:** Limited validation on import data
+- **Navigation errors:** No prevention of invalid state transitions
 
-### 10. Help Page
-**Overall Score: 4.2/5**
+#### Recommendations:
+- Add real-time date validation
+- Implement duplicate detection
+- Enhance import validation
+- Add state management to prevent invalid flows
 
-| Heuristic | Score | Issues | Recommendations |
-|-----------|-------|--------|-----------------|
-| **Visibility of System Status** | 4/5 | Good section indicators | Add progress tracking |
-| **Match Real World** | 5/5 | Excellent FAQ structure | - |
-| **User Control** | 4/5 | Good navigation | Add search functionality |
-| **Consistency** | 4/5 | Consistent design | - |
-| **Error Prevention** | 4/5 | Good guidance | - |
-| **Recognition** | 5/5 | Excellent visual hierarchy | - |
-| **Flexibility** | 4/5 | Good customization | Add bookmarking |
-| **Aesthetic Design** | 4/5 | Clean, professional | - |
-| **Error Recovery** | 4/5 | Good error handling | - |
-| **Help/Documentation** | 5/5 | Comprehensive help | Add video tutorials |
+**Scores by Page:**
+- Login: 4/5
+- Dashboard: 3/5
+- Employee Detail: 2/5
+- Import: 2/5
+- Future Alerts: 4/5
+- Admin: 3/5
 
-## Critical Issues Summary
+### 6. Recognition Rather Than Recall
+**Definition:** Minimize the user's memory load by making objects, actions, and options visible.
 
-### High Priority (Fix Immediately)
-1. **Error Prevention**: Missing validation and confirmation dialogs for critical actions
-2. **Consistency**: Inconsistent button styles, form designs, and modal patterns
-3. **Error Recovery**: Poor error messages and limited recovery options
+#### Violations Found:
+- **Employee information:** Key details not always visible in lists
+- **Trip history:** Important trip details hidden in expandable sections
+- **Settings:** Configuration options not easily discoverable
+- **Help information:** Contextual help not readily available
 
-### Medium Priority (Fix Soon)
-1. **User Control**: Limited filtering, searching, and customization options
-2. **Help/Documentation**: Insufficient contextual help and guidance
-3. **Visibility of System Status**: Missing progress indicators and status updates
+#### Recommendations:
+- Show key employee stats in list views
+- Make important trip details always visible
+- Add settings shortcuts in main navigation
+- Implement contextual help tooltips
 
-### Low Priority (Fix When Possible)
-1. **Flexibility**: Limited customization and personalization options
-2. **Aesthetic Design**: Some pages need visual improvements
-3. **Recognition**: Minor improvements to form labels and instructions
+**Scores by Page:**
+- Login: 5/5
+- Dashboard: 4/5
+- Employee Detail: 3/5
+- Import: 3/5
+- Future Alerts: 4/5
+- Admin: 2/5
 
-## Detailed Recommendations
+### 7. Flexibility and Efficiency of Use
+**Definition:** Accelerators may speed up the interaction for the expert user such that the system can cater to both inexperienced and experienced users.
 
-### 1. Error Prevention & Recovery
-- Add confirmation dialogs for all destructive actions
-- Implement real-time form validation
-- Add progress indicators for long operations
-- Improve error messages with specific guidance
-- Add undo functionality where possible
+#### Violations Found:
+- **Keyboard shortcuts:** Limited keyboard navigation support
+- **Bulk operations:** No quick actions for common tasks
+- **Search functionality:** Basic search without advanced filters
+- **Data entry:** No templates or quick-entry options
 
-### 2. Consistency Improvements
-- Standardize button styles across all pages
-- Create consistent form component library
-- Align modal designs and interactions
-- Standardize table layouts and interactions
-- Create consistent color coding system
+#### Recommendations:
+- Add keyboard shortcuts for common actions
+- Implement bulk edit capabilities
+- Enhance search with filters and sorting
+- Create data entry templates
 
-### 3. User Control Enhancements
-- Add advanced filtering options to all list views
-- Implement global search functionality
-- Add column customization for tables
-- Add view preferences and settings
-- Add bulk operations where appropriate
+**Scores by Page:**
+- Login: 3/5
+- Dashboard: 4/5
+- Employee Detail: 3/5
+- Import: 4/5
+- Future Alerts: 4/5
+- Admin: 3/5
 
-### 4. Help & Documentation
-- Add contextual tooltips throughout the application
-- Create interactive tutorials for complex features
-- Add inline help for form fields
-- Create video tutorials for key workflows
-- Add searchable help documentation
+### 8. Aesthetic and Minimalist Design
+**Definition:** Dialogues should not contain information which is irrelevant or rarely needed.
 
-### 5. Visual Design Improvements
-- Enhance the visual hierarchy of complex pages
-- Improve the aesthetic design of functional pages
-- Add more visual feedback for user actions
-- Create consistent iconography
-- Improve the overall visual polish
+#### Violations Found:
+- **Information density:** Some pages are cluttered with too much information
+- **Visual hierarchy:** Important information not clearly prioritized
+- **Unnecessary elements:** Some UI elements don't serve clear purposes
+- **Color usage:** Overuse of colors for status indication
 
-## Implementation Priority
+#### Recommendations:
+- Implement progressive disclosure for complex information
+- Improve visual hierarchy with better typography
+- Remove unnecessary UI elements
+- Use color more sparingly and purposefully
 
-### Phase 1 (Immediate - 2 weeks)
-- Fix critical error prevention issues
-- Standardize button and form styles
-- Add confirmation dialogs for destructive actions
-- Improve error messages
+**Scores by Page:**
+- Login: 5/5
+- Dashboard: 3/5
+- Employee Detail: 3/5
+- Import: 4/5
+- Future Alerts: 3/5
+- Admin: 4/5
 
-### Phase 2 (Short-term - 1 month)
-- Add contextual help and tooltips
-- Implement advanced filtering and search
-- Standardize modal and table designs
-- Add progress indicators
+### 9. Help Users Recognize, Diagnose, and Recover from Errors
+**Definition:** Error messages should be expressed in plain language, precisely indicate the problem, and constructively suggest a solution.
 
-### Phase 3 (Medium-term - 2 months)
-- Create comprehensive help system
-- Add customization options
-- Enhance visual design
-- Add interactive tutorials
+#### Violations Found:
+- **Error messages:** Some errors are too technical or vague
+- **Recovery options:** Limited guidance on how to fix errors
+- **Error context:** Errors don't always provide enough context
+- **Validation feedback:** Inconsistent error message styling
+
+#### Recommendations:
+- Write user-friendly error messages
+- Provide specific recovery instructions
+- Add context to error messages
+- Standardize error message presentation
+
+**Scores by Page:**
+- Login: 4/5
+- Dashboard: 3/5
+- Employee Detail: 3/5
+- Import: 2/5
+- Future Alerts: 4/5
+- Admin: 3/5
+
+### 10. Help and Documentation
+**Definition:** Even though it is better if the system can be used without documentation, it may be necessary to provide help and documentation.
+
+#### Violations Found:
+- **Help system:** Limited help documentation available
+- **Contextual help:** No inline help for complex features
+- **User guidance:** No onboarding or tutorial system
+- **Documentation:** Help content is not easily discoverable
+
+#### Recommendations:
+- Implement comprehensive help system
+- Add contextual help tooltips
+- Create user onboarding flow
+- Make help easily accessible from all pages
+
+**Scores by Page:**
+- Login: 2/5
+- Dashboard: 3/5
+- Employee Detail: 2/5
+- Import: 2/5
+- Future Alerts: 3/5
+- Admin: 2/5
+
+## Summary Table
+
+| Page | Heuristic 1 | Heuristic 2 | Heuristic 3 | Heuristic 4 | Heuristic 5 | Heuristic 6 | Heuristic 7 | Heuristic 8 | Heuristic 9 | Heuristic 10 | Average |
+|------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|--------------|---------|
+| Login | 3 | 4 | 4 | 4 | 4 | 5 | 3 | 5 | 4 | 2 | 3.6 |
+| Dashboard | 4 | 3 | 4 | 3 | 3 | 4 | 4 | 3 | 3 | 3 | 3.4 |
+| Employee Detail | 3 | 3 | 3 | 3 | 2 | 3 | 3 | 3 | 3 | 2 | 2.8 |
+| Import | 2 | 4 | 2 | 3 | 2 | 3 | 4 | 4 | 2 | 2 | 2.8 |
+| Future Alerts | 4 | 3 | 4 | 3 | 4 | 4 | 4 | 3 | 4 | 3 | 3.6 |
+| Admin | 3 | 4 | 3 | 4 | 3 | 2 | 3 | 4 | 3 | 2 | 3.1 |
+
+## Priority Recommendations
+
+### High Priority (Immediate Action Required)
+1. **Error Prevention (Heuristic 5):** Implement comprehensive form validation and duplicate detection
+2. **Help System (Heuristic 10):** Add contextual help and user guidance throughout the application
+3. **Consistency (Heuristic 4):** Standardize UI components and interaction patterns
+
+### Medium Priority (Next Release)
+1. **System Status (Heuristic 1):** Enhance feedback and loading indicators
+2. **User Control (Heuristic 3):** Add cancel/undo functionality for critical operations
+3. **Error Recovery (Heuristic 9):** Improve error messages and recovery guidance
+
+### Low Priority (Future Enhancements)
+1. **Recognition vs Recall (Heuristic 6):** Improve information visibility and discoverability
+2. **Flexibility (Heuristic 7):** Add keyboard shortcuts and advanced features
+3. **Aesthetic Design (Heuristic 8):** Refine visual hierarchy and information density
+
+## Implementation Guidelines
+
+### Quick Wins (1-2 hours each)
+- Add loading spinners to form submissions
+- Implement consistent button styling
+- Add tooltips for technical terms
+- Create standardized error message components
+
+### Medium Effort (1-2 days each)
+- Build comprehensive help system
+- Implement form validation framework
+- Add keyboard navigation support
+- Create user onboarding flow
+
+### Major Improvements (1-2 weeks each)
+- Redesign information architecture
+- Implement advanced search and filtering
+- Add bulk operations with undo
+- Create responsive design improvements
 
 ## Conclusion
 
-The EU Trip Tracker application demonstrates strong functionality and comprehensive features for managing employee travel compliance. However, several usability issues impact the overall user experience, particularly around error prevention, consistency, and help/documentation. 
+The EU Trip Tracker application demonstrates solid functionality but requires significant usability improvements to meet professional standards. The most critical areas for improvement are error prevention, help documentation, and consistency. Implementing the recommended changes will significantly enhance user experience and reduce support burden.
 
-By addressing the critical issues identified in this review, the application can significantly improve its usability and user satisfaction. The recommended improvements are practical and can be implemented incrementally without disrupting the existing functionality.
-
-**Overall Recommendation:** Proceed with Phase 1 improvements immediately, as they address the most critical usability issues that could lead to user errors and frustration.
+**Next Steps:**
+1. Prioritize high-impact, low-effort improvements
+2. Implement user testing to validate design decisions
+3. Establish design system and component library
+4. Create ongoing usability testing process

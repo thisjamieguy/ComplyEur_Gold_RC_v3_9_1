@@ -201,6 +201,12 @@ class HelpSystem {
 
         // Add contextual help to common UI elements
         this.addContextualHelp();
+        
+        // Add form field help
+        this.addFormFieldHelp();
+        
+        // Add compliance terminology tooltips
+        this.addComplianceTooltips();
     }
 
     addContextualHelp() {
@@ -660,6 +666,98 @@ class HelpSystem {
 
         document.body.appendChild(backdrop);
         document.body.appendChild(menu);
+    }
+    
+    addFormFieldHelp() {
+        // Add help icons to complex form fields
+        const helpFields = [
+            {
+                selector: 'input[name="entry_date"]',
+                help: 'Enter the date when the employee entered the EU country. This must be in the past for completed trips.'
+            },
+            {
+                selector: 'input[name="exit_date"]',
+                help: 'Enter the date when the employee left the EU country. Must be after the entry date.'
+            },
+            {
+                selector: 'input[name="country_display"]',
+                help: 'Select the EU country visited. Ireland is marked as Non-Schengen and has different rules.'
+            },
+            {
+                selector: 'input[name="name"]',
+                help: 'Enter the full name of the employee. This will be used for all trip records.'
+            }
+        ];
+        
+        helpFields.forEach(field => {
+            const element = document.querySelector(field.selector);
+            if (element) {
+                this.addHelpIcon(element, field.help);
+            }
+        });
+    }
+    
+    addComplianceTooltips() {
+        // Add tooltips for compliance terminology
+        const complianceTerms = [
+            {
+                selector: '.compliance-window',
+                help: 'The 180-day rolling window: EU rules count days used in any 180-day period, not a calendar year.'
+            },
+            {
+                selector: '.days-remaining',
+                help: 'Days available in the current 180-day window. When this reaches 0, the employee must wait outside the EU.'
+            },
+            {
+                selector: '.risk-level',
+                help: 'Risk levels: Green (30+ days), Amber (10-29 days), Red (<10 days). Red requires immediate attention.'
+            },
+            {
+                selector: '.schengen-note',
+                help: 'Schengen countries share border controls. Ireland is Non-Schengen and has separate rules.'
+            }
+        ];
+        
+        complianceTerms.forEach(term => {
+            const elements = document.querySelectorAll(term.selector);
+            elements.forEach(element => {
+                this.addTooltip(element, {
+                    content: term.help,
+                    position: 'top'
+                });
+            });
+        });
+    }
+    
+    addHelpIcon(element, helpText) {
+        // Create help icon
+        const helpIcon = document.createElement('span');
+        helpIcon.className = 'help-icon';
+        helpIcon.innerHTML = '?';
+        helpIcon.style.cssText = `
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            background: var(--color-blue-primary);
+            color: white;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 16px;
+            margin-left: 8px;
+            cursor: help;
+            vertical-align: middle;
+        `;
+        
+        // Add tooltip to help icon
+        this.addTooltip(helpIcon, {
+            content: helpText,
+            position: 'top'
+        });
+        
+        // Insert help icon after the element
+        element.parentNode.insertBefore(helpIcon, element.nextSibling);
     }
 }
 
