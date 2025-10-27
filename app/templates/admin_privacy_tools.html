@@ -37,16 +37,16 @@
                         📥 Export Data (ZIP)
                     </button>
                     <button onclick="showRectifyModal()" class="btn btn-secondary">
-                        ✏️ Rectify Name
+                        Rectify Name
                     </button>
                     <button onclick="anonymizeEmployee()" class="btn btn-secondary">
-                        🔒 Anonymize
+                        Anonymize
                     </button>
                     <button onclick="showDeleteModal()" class="btn btn-danger">
-                        🗑️ Delete Employee
+                        Delete Employee
                     </button>
                     <button onclick="showProcessingInfo()" class="btn btn-secondary">
-                        ℹ️ Explain Processing
+                        Explain Processing
                     </button>
                 </div>
             </div>
@@ -70,10 +70,10 @@
             </p>
             
             <button onclick="showPurgeConfirm()" class="btn btn-warning">
-                🗑️ Run Retention Purge Now
+                Run Retention Purge Now
             </button>
             <a href="{{ url_for('main.admin_settings') }}" class="btn btn-secondary" style="margin-left: 12px;">
-                ⚙️ Update Retention Settings
+                Update Retention Settings
             </a>
         </div>
     </div>
@@ -113,7 +113,7 @@
 <!-- Delete Confirmation Modal -->
 <div id="deleteModal" class="modal" style="display: none;">
     <div class="modal-content">
-        <h3 style="color: #e53e3e;">⚠️ Delete Employee Data</h3>
+        <h3 style="color: #e53e3e;">Delete Employee Data</h3>
         <p style="margin: 16px 0;">
             This will <strong>permanently delete</strong> all data for 
             <strong id="deleteEmployeeName"></strong>, including all trip records.
@@ -129,7 +129,7 @@
 <!-- Purge Confirmation Modal -->
 <div id="purgeModal" class="modal" style="display: none;">
     <div class="modal-content">
-        <h3 style="color: #dd6b20;">⚠️ Run Retention Purge</h3>
+        <h3 style="color: #dd6b20;">Run Retention Purge</h3>
         <p style="margin: 16px 0;">
             This will delete all trips older than <strong>{{ retention_months }} months</strong> 
             from their exit date.

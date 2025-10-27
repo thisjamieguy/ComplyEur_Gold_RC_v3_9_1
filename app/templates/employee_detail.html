@@ -159,7 +159,7 @@
                         <input type="text" name="country_display" class="form-input dropdown-input" placeholder="Select country" required readonly onclick="toggleDropdown('countryDropdown')">
                         <div class="dropdown-arrow">▼</div>
                         <div id="countryDropdown" class="dropdown-list">
-                            <div class="dropdown-item" onclick="selectCountry('Personal Trip', 'PRIVATE', this)">🔒 Personal Trip (Dates Only)</div>
+                            <div class="dropdown-item" onclick="selectCountry('Personal Trip', 'PRIVATE', this)">Personal Trip (Dates Only)</div>
                             <div class="dropdown-item" onclick="selectCountry('Austria', 'AT', this)">🇦🇹 Austria (AT)</div>
                             <div class="dropdown-item" onclick="selectCountry('Belgium', 'BE', this)">🇧🇪 Belgium (BE)</div>
                             <div class="dropdown-item" onclick="selectCountry('Bulgaria', 'BG', this)">🇧🇬 Bulgaria (BG)</div>
@@ -248,7 +248,7 @@
                     <tr data-trip-id="{{ trip.id }}">
                         <td style="font-weight: 500;">
                             {% if trip.is_private %}
-                                <span style="color: #6b7280;">🔒 Personal Trip</span>
+                                <span style="color: #6b7280;">Personal Trip</span>
                                 <br><small style="color: #9ca3af; font-size: 11px;">(Details Hidden)</small>
                             {% else %}
                                 {{ trip.country }}
@@ -279,11 +279,11 @@
                                     <br>
                                     <span class="forecast-risk-badge" style="display: inline-block; margin-top: 6px; padding: 4px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; {% if trip.forecast.risk_level == 'red' %}background: #c53030; color: white;{% elif trip.forecast.risk_level == 'yellow' %}background: #ca8a04; color: white;{% else %}background: #16a34a; color: white;{% endif %}" title="Days at job start: {{ trip.forecast.days_after_job }} / 90">
                                         {% if trip.forecast.risk_level == 'red' %}
-                                            🔴 {{ trip.forecast.days_after_job }}/90
+                                            {{ trip.forecast.days_after_job }}/90
                                         {% elif trip.forecast.risk_level == 'yellow' %}
-                                            🟡 {{ trip.forecast.days_after_job }}/90
+                                            {{ trip.forecast.days_after_job }}/90
                                         {% else %}
-                                            🟢 {{ trip.forecast.days_after_job }}/90
+                                            {{ trip.forecast.days_after_job }}/90
                                         {% endif %}
                                     </span>
                                 {% endif %}
@@ -337,7 +337,7 @@
                     <tr class="forecast-details-row" data-parent-trip="{{ trip.id }}">
                         <td colspan="7" style="background: {% if trip.forecast.risk_level == 'red' %}#fee{% elif trip.forecast.risk_level == 'yellow' %}#fefce8{% else %}#f0fdf4{% endif %}; padding: 12px 16px; border-left: 4px solid {% if trip.forecast.risk_level == 'red' %}#c53030{% elif trip.forecast.risk_level == 'yellow' %}#ca8a04{% else %}#16a34a{% endif %};">
                             <div style="color: {% if trip.forecast.risk_level == 'red' %}#742a2a{% elif trip.forecast.risk_level == 'yellow' %}#713f12{% else %}#14532d{% endif %};">
-                                <strong>⚠️ Compliance Warning:</strong> This trip would result in {{ trip.forecast.days_after_job }} days used (limit: 90 days).
+                                <strong>Compliance Warning:</strong> This trip would result in {{ trip.forecast.days_after_job }} days used (limit: 90 days).
                                 {% if trip.forecast.compliant_from_date %}
                                 <br><strong>Employee will be compliant again from:</strong> {{ trip.forecast.compliant_from_date.strftime('%d-%m-%Y') }}
                                 {% endif %}

@@ -220,7 +220,7 @@
     <div class="test-summary">
         {% if total_employees > 0 %}
         <div class="summary-line">
-            ✅ Data loaded successfully — <strong>{{ total_employees }}</strong> employees, <strong>{{ total_trips }}</strong> trips total
+            Data loaded successfully — <strong>{{ total_employees }}</strong> employees, <strong>{{ total_trips }}</strong> trips total
             {% if last_import %}
                 (last import: <strong>{{ last_import.strftime('%d-%m-%Y %H:%M') }}</strong>)
             {% endif %}
@@ -232,7 +232,7 @@
         {% endif %}
         {% else %}
         <div class="summary-line" style="color: #dc2626;">
-            ⚠️ No data found — Excel file missing or no valid trips imported
+            No data found — Excel file missing or no valid trips imported
         </div>
         {% endif %}
         
@@ -321,7 +321,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    status.textContent = `✅ Success! Added ${data.trips_added} trips, skipped ${data.duplicates_skipped} duplicates`;
+                    status.textContent = `Success! Added ${data.trips_added} trips, skipped ${data.duplicates_skipped} duplicates`;
                     
                     // Reload page after 2 seconds
                     setTimeout(() => {

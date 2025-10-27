@@ -59,16 +59,16 @@ document.addEventListener('DOMContentLoaded', function() {
         passwordStrength.style.display = 'block';
         
         if (length < 6) {
-            passwordStrength.innerHTML = '❌ Too short (minimum 6 characters)';
+            passwordStrength.innerHTML = 'Too short (minimum 6 characters)';
             passwordStrength.style.color = '#ef4444';
         } else if (length < 8) {
-            passwordStrength.innerHTML = '⚠️ Weak password';
+            passwordStrength.innerHTML = 'Weak password';
             passwordStrength.style.color = '#f59e0b';
         } else if (length < 12) {
-            passwordStrength.innerHTML = '✅ Good password';
+            passwordStrength.innerHTML = 'Good password';
             passwordStrength.style.color = '#10b981';
         } else {
-            passwordStrength.innerHTML = '✅ Strong password';
+            passwordStrength.innerHTML = 'Strong password';
             passwordStrength.style.color = '#10b981';
         }
     });

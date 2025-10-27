@@ -280,9 +280,9 @@
 
     <div class="container">
         {% if days_used > 80 %}
-        <div class="alert alert-danger">⚠️ Alert: {{ days_used }}/90 days used in the last 180 days. Only {{ 90 - days_used }} remaining!</div>
+        <div class="alert alert-danger">Alert: {{ days_used }}/90 days used in the last 180 days. Only {{ 90 - days_used }} remaining!</div>
         {% elif days_used > 60 %}
-        <div class="alert alert-warning">⚠️ Warning: {{ days_used }}/90 days used in the last 180 days. {{ 90 - days_used }} remaining.</div>
+        <div class="alert alert-warning">Warning: {{ days_used }}/90 days used in the last 180 days. {{ 90 - days_used }} remaining.</div>
         {% endif %}
 
         <div class="summary-card">

@@ -125,7 +125,7 @@
     <!-- Trip Details -->
     <div class="card">
         <div class="card-header">
-            <h2 class="card-title">📋 Trip Details</h2>
+            <h2 class="card-title">Trip Details</h2>
         </div>
         
         {% if trips %}
@@ -171,7 +171,7 @@
         </div>
         {% else %}
         <div class="text-center" style="padding: 40px;">
-            <div style="font-size: 48px; margin-bottom: 16px;">✈️</div>
+            <div style="font-size: 48px; margin-bottom: 16px;"></div>
             <h3 style="color: #1f2937; font-weight: 600; margin-bottom: 8px;">No Trips Yet</h3>
             <p class="text-muted">This employee hasn't taken any EU trips</p>
         </div>
@@ -383,7 +383,7 @@ function renderTimeline() {
             tooltip.innerHTML = `
                 <div style="font-weight: 600; margin-bottom: 8px; color: ${color};">${trip.country}</div>
                 <div style="margin-bottom: 4px;">📅 <strong>${trip.entry_date}</strong> to <strong>${trip.exit_date}</strong></div>
-                <div style="margin-bottom: 4px;">⏱️ <strong>${trip.trip_duration}</strong> days duration</div>
+                <div style="margin-bottom: 4px;"><strong>${trip.trip_duration}</strong> days duration</div>
                 <div style="margin-bottom: 4px;">📊 <strong>${trip.days_in_window}</strong> days in 180-day window</div>
                 <div style="margin-bottom: 4px;">📈 <strong>${daysAfterTrip}</strong> total days after trip</div>
                 <div style="margin-bottom: 0; color: ${riskColor}; font-weight: 600;">🎯 <strong>${remainingDays}</strong> days remaining</div>

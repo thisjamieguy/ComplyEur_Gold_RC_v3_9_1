@@ -6,7 +6,7 @@
 <div class="content-header">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
         <div>
-            <h1 class="content-title">✈️ Bulk Add Trip</h1>
+            <h1 class="content-title">Bulk Add Trip</h1>
             <p class="content-subtitle">Add the same trip to multiple employees at once</p>
         </div>
         <div style="display: flex; gap: 12px;">
@@ -24,7 +24,7 @@
 <div class="content-body">
     <div class="card">
         <div class="card-header">
-            <h2 class="card-title">📝 Trip Details</h2>
+            <h2 class="card-title">Trip Details</h2>
         </div>
         
         {% if error %}
@@ -37,7 +37,7 @@
                     <label class="form-label required">Country</label>
                     <select name="country_code" class="form-select" required>
                         <option value="">Select country</option>
-                        <option value="PRIVATE">🔒 Personal Trip (Dates Only)</option>
+                        <option value="PRIVATE">Personal Trip (Dates Only)</option>
                         <option value="AT">🇦🇹 Austria (AT)</option>
                         <option value="BE">🇧🇪 Belgium (BE)</option>
                         <option value="BG">🇧🇬 Bulgaria (BG)</option>
@@ -134,7 +134,7 @@
                 </div>
                 {% else %}
                 <div class="text-center" style="padding: 40px; color: #6b7280;">
-                    <div style="font-size: 48px; margin-bottom: 16px;">👥</div>
+                    <div style="font-size: 48px; margin-bottom: 16px;"></div>
                     <h3 style="color: #1f2937; font-weight: 600; margin-bottom: 8px;">No Employees Found</h3>
                     <p>Add employees first before bulk adding trips</p>
                     <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary" style="margin-top: 16px;">Go to Dashboard</a>

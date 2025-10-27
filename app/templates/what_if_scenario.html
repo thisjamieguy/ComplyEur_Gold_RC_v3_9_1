@@ -90,7 +90,7 @@
                     </div>
 
                     <div id="compliantFromSection" style="display: none; margin-top: 20px; padding: 16px; background: #fee; border-left: 4px solid #c53030; border-radius: 4px;">
-                        <div style="font-weight: 600; color: #742a2a; margin-bottom: 4px;">⚠️ Non-Compliant</div>
+                        <div style="font-weight: 600; color: #742a2a; margin-bottom: 4px;">Non-Compliant</div>
                         <div style="color: #742a2a; font-size: 14px;">
                             Employee will be compliant again from: <strong id="compliantFromDate"></strong>
                         </div>
@@ -259,15 +259,15 @@ document.getElementById('scenarioForm').addEventListener('submit', async functio
         // Risk badge
         const riskBadge = document.getElementById('riskBadge');
         if (data.risk_level === 'red') {
-            riskBadge.textContent = '🔴 CRITICAL - Would Exceed Limit';
+            riskBadge.textContent = 'CRITICAL - Would Exceed Limit';
             riskBadge.style.background = '#c53030';
             riskBadge.style.color = 'white';
         } else if (data.risk_level === 'yellow') {
-            riskBadge.textContent = '🟡 WARNING - Approaching Limit';
+            riskBadge.textContent = 'WARNING - Approaching Limit';
             riskBadge.style.background = '#ca8a04';
             riskBadge.style.color = 'white';
         } else {
-            riskBadge.textContent = '🟢 SAFE - Compliant';
+            riskBadge.textContent = 'SAFE - Compliant';
             riskBadge.style.background = '#16a34a';
             riskBadge.style.color = 'white';
         }
@@ -294,7 +294,7 @@ document.getElementById('scenarioForm').addEventListener('submit', async functio
             adviceEl.style.background = '#fefce8';
             adviceEl.style.borderLeft = '4px solid #ca8a04';
             adviceEl.style.color = '#713f12';
-            adviceEl.innerHTML = '<strong>⚠️ Recommendation:</strong> Exercise caution. This trip is approaching the limit. Consider shorter duration or rescheduling if possible.';
+            adviceEl.innerHTML = '<strong>Recommendation:</strong> Exercise caution. This trip is approaching the limit. Consider shorter duration or rescheduling if possible.';
         } else {
             adviceEl.style.background = '#fee';
             adviceEl.style.borderLeft = '4px solid #c53030';

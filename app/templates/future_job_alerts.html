@@ -32,9 +32,9 @@
                 <label style="font-size: 13px; color: #666; display: block; margin-bottom: 4px;">Filter by Risk:</label>
                 <select id="riskFilter" onchange="filterAlerts()" style="padding: 8px 12px; border: 1px solid #cbd5e0; border-radius: 4px;">
                     <option value="all" {% if risk_filter == 'all' %}selected{% endif %}>All Levels</option>
-                    <option value="red" {% if risk_filter == 'red' %}selected{% endif %}>🔴 Critical Only</option>
-                    <option value="yellow" {% if risk_filter == 'yellow' %}selected{% endif %}>🟡 Warning Only</option>
-                    <option value="green" {% if risk_filter == 'green' %}selected{% endif %}>🟢 Safe Only</option>
+                    <option value="red" {% if risk_filter == 'red' %}selected{% endif %}>Critical Only</option>
+                    <option value="yellow" {% if risk_filter == 'yellow' %}selected{% endif %}>Warning Only</option>
+                    <option value="green" {% if risk_filter == 'green' %}selected{% endif %}>Safe Only</option>
                 </select>
             </div>
             <div>
@@ -80,7 +80,7 @@
                     <tr class="forecast-row" style="border-bottom: 1px solid #e2e8f0; {% if forecast.risk_level == 'red' %}background: #fee;{% elif forecast.risk_level == 'yellow' %}background: #fefce8;{% else %}background: #f0fdf4;{% endif %}">
                         <td style="padding: 12px;">
                             <div class="risk-badge risk-{{ forecast.risk_level }}" style="display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; {% if forecast.risk_level == 'red' %}background: #c53030; color: white;{% elif forecast.risk_level == 'yellow' %}background: #ca8a04; color: white;{% else %}background: #16a34a; color: white;{% endif %}">
-                                {% if forecast.risk_level == 'red' %}🔴 CRITICAL{% elif forecast.risk_level == 'yellow' %}🟡 WARNING{% else %}🟢 SAFE{% endif %}
+                                {% if forecast.risk_level == 'red' %}CRITICAL{% elif forecast.risk_level == 'yellow' %}WARNING{% else %}SAFE{% endif %}
                             </div>
                         </td>
                         <td style="padding: 12px;">
