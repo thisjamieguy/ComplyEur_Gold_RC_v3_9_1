@@ -15,6 +15,19 @@
 
     /* Back-compat mapping for existing theme tokens */
     --color-blue: var(--color-blue-primary);
+    
+    /* Icon system variables */
+    --icon-size-sm: 16px;
+    --icon-size-md: 20px;
+    --icon-size-lg: 24px;
+    --icon-size-xl: 32px;
+    
+    --icon-color-primary: #4C739F;
+    --icon-color-secondary: #6b7280;
+    --icon-color-success: #16a34a;
+    --icon-color-warning: #f59e0b;
+    --icon-color-danger: #dc2626;
+    --icon-color-muted: #9ca3af;
 }
 
 body {

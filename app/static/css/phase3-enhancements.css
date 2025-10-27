@@ -7,24 +7,12 @@
    ICON SYSTEM
    ========================================================================== */
 
-.icon-system {
-    --icon-size-sm: 16px;
-    --icon-size-md: 20px;
-    --icon-size-lg: 24px;
-    --icon-size-xl: 32px;
-    
-    --icon-color-primary: #4C739F;
-    --icon-color-secondary: #6b7280;
-    --icon-color-success: #16a34a;
-    --icon-color-warning: #f59e0b;
-    --icon-color-danger: #dc2626;
-    --icon-color-muted: #9ca3af;
-}
+/* Icon system variables moved to :root for global access */
 
 .icon {
     display: inline-block;
-    width: var(--icon-size-md);
-    height: var(--icon-size-md);
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
     stroke: currentColor;
     fill: none;
     stroke-width: 2;
