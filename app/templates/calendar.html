@@ -248,6 +248,66 @@
 {% endblock %}
 
 {% block extra_js %}
+    <script>
+    (function(){
+      try{
+        if(localStorage.getItem('calendarSplashDismissed')==='true') return;
+      }catch(e){}
+
+      const overlay=document.createElement('div');
+      overlay.className='modal-overlay active';
+      overlay.innerHTML = `
+        <div class="modal-container" style="max-width:560px">
+          <div class="modal-header">
+            <h3 class="modal-title">Welcome</h3>
+          </div>
+          <div class="modal-body">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:16px">
+              <img src="/static/images/me_construction.png" alt="Walshy in a hard hat" style="width:120px;height:120px;object-fit:cover;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,0.15);background:#fff"/>
+              <div style="width:100%;white-space:pre-wrap;line-height:1.5">
+Hello Friend,
+
+Thank you for choosing my app as a possible solution to your EES headache,
+
+I hope you enjoy the app and feel free to look arounf around and let me know if you find anything that looks wierd or buggy.
+
+This calander wil be a masterpice IMO when finished, however, right now tho its not finished. but it will be soon. 
+
+Your friend 
+
+
+
+Walshy
+              </div>
+              <label style="display:flex;align-items:center;gap:8px;margin-top:8px">
+                <input id="dontShowSplash" type="checkbox"/>
+                <span>Do not show again</span>
+              </label>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button id="closeSplashBtn" type="button" class="btn btn-primary">Close</button>
+          </div>
+        </div>`;
+
+      const close = ()=>{
+        try{
+          const dontShow = (document.getElementById('dontShowSplash') as HTMLInputElement)?.checked;
+          if(dontShow){ localStorage.setItem('calendarSplashDismissed','true'); }
+        }catch(e){}
+        document.body.style.overflow='';
+        overlay.remove();
+        window.removeEventListener('keydown', onKey);
+      };
+      const onKey=(e)=>{ if(e.key==='Escape') close(); };
+
+      overlay.querySelector('#closeSplashBtn')?.addEventListener('click', close);
+      window.addEventListener('keydown', onKey);
+      document.body.appendChild(overlay);
+      document.body.style.overflow='hidden';
+      setTimeout(()=>overlay.querySelector('#closeSplashBtn')?.focus(),0);
+    })();
+    </script>
     <script src="{{ url_for('static', filename='js/dragManager.js') }}?v=1.7.8"></script>
     <script src="{{ url_for('static', filename='js/calendar.js') }}?v=1.7.8"></script>
 {% endblock %}
