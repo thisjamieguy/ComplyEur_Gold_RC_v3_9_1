@@ -301,7 +301,8 @@ Walshy
 
       const close = ()=>{
         try{
-          const dontShow = (document.getElementById('dontShowSplash') as HTMLInputElement)?.checked;
+          const checkbox = document.getElementById('dontShowSplash');
+          const dontShow = checkbox instanceof HTMLInputElement && checkbox.checked;
           if(dontShow){ localStorage.setItem('calendarSplashDismissed_v177','true'); }
         }catch(e){}
         document.body.style.overflow='';
