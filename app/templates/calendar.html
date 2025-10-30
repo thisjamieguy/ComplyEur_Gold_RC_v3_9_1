@@ -255,13 +255,22 @@
       }catch(e){}
 
       const overlay=document.createElement('div');
-      overlay.className='modal-overlay active';
+      overlay.setAttribute('role','dialog');
+      overlay.setAttribute('aria-modal','true');
+      overlay.style.position='fixed';
+      overlay.style.inset='0';
+      overlay.style.background='rgba(0,0,0,0.5)';
+      overlay.style.display='flex';
+      overlay.style.alignItems='center';
+      overlay.style.justifyContent='center';
+      overlay.style.zIndex='3000';
+
       overlay.innerHTML = `
-        <div class="modal-container" style="max-width:560px">
-          <div class="modal-header">
-            <h3 class="modal-title">Welcome</h3>
+        <div role="document" aria-labelledby="welcome-title" style="background:#fff;border-radius:12px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1),0 10px 10px -5px rgba(0,0,0,0.04);max-width:560px;width:90%;max-height:90vh;overflow:auto">
+          <div style="padding:24px 24px 0 24px;border-bottom:1px solid #e5e7eb;margin-bottom:16px">
+            <h3 id="welcome-title" style="margin:0;font-size:20px;font-weight:600;color:#1f2937">Welcome</h3>
           </div>
-          <div class="modal-body">
+          <div style="padding:0 24px 24px 24px">
             <div style="display:flex;flex-direction:column;align-items:center;gap:16px">
               <img src="/static/images/me_construction.png" alt="Walshy in a hard hat" style="width:120px;height:120px;object-fit:cover;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,0.15);background:#fff"/>
               <div style="width:100%;white-space:pre-wrap;line-height:1.5">
@@ -285,8 +294,8 @@ Walshy
               </label>
             </div>
           </div>
-          <div class="modal-footer">
-            <button id="closeSplashBtn" type="button" class="btn btn-primary">Close</button>
+          <div style="padding:16px 24px 24px 24px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:12px">
+            <button id="closeSplashBtn" type="button" style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:10px 16px;font-weight:600;cursor:pointer">Close</button>
           </div>
         </div>`;
 
