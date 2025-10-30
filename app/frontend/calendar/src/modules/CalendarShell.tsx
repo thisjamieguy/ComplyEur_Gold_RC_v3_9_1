@@ -72,7 +72,7 @@ export const CalendarShell: React.FC = () => {
   const [exportOpen, setExportOpen] = useState(false);
   const [showWelcome, setShowWelcome] = useState<boolean>(() => {
     try {
-      return localStorage.getItem("calendarSplashDismissed") !== "true";
+      return localStorage.getItem("calendarSplashDismissed_v177") !== "true";
     } catch {
       return true;
     }
@@ -381,7 +381,7 @@ export const CalendarShell: React.FC = () => {
           open={showWelcome}
           onClose={(doNotShow) => {
             if (doNotShow) {
-              try { localStorage.setItem("calendarSplashDismissed", "true"); } catch {}
+              try { localStorage.setItem("calendarSplashDismissed_v177", "true"); } catch {}
             }
             setShowWelcome(false);
           }}

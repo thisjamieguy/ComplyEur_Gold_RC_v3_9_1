@@ -251,7 +251,7 @@
     <script>
     (function(){
       try{
-        if(localStorage.getItem('calendarSplashDismissed')==='true') return;
+        if(localStorage.getItem('calendarSplashDismissed_v177')==='true') return;
       }catch(e){}
 
       const overlay=document.createElement('div');
@@ -293,7 +293,7 @@ Walshy
       const close = ()=>{
         try{
           const dontShow = (document.getElementById('dontShowSplash') as HTMLInputElement)?.checked;
-          if(dontShow){ localStorage.setItem('calendarSplashDismissed','true'); }
+          if(dontShow){ localStorage.setItem('calendarSplashDismissed_v177','true'); }
         }catch(e){}
         document.body.style.overflow='';
         overlay.remove();
