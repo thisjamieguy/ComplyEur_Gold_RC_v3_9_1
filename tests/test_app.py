@@ -80,6 +80,41 @@ def test_dashboard_loads_when_logged_in(logged_in_client):
     assert response.status_code == 200
 
 
+def test_calendar_page_renders_native_calendar(logged_in_client):
+    """Calendar page should render the native calendar shell with modal hooks"""
+    logged_in_client.post('/add_employee', data={'name': 'Calendar QA'})
+    logged_in_client.post('/add_trip', data={
+        'employee_id': '1',
+        'country_code': 'ES',
+        'entry_date': '2024-04-01',
+        'exit_date': '2024-04-12'
+    })
+    response = logged_in_client.get('/calendar')
+    assert response.status_code == 200
+    body = response.data
+    assert b'id="calendar"' in body
+    assert b'calendar-detail-overlay' in body
+    assert b'static/js/calendar.js' in body
+
+
+def test_calendar_api_returns_trip_payload(logged_in_client):
+    """API should return trips and employees for the calendar once per session"""
+    logged_in_client.post('/add_employee', data={'name': 'API QA'})
+    logged_in_client.post('/add_trip', data={
+        'employee_id': '1',
+        'country_code': 'FR',
+        'entry_date': '2024-05-01',
+        'exit_date': '2024-05-20'
+    })
+    response = logged_in_client.get('/api/trips')
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert 'trips' in payload
+    assert 'employees' in payload
+    assert len(payload['trips']) >= 1
+    assert len(payload['employees']) >= 1
+    assert payload['trips'][0]['employee_id'] == 1
+
 def test_add_employee(logged_in_client):
     """Test adding a new employee"""
     response = logged_in_client.post('/add_employee', data={
@@ -288,4 +323,3 @@ def test_session_security(client):
 
 if __name__ == '__main__':
     pytest.main([__file__, '-v', '--tb=short'])
-

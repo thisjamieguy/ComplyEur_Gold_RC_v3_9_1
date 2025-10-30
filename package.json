@@ -8,7 +8,8 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node tests/js/calendar.test.js",
+    "test:qa": "npx playwright test"
   },
   "repository": {
     "type": "git",
@@ -24,6 +25,7 @@
   "homepage": "https://github.com/thisjamieguy/eu-trip-tracker#readme",
   "devDependencies": {
     "@playwright/test": "^1.56.1",
+    "axe-playwright": "^2.2.2",
     "playwright": "^1.56.1"
   }
 }

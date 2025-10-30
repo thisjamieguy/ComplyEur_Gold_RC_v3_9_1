@@ -5,15 +5,25 @@ test('Add Trip: country dropdown opens, selects country, and shows border', asyn
   await page.goto('/login');
   await page.getByLabel(/Admin Password/i).fill('admin123');
   await page.getByRole('button', { name: /login/i }).click();
-  await page.waitForURL('**/dashboard');
+  await page.waitForURL(/.*\/(home|dashboard)(?:\/)?$/);
 
-  // Create a temp employee via UI-less API sequence if needed
-  const empResp = await page.request.post('/add_employee', { form: { name: 'E2E Temp' } });
-  const emp = await empResp.json();
-  expect(emp.success).toBeTruthy();
+  const employeeName = `E2E Temp ${Date.now()}`;
+  const employee = await page.evaluate(async (name) => {
+    const params = new URLSearchParams();
+    params.set('name', name);
+    const response = await fetch('/add_employee', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString(),
+    });
+    return response.json();
+  }, employeeName);
+
+  expect(employee?.success).toBeTruthy();
+  const employeeId = employee.employee_id ?? employee.id;
 
   // Go to employee detail
-  await page.goto(`/employee/${emp.employee_id}`);
+  await page.goto(`/employee/${employeeId}`);
 
   const countryInput = page.locator('input[name="country_display"]');
   await expect(countryInput).toBeVisible();

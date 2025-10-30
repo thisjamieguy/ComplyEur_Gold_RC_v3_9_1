@@ -4,7 +4,7 @@ test('Login and verify sidebar scroll is independent', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel(/Admin Password/i).fill('admin123');
   await page.getByRole('button', { name: /login/i }).click();
-  await page.waitForURL('**/dashboard');
+  await page.waitForURL(/.*\/(home|dashboard)(?:\/)?$/);
 
   const sidebarNav = page.locator('.sidebar-nav');
   await expect(sidebarNav).toBeVisible();

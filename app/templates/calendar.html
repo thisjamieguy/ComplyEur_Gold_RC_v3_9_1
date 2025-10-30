@@ -1,479 +1,253 @@
+<!-- DayPilot references fully removed – system prepared for native calendar rebuild (Phase 3.5). -->
 {% extends "base.html" %}
+{% block title %}Calendar - EU Trip Tracker{% endblock %}
 
-{% block title %}Calendar View - {{ employee.name }} - EU Trip Tracker{% endblock %}
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.home') }}">Home</a></li>
+<li class="breadcrumb-item active" aria-current="page">Calendar</li>
+{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar.css') }}?v=1.7.7">
+{% endblock %}
 
 {% block content %}
-<div class="content-header">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-        <div>
-            <h1 class="content-title">📅 {{ employee.name }} - Calendar View</h1>
-            <p class="content-subtitle">Visual timeline of EU trips and 180-day compliance window</p>
-        </div>
-        <div style="display: flex; gap: 12px;">
-            <a href="{{ url_for('main.employee_detail', employee_id=employee.id) }}" class="btn btn-secondary">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-                Employee Details
-            </a>
-            <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    <polyline points="9,22 9,12 15,12 15,22"></polyline>
-                </svg>
-                Dashboard
-            </a>
-        </div>
+<div class="calendar-page">
+    <div class="calendar-banner" role="status" aria-live="polite">
+        <strong>Heads up:</strong> Native calendar rebuild rolling out in Phase 3.5. All trip data and endpoints remain fully operational.
     </div>
-</div>
+    <div id="calendar"
+         class="calendar-shell"
+         data-warning-threshold="{{ config['CONFIG'].get('FUTURE_JOB_WARNING_THRESHOLD', 80) }}"
+         data-focus-employee="{{ employee_id if employee_id is defined else '' }}"
+         data-focus-employee-name="{{ employee_name if employee_name is defined else '' }}">
+        <header class="calendar-toolbar">
+            <div class="calendar-toolbar-left">
+                <button type="button" class="calendar-btn" data-action="prev" aria-label="Show previous month range">
+                    <span aria-hidden="true">←</span>
+                </button>
+                <button type="button" class="calendar-btn calendar-btn--primary" data-action="today">
+                    Today
+                </button>
+                <button type="button" class="calendar-btn" data-action="next" aria-label="Show next month range">
+                    <span aria-hidden="true">→</span>
+                </button>
+                <h1 class="calendar-title">
+                    <span id="calendar-range-label">Loading range…</span>
+                    {% if employee_name is defined %}
+                    <small class="calendar-focus-label">Focused on {{ employee_name }}</small>
+                    {% endif %}
+                </h1>
+            </div>
+            <div class="calendar-toolbar-right">
+                <div class="calendar-toolbar-actions">
+                    <label for="calendar-future-weeks" class="calendar-toolbar-label">Future view:</label>
+                    <select id="calendar-future-weeks" class="calendar-select">
+                        <option value="4">4 weeks</option>
+                        <option value="5">5 weeks</option>
+                        <option value="6" selected>6 weeks</option>
+                        <option value="7">7 weeks</option>
+                        <option value="8">8 weeks</option>
+                        <option value="9">9 weeks</option>
+                        <option value="10">10 weeks</option>
+                    </select>
+                    <div class="calendar-toolbar-buttons" role="group" aria-label="Trip actions">
+                        <button type="button" class="calendar-btn calendar-btn--accent" data-action="add-trip">
+                            Add Trip
+                        </button>
+                        <button type="button" class="calendar-btn calendar-btn--secondary" data-action="edit-trip-global" disabled aria-disabled="true">
+                            Edit Trip
+                        </button>
+                    </div>
+                </div>
+                <div class="calendar-search">
+                    <label for="calendar-search-input" class="visually-hidden">Filter employees</label>
+                    <input id="calendar-search-input" type="search" placeholder="Filter employees…" autocomplete="off">
+                    <button type="button" class="calendar-search-clear" aria-label="Clear search">×</button>
+                </div>
+            </div>
+        </header>
 
-<div class="content-body">
-    <!-- Summary Stats -->
-    <div class="grid grid-3">
-        <div class="card text-center">
-            <div style="font-size: 36px; font-weight: 700; color: {% if days_used > 80 %}#ef4444{% elif days_used > 60 %}#f59e0b{% else %}#10b981{% endif %}; margin-bottom: 8px;">
-                {{ days_used }}
+        <section class="calendar-legend" aria-label="Calendar legend">
+            <div class="calendar-legend-item">
+                <span class="calendar-legend-swatch calendar-legend-swatch--safe"></span>
+                <span>Compliant &lt; 60 days</span>
             </div>
-            <div class="text-muted" style="font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
-                Days Used (180d)
+            <div class="calendar-legend-item">
+                <span class="calendar-legend-swatch calendar-legend-swatch--warning"></span>
+                <span>Approaching limit 60–89 days</span>
             </div>
-            <div class="progress-bar" style="margin-top: 12px;">
-                <div class="progress-fill" style="width: {{ (days_used / 90 * 100)|round }}%; background: {% if days_used > 80 %}#ef4444{% elif days_used > 60 %}#f59e0b{% else %}#10b981{% endif %}"></div>
+            <div class="calendar-legend-item">
+                <span class="calendar-legend-swatch calendar-legend-swatch--critical"></span>
+                <span>Exceeded ≥ 90 days</span>
             </div>
-        </div>
-        
-        <div class="card text-center">
-            <div style="font-size: 36px; font-weight: 700; color: #6b7280; margin-bottom: 8px;">
-                {{ 90 - days_used }}
-            </div>
-            <div class="text-muted" style="font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
-                Days Remaining
-            </div>
-            <div style="margin-top: 12px; font-size: 14px; color: #6b7280;">
-                {% if days_used >= 90 %}
-                    <span style="color: #ef4444;">Over limit</span>
-                {% elif days_used > 80 %}
-                    <span style="color: #f59e0b;">Low</span>
-                {% else %}
-                    <span style="color: #10b981;">Good</span>
-                {% endif %}
-            </div>
-        </div>
-        
-        <div class="card text-center">
-            <div style="font-size: 36px; font-weight: 700; color: #6b7280; margin-bottom: 8px;">
-                {{ trips|length }}
-            </div>
-            <div class="text-muted" style="font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
-                Total Trips
-            </div>
-            <div style="margin-top: 12px; font-size: 14px; color: #6b7280;">
-                All time
-            </div>
-        </div>
-    </div>
+        </section>
 
-    <!-- Timeline Calendar -->
-    <div class="card">
-        <div class="card-header">
-            <h2 class="card-title">📊 Trip Timeline</h2>
-            <div style="display: flex; gap: 12px; align-items: center;">
-                <div style="display: flex; gap: 16px; font-size: 12px;">
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <div style="width: 12px; height: 12px; background: #3b82f6; border-radius: 2px;"></div>
-                        <span>180-day window</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <div style="width: 12px; height: 12px; background: #10b981; border-radius: 2px;"></div>
-                        <span>Past trips</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <div style="width: 12px; height: 12px; background: #f59e0b; border-radius: 2px;"></div>
-                        <span>Current trip</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <div style="width: 12px; height: 12px; background: #6366f1; border-radius: 2px;"></div>
-                        <span>Future trips</span>
+        <section class="calendar-main" aria-live="polite">
+            <div class="calendar-header-row">
+                <div class="calendar-employee-header">
+                    <span>Employees</span>
+                </div>
+                <div class="calendar-timeline-header">
+                    <div class="calendar-month-row" id="calendar-month-row"></div>
+                    <div class="calendar-day-row" id="calendar-day-row"></div>
+                    <div class="calendar-today-marker" id="calendar-today-marker" aria-hidden="true"></div>
+                </div>
+            </div>
+            <div class="calendar-body">
+                <div class="calendar-employee-list" id="calendar-employee-list" role="listbox" aria-label="Employees"></div>
+                <div class="calendar-timeline">
+                    <div class="calendar-timeline-inner" id="calendar-timeline">
+                        <!-- Phase 3.6.1: Drag-and-drop handles mount inside the grid rows here. -->
+                        <div class="calendar-grid" id="calendar-grid"></div>
+                        <div class="calendar-today-marker calendar-today-marker--body" id="calendar-today-marker-body" aria-hidden="true"></div>
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <div style="position: relative; height: 400px; overflow-x: auto; overflow-y: hidden; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;">
-            <div id="timeline" style="position: relative; height: 100%; min-width: 1200px;">
-                <!-- Timeline will be rendered here -->
-            </div>
-        </div>
-        
-        <div style="margin-top: 16px; padding: 16px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #3b82f6;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <div style="font-weight: 600; color: #1e40af; margin-bottom: 4px;">Current 180-Day Window</div>
-                    <div style="font-size: 14px; color: #1e40af;">
-                        From {{ window_start.strftime('%d-%m-%Y') }} to {{ window_end.strftime('%d-%m-%Y') }}
-                    </div>
-                </div>
-                <div style="text-align: right;">
-                    <div style="font-size: 24px; font-weight: 700; color: #1e40af;">{{ days_used }}/90</div>
-                    <div style="font-size: 12px; color: #1e40af;">days used</div>
-                </div>
-            </div>
-        </div>
-    </div>
+        </section>
 
-    <!-- Trip Details -->
-    <div class="card">
-        <div class="card-header">
-            <h2 class="card-title">Trip Details</h2>
+        <div class="calendar-detail-overlay" id="calendar-detail-overlay" role="dialog" aria-modal="true" hidden>
+            <div class="calendar-detail" role="document" aria-labelledby="calendar-detail-title" tabindex="-1">
+                <header class="calendar-detail-header">
+                    <div class="calendar-detail-heading">
+                        <div class="calendar-detail-status-row">
+                            <span class="trip-color-badge trip-color" id="calendar-detail-status-dot" aria-hidden="true"></span>
+                            <p class="calendar-detail-label" id="calendar-detail-status">Compliant trip</p>
+                        </div>
+                        <h2 class="calendar-detail-title" id="calendar-detail-title">Trip details</h2>
+                        <p class="calendar-detail-subtitle" id="calendar-detail-employee"></p>
+                    </div>
+                    <div class="calendar-detail-actions">
+                        <button type="button" class="calendar-btn calendar-btn--outline" data-action="edit-trip">
+                            Edit Trip
+                        </button>
+                    </div>
+                    <button type="button" class="calendar-detail-close" data-action="close-detail" aria-label="Close trip details">
+                        ×
+                    </button>
+                </header>
+                <section class="calendar-detail-body" id="calendar-detail-body">
+                    <div class="calendar-detail-meta">
+                        <div>
+                            <span class="calendar-detail-meta-label">Country</span>
+                            <span class="calendar-detail-meta-value" id="calendar-detail-country">—</span>
+                        </div>
+                        <div>
+                            <span class="calendar-detail-meta-label">Travel window</span>
+                            <span class="calendar-detail-meta-value" id="calendar-detail-dates">—</span>
+                        </div>
+                        <div>
+                            <span class="calendar-detail-meta-label">Duration</span>
+                            <span class="calendar-detail-meta-value" id="calendar-detail-duration">—</span>
+                        </div>
+                        <div>
+                            <span class="calendar-detail-meta-label">Rolling 180-day usage</span>
+                            <span class="calendar-detail-meta-value" id="calendar-detail-usage">—</span>
+                        </div>
+                    </div>
+                    <div class="calendar-detail-notes" id="calendar-detail-notes" hidden>
+                        <h3>Notes</h3>
+                        <p id="calendar-detail-purpose"></p>
+                    </div>
+                    <dl class="calendar-detail-list">
+                        <div class="calendar-detail-list-item" id="calendar-detail-jobref" hidden>
+                            <dt>Job reference</dt>
+                            <dd id="calendar-detail-jobref-value">—</dd>
+                        </div>
+                        <div class="calendar-detail-list-item" id="calendar-detail-updated" hidden>
+                            <dt>Last updated</dt>
+                            <dd id="calendar-detail-updated-value">—</dd>
+                        </div>
+                        <div class="calendar-detail-list-item" id="calendar-detail-created" hidden>
+                            <dt>Created</dt>
+                            <dd id="calendar-detail-created-value">—</dd>
+                        </div>
+                    </dl>
+                </section>
+            </div>
         </div>
-        
-        {% if trips %}
-        <div class="table-container">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Country</th>
-                        <th>Entry Date</th>
-                        <th>Exit Date</th>
-                        <th>Duration</th>
-                        <th>Days in Window</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for trip in trips %}
-                    <tr>
-                        <td style="font-weight: 500;">{{ trip.country }}</td>
-                        <td>{{ trip.entry_date|format_date }}</td>
-                        <td>{{ trip.exit_date|format_date }}</td>
-                        <td>{{ trip.trip_duration }} day{% if trip.trip_duration != 1 %}s{% endif %}</td>
-                        <td>
-                            {% if trip.overlaps_window %}
-                                <span style="font-weight: 600; color: #f97316;">{{ trip.days_in_window }} day{% if trip.days_in_window != 1 %}s{% endif %}</span>
-                            {% else %}
-                                <span class="text-muted">-</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if trip.trip_type == 'past' %}
-                                <span class="status-badge status-safe">Completed</span>
-                            {% elif trip.trip_type == 'current' %}
-                                <span class="status-badge status-warning">Current</span>
-                            {% else %}
-                                <span class="status-badge" style="background: #f0f9ff; color: #1e40af;">Future</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+        <div class="calendar-form-overlay" id="calendar-form-overlay" role="dialog" aria-modal="true" hidden>
+            <div class="calendar-form" role="document" aria-labelledby="calendar-form-title" tabindex="-1">
+                <header class="calendar-form-header">
+                    <div class="calendar-form-titles">
+                        <h2 class="calendar-form-title" id="calendar-form-title">Add trip</h2>
+                        <p class="calendar-form-subtitle" id="calendar-form-subtitle">Create a new travel record</p>
+                    </div>
+                    <button type="button" class="calendar-form-close" data-action="close-form" aria-label="Close form">
+                        ×
+                    </button>
+                </header>
+                <form id="calendar-form" class="calendar-form-body" novalidate>
+                    <div class="calendar-form-grid">
+                        <label class="calendar-form-field">
+                            <span>Employee</span>
+                            <select id="calendar-form-employee" name="employee_id" required></select>
+                        </label>
+                        <label class="calendar-form-field">
+                            <span>Country</span>
+                            <input id="calendar-form-country" name="country" type="text" maxlength="80" required>
+                        </label>
+                        <label class="calendar-form-field">
+                            <span>Entry date</span>
+                            <input id="calendar-form-start" name="start_date" type="date" required>
+                        </label>
+                        <label class="calendar-form-field">
+                            <span>Exit date</span>
+                            <input id="calendar-form-end" name="end_date" type="date" required>
+                        </label>
+                        <label class="calendar-form-field">
+                            <span>Job reference <small>(optional)</small></span>
+                            <input id="calendar-form-jobref" name="job_ref" type="text" maxlength="120" autocomplete="off">
+                        </label>
+                        <label class="calendar-form-field calendar-form-field--wide">
+                            <span>Purpose / notes <small>(optional)</small></span>
+                            <textarea id="calendar-form-purpose" name="purpose" rows="3" maxlength="500"></textarea>
+                        </label>
+                    </div>
+                    <div class="calendar-form-footer">
+                        <div class="calendar-form-feedback" id="calendar-form-feedback" aria-live="polite" hidden></div>
+                        <div class="calendar-form-actions">
+                            <button type="button" class="calendar-btn calendar-btn--ghost" data-action="close-form">
+                                Cancel
+                            </button>
+                            <button type="submit" class="calendar-btn calendar-btn--primary" data-action="submit-form">
+                                Save Trip
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
-        {% else %}
-        <div class="text-center" style="padding: 40px;">
-            <div style="font-size: 48px; margin-bottom: 16px;"></div>
-            <h3 style="color: #1f2937; font-weight: 600; margin-bottom: 8px;">No Trips Yet</h3>
-            <p class="text-muted">This employee hasn't taken any EU trips</p>
+
+        <div class="calendar-loading" id="calendar-loading" hidden>
+            <svg viewBox="0 0 50 50" class="calendar-spinner" aria-hidden="true">
+                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="4"/>
+            </svg>
+            <p>Loading trips…</p>
         </div>
-        {% endif %}
+
+        <div class="calendar-empty-state" id="calendar-empty" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <p>No trips found for selected range.</p>
+        </div>
+
+        <div class="calendar-error" id="calendar-error" hidden>
+            <strong>We couldn’t load the calendar.</strong>
+            <p>Check your connection and try again.</p>
+            <button type="button" class="calendar-btn calendar-btn--retry" data-action="retry">Retry</button>
+        </div>
+
+        <div class="calendar-toast" id="calendar-toast" role="status" aria-live="polite" aria-hidden="true"></div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    renderTimeline();
-});
-
-function renderTimeline() {
-    const timeline = document.getElementById('timeline');
-    if (!timeline) return;
-    
-    // Trip data from the template
-    const trips = {{ trips|tojson }};
-    const windowStart = new Date('{{ window_start.strftime('%Y-%m-%d') }}');
-    const windowEnd = new Date('{{ window_end.strftime('%Y-%m-%d') }}');
-    const timelineStart = new Date('{{ timeline_start.strftime('%Y-%m-%d') }}');
-    const timelineEnd = new Date('{{ timeline_end.strftime('%Y-%m-%d') }}');
-    const today = new Date('{{ today.strftime('%Y-%m-%d') }}');
-    
-    // Calculate timeline width and scale
-    const totalDays = Math.ceil((timelineEnd - timelineStart) / (1000 * 60 * 60 * 24));
-    const pixelsPerDay = 3; // Adjust for better visibility
-    const timelineWidth = totalDays * pixelsPerDay;
-    
-    timeline.style.width = timelineWidth + 'px';
-    
-    // Create timeline background
-    const background = document.createElement('div');
-    background.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: repeating-linear-gradient(
-            90deg,
-            transparent 0px,
-            transparent ${pixelsPerDay - 1}px,
-            #e5e7eb ${pixelsPerDay - 1}px,
-            #e5e7eb ${pixelsPerDay}px
-        );
-    `;
-    timeline.appendChild(background);
-    
-    // Draw 180-day window
-    const windowStartX = ((windowStart - timelineStart) / (1000 * 60 * 60 * 24)) * pixelsPerDay;
-    const windowEndX = ((windowEnd - timelineStart) / (1000 * 60 * 60 * 24)) * pixelsPerDay;
-    const windowWidth = windowEndX - windowStartX;
-    
-    const windowRect = document.createElement('div');
-    windowRect.style.cssText = `
-        position: absolute;
-        left: ${windowStartX}px;
-        top: 50px;
-        width: ${windowWidth}px;
-        height: 60px;
-        background: rgba(59, 130, 246, 0.2);
-        border: 2px solid #3b82f6;
-        border-radius: 4px;
-    `;
-    timeline.appendChild(windowRect);
-    
-    // Add window label
-    const windowLabel = document.createElement('div');
-    windowLabel.textContent = '180-Day Window';
-    windowLabel.style.cssText = `
-        position: absolute;
-        left: ${windowStartX}px;
-        top: 25px;
-        font-size: 12px;
-        font-weight: 600;
-        color: #1e40af;
-    `;
-    timeline.appendChild(windowLabel);
-    
-    // Draw today line
-    const todayX = ((today - timelineStart) / (1000 * 60 * 60 * 24)) * pixelsPerDay;
-    const todayLine = document.createElement('div');
-    todayLine.style.cssText = `
-        position: absolute;
-        left: ${todayX}px;
-        top: 0;
-        width: 2px;
-        height: 100%;
-        background: #ef4444;
-        z-index: 10;
-    `;
-    timeline.appendChild(todayLine);
-    
-    // Add today label
-    const todayLabel = document.createElement('div');
-    todayLabel.textContent = 'Today';
-    todayLabel.style.cssText = `
-        position: absolute;
-        left: ${todayX + 5}px;
-        top: 5px;
-        font-size: 12px;
-        font-weight: 600;
-        color: #ef4444;
-        background: var(--base-bg);
-        padding: 2px 6px;
-        border-radius: 3px;
-        border: 1px solid #ef4444;
-    `;
-    timeline.appendChild(todayLabel);
-    
-    // Create a single trip lane for linear display
-    const tripLaneY = 120;
-    const tripLaneHeight = 25;
-    
-    // Draw trips in a linear fashion
-    trips.forEach((trip, index) => {
-        const tripStart = new Date(trip.entry_date);
-        const tripEnd = new Date(trip.exit_date);
-        
-        const startX = ((tripStart - timelineStart) / (1000 * 60 * 60 * 24)) * pixelsPerDay;
-        const endX = ((tripEnd - timelineStart) / (1000 * 60 * 60 * 24)) * pixelsPerDay;
-        const tripWidth = Math.max(endX - startX, 2);
-        
-        let color = '#10b981'; // Past trips (green)
-        if (trip.trip_type === 'current') {
-            color = '#f59e0b'; // Current trip (orange)
-        } else if (trip.trip_type === 'future') {
-            color = '#6366f1'; // Future trips (purple)
-        }
-        
-        // Create trip container for better organization
-        const tripContainer = document.createElement('div');
-        tripContainer.style.cssText = `
-            position: absolute;
-            left: ${startX}px;
-            top: ${tripLaneY}px;
-            width: ${tripWidth}px;
-            height: ${tripLaneHeight}px;
-        `;
-        
-        const tripRect = document.createElement('div');
-        tripRect.style.cssText = `
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 20px;
-            background: ${color};
-            border-radius: 3px;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        `;
-        
-        // Add trip label
-        const tripLabel = document.createElement('div');
-        tripLabel.textContent = `${trip.country} (${trip.trip_duration}d)`;
-        tripLabel.style.cssText = `
-            position: absolute;
-            left: 0;
-            top: 20px;
-            font-size: 11px;
-            color: #6b7280;
-            white-space: nowrap;
-            max-width: ${tripWidth}px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            padding: 1px 2px;
-        `;
-        
-        // Enhanced hover effects and tooltip
-        let tooltip = null;
-        
-        tripRect.addEventListener('mouseenter', function() {
-            this.style.transform = 'scaleY(1.3) translateY(-1px)';
-            this.style.zIndex = '10';
-            this.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
-            
-            // Create detailed tooltip
-            tooltip = document.createElement('div');
-            tooltip.style.cssText = `
-                position: absolute;
-                left: ${Math.max(0, startX - 50)}px;
-                top: ${tripLaneY - 80}px;
-                background: #1f2937;
-                color: white;
-                padding: 12px;
-                border-radius: 8px;
-                font-size: 12px;
-                line-height: 1.4;
-                z-index: 20;
-                min-width: 200px;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-                border: 1px solid #374151;
-            `;
-            
-            // Calculate remaining days for this trip
-            const tripExitDate = new Date(trip.exit_date);
-            const daysAfterTrip = calculateDaysAfterTrip(trip, trips);
-            const remainingDays = 90 - daysAfterTrip;
-            
-            let riskColor = '#10b981'; // green
-            if (remainingDays < 10) riskColor = '#ef4444'; // red
-            else if (remainingDays < 30) riskColor = '#f59e0b'; // amber
-            
-            tooltip.innerHTML = `
-                <div style="font-weight: 600; margin-bottom: 8px; color: ${color};">${trip.country}</div>
-                <div style="margin-bottom: 4px;">📅 <strong>${trip.entry_date}</strong> to <strong>${trip.exit_date}</strong></div>
-                <div style="margin-bottom: 4px;"><strong>${trip.trip_duration}</strong> days duration</div>
-                <div style="margin-bottom: 4px;">📊 <strong>${trip.days_in_window}</strong> days in 180-day window</div>
-                <div style="margin-bottom: 4px;">📈 <strong>${daysAfterTrip}</strong> total days after trip</div>
-                <div style="margin-bottom: 0; color: ${riskColor}; font-weight: 600;">🎯 <strong>${remainingDays}</strong> days remaining</div>
-            `;
-            
-            timeline.appendChild(tooltip);
-        });
-        
-        tripRect.addEventListener('mouseleave', function() {
-            this.style.transform = 'scaleY(1) translateY(0)';
-            this.style.zIndex = '1';
-            this.style.boxShadow = 'none';
-            
-            if (tooltip) {
-                tooltip.remove();
-                tooltip = null;
-            }
-        });
-        
-        tripContainer.appendChild(tripRect);
-        tripContainer.appendChild(tripLabel);
-        timeline.appendChild(tripContainer);
-    });
-    
-    // Function to calculate days after a specific trip
-    function calculateDaysAfterTrip(targetTrip, allTrips) {
-        const targetExitDate = new Date(targetTrip.exit_date);
-        
-        // Get all trips that end on or before this trip's exit date
-        const relevantTrips = allTrips.filter(trip => 
-            new Date(trip.exit_date) <= targetExitDate
-        );
-        
-        // Calculate 180-day window from target exit date
-        const windowStart = new Date(targetExitDate);
-        windowStart.setDate(windowStart.getDate() - 179);
-        
-        // Count days in the 180-day window
-        let daysUsed = 0;
-        relevantTrips.forEach(trip => {
-            const tripStart = new Date(trip.entry_date);
-            const tripEnd = new Date(trip.exit_date);
-            
-            // Check if trip overlaps with the 180-day window
-            if (tripEnd >= windowStart && tripStart <= targetExitDate) {
-                const effectiveStart = new Date(Math.max(tripStart, windowStart));
-                const effectiveEnd = new Date(Math.min(tripEnd, targetExitDate));
-                const overlapDays = Math.ceil((effectiveEnd - effectiveStart) / (1000 * 60 * 60 * 24)) + 1;
-                daysUsed += overlapDays;
-            }
-        });
-        
-        return daysUsed;
-    }
-    
-    // Add month markers
-    let currentDate = new Date(timelineStart);
-    currentDate.setDate(1); // Start of month
-    
-    while (currentDate <= timelineEnd) {
-        const monthX = ((currentDate - timelineStart) / (1000 * 60 * 60 * 24)) * pixelsPerDay;
-        
-        const monthMarker = document.createElement('div');
-        monthMarker.style.cssText = `
-            position: absolute;
-            left: ${monthX}px;
-            top: 0;
-            width: 1px;
-            height: 100%;
-            background: #d1d5db;
-            z-index: 1;
-        `;
-        timeline.appendChild(monthMarker);
-        
-        const monthLabel = document.createElement('div');
-        monthLabel.textContent = currentDate.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-        monthLabel.style.cssText = `
-            position: absolute;
-            left: ${monthX + 5}px;
-            top: 5px;
-            font-size: 10px;
-            color: #9ca3af;
-            background: var(--base-bg);
-            padding: 1px 4px;
-            border-radius: 2px;
-        `;
-        timeline.appendChild(monthLabel);
-        
-        currentDate.setMonth(currentDate.getMonth() + 1);
-    }
-}
-</script>
+    <script src="{{ url_for('static', filename='js/dragManager.js') }}?v=1.7.8"></script>
+    <script src="{{ url_for('static', filename='js/calendar.js') }}?v=1.7.8"></script>
 {% endblock %}

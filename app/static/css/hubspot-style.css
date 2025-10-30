@@ -26,7 +26,10 @@ body {
     line-height: 1.5;
     letter-spacing: 0.01em;
     background-color: var(--hubspot-bg);
-    overflow-x: hidden;
+    /* Allow horizontal scrolling on pages that need it (calendar). A stricter
+       overflow-x rule here was clipping horizontal scroll in the main content.
+       Individual components can still control their own overflow. */
+    overflow-x: visible;
 }
 
 /* Typography hierarchy */
@@ -334,10 +337,12 @@ p, td, li, button, input, label { font-weight: 400; }
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 999;
     display: none;
+    pointer-events: none; /* don't block clicks when hidden */
 }
 
 .mobile-overlay.active {
     display: block;
+    pointer-events: auto; /* only capture clicks when active */
 }
 
 /* Top Bar */
@@ -439,6 +444,7 @@ p, td, li, button, input, label { font-weight: 400; }
     transition: margin-left 0.3s ease;
     min-height: 100vh;
     overscroll-behavior: contain;
+    overflow-x: visible; /* allow horizontal scrolling within nested containers */
 }
 
 .main-content.sidebar-collapsed {

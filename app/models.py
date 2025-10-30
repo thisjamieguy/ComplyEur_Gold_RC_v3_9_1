@@ -1,6 +1,6 @@
 import sqlite3
 from datetime import datetime
-from typing import List, Dict, Optional
+from typing import Any, Dict, List, Optional
 from flask import g
 
 def get_db():
@@ -68,6 +68,8 @@ def init_db():
             entry_date DATE NOT NULL,
             exit_date DATE NOT NULL,
             purpose TEXT,
+            job_ref TEXT,
+            ghosted BOOLEAN DEFAULT 0,
             travel_days INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (employee_id) REFERENCES employees (id)
@@ -84,6 +86,20 @@ def init_db():
     # Add is_private column if it doesn't exist (for existing databases)
     try:
         c.execute('ALTER TABLE trips ADD COLUMN is_private BOOLEAN DEFAULT 0')
+    except sqlite3.OperationalError:
+        # Column already exists, ignore error
+        pass
+
+    # Add job_ref column if it doesn't exist (for existing databases)
+    try:
+        c.execute('ALTER TABLE trips ADD COLUMN job_ref TEXT')
+    except sqlite3.OperationalError:
+        # Column already exists, ignore error
+        pass
+
+    # Add ghosted column if it doesn't exist (for existing databases)
+    try:
+        c.execute('ALTER TABLE trips ADD COLUMN ghosted BOOLEAN DEFAULT 0')
     except sqlite3.OperationalError:
         # Column already exists, ignore error
         pass
@@ -283,17 +299,59 @@ class Employee:
         conn.close()
 
 class Trip:
-    def __init__(self, id: int, employee_id: int, country: str, entry_date: str, 
-                 exit_date: str, purpose: Optional[str] = None, created_at: Optional[str] = None, 
-                 is_private: bool = False):
+    def __init__(
+        self,
+        id: int,
+        employee_id: int,
+        country: str,
+        entry_date: str,
+        exit_date: str,
+        purpose: Optional[str] = None,
+        travel_days: Optional[int] = 0,
+        created_at: Optional[str] = None,
+        is_private: bool = False,
+        job_ref: Optional[str] = None,
+        ghosted: Optional[int] = 0,
+        **extra,
+    ):
         self.id = id
         self.employee_id = employee_id
         self.country = country
         self.entry_date = entry_date
         self.exit_date = exit_date
         self.purpose = purpose
+        self.travel_days = travel_days or 0
         self.created_at = created_at
-        self.is_private = is_private
+        self.is_private = bool(is_private)
+        self.job_ref = job_ref
+        self.ghosted = bool(ghosted)
+        # Preserve any additional payload for forward compatibility
+        self._extra = extra
+
+    @property
+    def start_date(self) -> str:
+        return self.entry_date
+
+    @property
+    def end_date(self) -> str:
+        return self.exit_date
+
+    def to_dict(self, employee_name: Optional[str] = None) -> Dict[str, Any]:
+        """Serialize trip for API responses."""
+        start = self.start_date
+        end = self.end_date
+        return {
+            "id": self.id,
+            "employee_id": self.employee_id,
+            "employee": employee_name,
+            "country": self.country,
+            "job_ref": self.job_ref,
+            "start_date": start if isinstance(start, str) else start.isoformat(),
+            "end_date": end if isinstance(end, str) else end.isoformat(),
+            "ghosted": bool(self.ghosted),
+            "is_private": bool(self.is_private),
+            "purpose": self.purpose,
+        }
     
     @classmethod
     def get_by_employee(cls, employee_id: int) -> List['Trip']:

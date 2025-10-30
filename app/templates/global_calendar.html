@@ -1,142 +1,27 @@
+<!-- DayPilot references fully removed – system prepared for native calendar rebuild (Phase 3.5). -->
 {% extends "base.html" %}
 
 {% block title %}Global Calendar - EU Trip Tracker{% endblock %}
 
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.home') }}">Home</a></li>
+<li class="breadcrumb-item active" aria-current="page">Global Calendar</li>
+{% endblock %}
+
 {% block extra_head %}
-<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
-<style>
-    .legend { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
-    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #374151; }
-    .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
-    .legend-dot--green { background: #10b981; }
-    .legend-dot--yellow { background: #f59e0b; }
-    .legend-dot--red { background: #ef4444; }
-    .fc .fc-daygrid-day.fc-day-disabled { background: #f9fafb; }
-    .calendar-toolbar { display: flex; gap: 12px; align-items: center; }
-    .calendar-filter { min-width: 220px; }
-    .calendar-container { background: var(--base-bg); border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; overflow-x: hidden; }
-    /* Custom scrollable timeline */
-    .range-card { margin-top: 16px; }
-    .range-wrapper { border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; overflow-x: auto; overflow-y: hidden; }
-    .range-timeline { position: relative; height: auto; min-width: 1200px; }
-    .range-row { display: flex; align-items: center; border-bottom: 1px solid #e5e7eb; background: var(--base-bg); }
-    .range-row-title { width: 200px; flex: 0 0 200px; padding: 8px 12px; font-size: 13px; color: #374151; background: var(--base-bg); border-right: 1px solid #e5e7eb; }
-    .range-row-track { position: relative; height: 36px; flex: 1; background: repeating-linear-gradient(90deg, var(--base-bg) 0, var(--base-bg) 35px, #f3f4f6 35px, #f3f4f6 36px); }
-    .range-event { position: absolute; top: 6px; height: 24px; border-radius: 4px; cursor: pointer; box-shadow: 0 1px 0 rgba(0,0,0,0.05); }
-    .range-month-marker { position: absolute; top: 0; bottom: 0; width: 1px; background: #d1d5db; }
-    .range-month-label { position: absolute; top: -18px; font-size: 10px; color: #6b7280; background: var(--base-bg); padding: 1px 4px; border-radius: 3px; }
-    .fc .fc-daygrid-event { cursor: pointer; }
-    .fc .fc-toolbar-title { font-weight: 700; }
-    .muted { color: #6b7280; font-size: 12px; }
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/calendar.css') }}?v=1.7-daypilot-cleanup">
 {% endblock %}
 
 {% block content %}
-<div class="content-header">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-        <div>
-            <h1 class="content-title">📅 Global EU Trip Calendar</h1>
-            <p class="content-subtitle">Shows past 180 days, today, and next 8 weeks</p>
-        </div>
-        <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline">Back to Dashboard</a>
-    </div>
-</div>
-
-<div class="content-body">
-    <div class="card">
-        <div class="card-header">
-            <h2 class="card-title">Calendar</h2>
-            <div class="calendar-toolbar">
-                <select id="employeeFilter" class="form-input calendar-filter">
-                    <option value="">All employees</option>
-                    {% for e in employees %}
-                    <option value="{{ e.id }}">{{ e.name }}</option>
-                    {% endfor %}
-                </select>
-                <div class="legend">
-                    <div class="legend-item"><span class="legend-dot legend-dot--green"></span> <span>Under 80 days</span></div>
-                    <div class="legend-item"><span class="legend-dot legend-dot--yellow"></span> <span>80–89 days</span></div>
-                    <div class="legend-item"><span class="legend-dot legend-dot--red"></span> <span>90+ days</span></div>
-                </div>
-            </div>
-        </div>
-        <div class="calendar-container">
-            <div id="calendar"></div>
-            <div class="muted" style="margin-top: 8px;">Valid range auto-limits to past 180 days and next 8 weeks.</div>
-        </div>
-
-        
-    </div>
+<div class="calendar-placeholder-container">
+    <h1 class="calendar-placeholder-title">Global Trip Calendar</h1>
+    <p class="calendar-placeholder-subtitle">
+        DayPilot has been retired. This page will receive a native calendar experience in Phase 3.5.
+    </p>
+    <div id="calendar" class="calendar-placeholder">Calendar loading…</div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const calendarEl = document.getElementById('calendar');
-    if (!calendarEl) return;
-
-    const todayStr = '{{ today.strftime('%Y-%m-%d') }}';
-    const today = new Date(todayStr + 'T00:00:00');
-    const startRange = new Date(today);
-    startRange.setDate(startRange.getDate() - 180);
-    const endRange = new Date(today);
-    endRange.setDate(endRange.getDate() + 56);
-
-    function toIsoDate(d) { return d.toISOString().slice(0,10); }
-
-    const employeeFilterEl = document.getElementById('employeeFilter');
-    let selectedEmployeeId = '';
-
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialDate: todayStr,
-        initialView: 'dayGridWeek',
-        firstDay: 1,
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: ''
-        },
-        validRange: { start: toIsoDate(startRange), end: toIsoDate(new Date(endRange.getTime() + 24*60*60*1000)) },
-        navLinks: false,
-        nowIndicator: false,
-        height: 'auto',
-        contentHeight: 'auto',
-        expandRows: true,
-        allDaySlot: true,
-        slotMinTime: '00:00:00',
-        slotMaxTime: '00:00:00',
-        dayMaxEvents: true,
-        displayEventTime: false,
-        displayEventEnd: false,
-        events: function(fetchInfo, successCallback, failureCallback) {
-            const params = new URLSearchParams();
-            params.set('start', fetchInfo.startStr);
-            params.set('end', fetchInfo.endStr);
-            if (selectedEmployeeId) params.set('employee_id', selectedEmployeeId);
-            fetch(`/api/calendar_data?${params.toString()}`)
-                .then(r => r.json())
-                .then(data => successCallback(data))
-                .catch(err => failureCallback(err));
-        },
-        datesSet: function(info) {},
-        eventDidMount: function(info) {
-            if (info.event.extendedProps && info.event.extendedProps.tooltip) {
-                info.el.setAttribute('title', info.event.extendedProps.tooltip);
-            }
-        }
-    });
-
-    calendar.render();
-
-    employeeFilterEl.addEventListener('change', function() {
-        selectedEmployeeId = this.value;
-        calendar.refetchEvents();
-    });
-    
-});
-</script>
+<script src="{{ url_for('static', filename='js/calendar.js') }}?v=1.7-daypilot-cleanup"></script>
 {% endblock %}
-
-

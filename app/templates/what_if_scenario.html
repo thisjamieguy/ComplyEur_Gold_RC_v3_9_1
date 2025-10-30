@@ -276,9 +276,20 @@ document.getElementById('scenarioForm').addEventListener('submit', async functio
         document.getElementById('isSchengen').textContent = data.is_schengen ? 'Yes' : 'No (Ireland)';
         
         // Compliant from date
+        const formatDdMmYyyy = (value) => {
+            const dt = new Date(value);
+            if (Number.isNaN(dt.getTime())) {
+                return '';
+            }
+            const day = String(dt.getDate()).padStart(2, '0');
+            const month = String(dt.getMonth() + 1).padStart(2, '0');
+            const year = dt.getFullYear();
+            return `${day}-${month}-${year}`;
+        };
+
         if (data.compliant_from_date) {
             document.getElementById('compliantFromSection').style.display = 'block';
-            document.getElementById('compliantFromDate').textContent = new Date(data.compliant_from_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('compliantFromDate').textContent = formatDdMmYyyy(data.compliant_from_date);
         } else {
             document.getElementById('compliantFromSection').style.display = 'none';
         }

@@ -57,8 +57,8 @@
             
             <form method="POST" enctype="multipart/form-data" id="importForm" data-validate="true" onsubmit="return startImport(this)">
                 <div class="form-group">
-                    <label class="form-label required">Excel File (.xlsx or .xls)</label>
-                    <input type="file" name="excel_file" accept=".xlsx,.xls" class="form-input" required id="excelFile">
+                    <label class="form-label required" for="excelFile">Excel File (.xlsx or .xls)</label>
+                    <input type="file" name="excel_file" accept=".xlsx,.xls" class="form-input" required id="excelFile" style="position: relative; z-index: 2; cursor: pointer;">
                     <div class="form-hint">Supported formats: Excel files (.xlsx, .xls) - Maximum 10MB</div>
                     <div id="filePreview" class="form-hint" style="display: none; margin-top: 8px;"></div>
                 </div>

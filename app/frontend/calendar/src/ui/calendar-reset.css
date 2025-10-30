@@ -1,0 +1,112 @@
+/* Phase 3.4 Layout Stabilization */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --maavsi-font-family: "Inter", "Segoe UI", "Helvetica Neue", system-ui, -apple-system, sans-serif;
+  --maavsi-border-strong: rgba(148, 163, 184, 0.48);
+  --maavsi-border-soft: rgba(203, 213, 225, 0.6);
+  --maavsi-grid-bg: #ffffff;
+  --maavsi-row-stripe: #f8fafc;
+  --maavsi-weekend-bg: #f1f5f9;
+  --maavsi-row-hover: rgba(59, 130, 246, 0.08);
+  --maavsi-sticky-shadow: 0 1px 0 rgba(15, 23, 42, 0.06), 0 12px 32px -18px rgba(15, 23, 42, 0.22);
+  --maavsi-trip-layer-z: 18;
+}
+
+#maavsi-calendar-root {
+  font-family: var(--maavsi-font-family);
+  color: #0f172a;
+}
+
+[data-calendar-shell] {
+  background: var(--maavsi-grid-bg);
+}
+
+[data-calendar-grid] {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: var(--maavsi-grid-bg);
+}
+
+.maavsi-grid {
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 960px;
+}
+
+.maavsi-left {
+  border-right: 1px solid var(--maavsi-border-strong);
+  background: #ffffff;
+  position: sticky;
+  left: 0;
+  z-index: 20;
+}
+
+.maavsi-left[data-stripe="odd"] {
+  background-color: var(--maavsi-row-stripe);
+}
+
+.maavsi-top {
+  border-bottom: 1px solid var(--maavsi-border-soft);
+}
+
+.maavsi-col,
+.maavsi-cell {
+  border-left: 1px solid var(--maavsi-border-soft);
+  border-bottom: 1px solid var(--maavsi-border-strong);
+  position: relative;
+  min-height: 100%;
+  transition: background-color 0.18s ease;
+}
+
+.maavsi-cell[data-stripe="odd"] {
+  background-color: var(--maavsi-row-stripe);
+}
+
+.maavsi-cell[data-weekend="true"] {
+  background-color: var(--maavsi-weekend-bg);
+}
+
+.maavsi-grid[data-calendar-row]:hover .maavsi-left,
+.maavsi-grid[data-calendar-row]:hover .maavsi-cell {
+  background-color: var(--maavsi-row-hover);
+}
+
+.maavsi-sticky {
+  box-shadow: var(--maavsi-sticky-shadow);
+}
+
+.trip-layer {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: var(--maavsi-trip-layer-z);
+}
+
+.trip-layer__canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+[data-grid-region] {
+  position: relative;
+}
+
+[data-grid-scroll] {
+  overflow-x: auto;
+  overflow-y: visible;
+  scrollbar-gutter: stable both-edges;
+}
+
+@media (min-width: 1000px) {
+  [data-grid-scroll] {
+    overflow-x: hidden;
+  }
+}

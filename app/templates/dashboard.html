@@ -360,7 +360,7 @@
                         <td class="text-center">
                             <div style="display: flex; gap: 8px; justify-content: center;">
                                 <a href="{{ url_for('main.employee_detail', employee_id=emp.id) }}" class="btn btn-primary btn-sm">Details</a>
-                                <a href="{{ url_for('main.calendar', employee_id=emp.id) }}" class="btn btn-secondary btn-sm">📅</a>
+                                <a href="{{ url_for('main.employee_calendar', employee_id=emp.id) }}" class="btn btn-secondary btn-sm">📅</a>
                             </div>
                         </td>
                     </tr>
@@ -418,7 +418,7 @@
                 
                 <div style="display: flex; gap: 8px;">
                     <a href="{{ url_for('main.employee_detail', employee_id=emp.id) }}" class="btn btn-primary btn-sm" style="flex: 1;">Details</a>
-                    <a href="{{ url_for('main.calendar', employee_id=emp.id) }}" class="btn btn-secondary btn-sm" style="flex: 1;">📅 Calendar</a>
+                    <a href="{{ url_for('main.employee_calendar', employee_id=emp.id) }}" class="btn btn-secondary btn-sm" style="flex: 1;">📅 Calendar</a>
                     {# Delete action disabled: route not implemented
                     <form method="POST" action="{{ url_for('main.delete_employee', employee_id=emp.id) }}" style="flex: 1;" onsubmit="return confirm('Are you sure you want to delete this employee?');">
                         <button type="submit" class="btn btn-danger btn-sm" style="width: 100%;">Delete</button>

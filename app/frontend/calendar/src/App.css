@@ -1,0 +1,75 @@
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  background-color: #f1f5f9;
+}
+
+.trip-block {
+  pointer-events: auto;
+  box-shadow: 0 6px 16px -8px rgba(15, 23, 42, 0.45);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.trip-block:hover {
+  box-shadow: 0 8px 20px -6px rgba(15, 23, 42, 0.55);
+}
+
+.trip-block__handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  background: rgba(255, 255, 255, 0.65);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  cursor: ew-resize;
+  pointer-events: auto;
+}
+
+.trip-block:hover .trip-block__handle {
+  opacity: 0.55;
+}
+
+.trip-block__handle--start {
+  left: 0;
+  border-radius: 4px 0 0 4px;
+}
+
+.trip-block__handle--end {
+  right: 0;
+  border-radius: 0 4px 4px 0;
+}
+
+.trip-block__overflow {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  display: block;
+}
+
+.trip-block__overflow--start {
+  left: -10px;
+  background: linear-gradient(90deg, rgba(15, 23, 42, 0.25), transparent);
+}
+
+.trip-block__overflow--end {
+  right: -10px;
+  background: linear-gradient(270deg, rgba(15, 23, 42, 0.25), transparent);
+}
+
+.calendar-context-menu button {
+  background: transparent;
+  border: 0;
+  font-size: 0.875rem;
+}
+
+.calendar-context-menu button + button {
+  border-top: 1px solid #e2e8f0;
+}

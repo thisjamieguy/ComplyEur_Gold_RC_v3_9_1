@@ -12,6 +12,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize tooltips
     initTooltips();
+    
+    // Initialize form handlers
+    initFormHandlers();
 });
 
 // Also try to initialize when window loads (fallback)
@@ -1295,4 +1298,56 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// Initialize form handlers
+function initFormHandlers() {
+    // Handle add employee form submission
+    const employeeForm = document.querySelector('form[data-employee-form="true"]');
+    if (employeeForm) {
+        employeeForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            const nameInput = this.querySelector('input[name="name"]');
+            
+            // Disable button and show loading state
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Adding...';
+            
+            try {
+                const formData = new FormData(this);
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Show success message
+                    showNotification(`Employee "${nameInput.value}" added successfully!`, 'success');
+                    
+                    // Clear form
+                    nameInput.value = '';
+                    
+                    // Reload page to show new employee
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    // Show error message
+                    showNotification(data.error || 'Failed to add employee', 'error');
+                }
+            } catch (error) {
+                console.error('Error adding employee:', error);
+                showNotification('An error occurred while adding the employee', 'error');
+            } finally {
+                // Re-enable button
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
+    }
+}
 

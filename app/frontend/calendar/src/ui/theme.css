@@ -1,0 +1,69 @@
+:root {
+  --grid-border: 1px solid rgba(0,0,0,.12);
+  --grid-bg: #ffffff;
+  --row-zebra: #f8fafc;      /* slate-50 */
+  --weekend-bg: #f1f5f9;     /* slate-100 */
+  --sticky-shadow: 0 1px 0 rgba(0,0,0,.06), 0 6px 12px -6px rgba(0,0,0,.16);
+  --chip-bg: rgba(255,255,255,.2);
+}
+
+/* Print-friendly styles for clean calendar printing */
+@media print {
+  body { 
+    background: white !important; 
+    color: black !important;
+  }
+  
+  /* Hide UI elements that shouldn't appear in print */
+  #sidebar, 
+  .sidebar, 
+  .nav, 
+  .toolbar, 
+  .sticky.top-0, 
+  [data-header-block] .btn, 
+  .icon-btn,
+  .print-hidden { 
+    display: none !important; 
+  }
+  
+  .print-only { 
+    display: block !important; 
+  }
+  
+  /* Clean up calendar container for printing */
+  .calendar-container { 
+    box-shadow: none !important; 
+    border: none !important;
+  }
+  
+  /* Ensure proper page sizing and margins */
+  @page { 
+    size: A3 landscape; 
+    margin: 12mm; 
+  }
+  
+  /* Alternative A4 portrait for smaller screens */
+  @media (max-width: 1200px) {
+    @page { 
+      size: A4 portrait; 
+      margin: 10mm; 
+    }
+  }
+  
+  /* Ensure text is readable in print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  /* Make sure grid lines are visible in print */
+  .grid {
+    border-color: #000 !important;
+  }
+  
+  /* Ensure trip blocks are visible in print */
+  [data-trip-block] {
+    border: 1px solid #000 !important;
+    background: white !important;
+  }
+}

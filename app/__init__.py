@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Application Version
-APP_VERSION = "1.6.1"
+APP_VERSION = "1.7.7"
 
 def create_app():
     """Application factory pattern"""
@@ -40,8 +40,12 @@ def create_app():
     
     try:
         logger.info("Starting application initialization...")
-        app = Flask(__name__, static_folder='static', template_folder='templates')
-        logger.info("Flask app created successfully")
+        # Use absolute paths for template and static folders
+        app_dir = os.path.dirname(__file__)
+        template_folder = os.path.join(app_dir, 'templates')
+        static_folder = os.path.join(app_dir, 'static')
+        app = Flask(__name__, static_folder=static_folder, template_folder=template_folder)
+        logger.info(f"Flask app created successfully (template_folder: {template_folder})")
     except Exception as e:
         logger.error(f"Failed to create Flask app: {e}")
         logger.error(traceback.format_exc())
@@ -282,8 +286,13 @@ def create_app():
         from .routes import main_bp
         logger.info("Routes module imported successfully")
 
+        logger.info("Importing calendar API blueprint...")
+        from .routes_calendar import bp as calendar_api_bp
+        logger.info("Calendar API blueprint imported successfully")
+
         logger.info("Registering blueprint...")
         app.register_blueprint(main_bp)
+        app.register_blueprint(calendar_api_bp)
         logger.info("Blueprint registered successfully")
 
         logger.info(f"Registered {len(list(app.url_map.iter_rules()))} routes successfully")
@@ -313,6 +322,11 @@ def create_app():
             print(f"✗ Error: {e}")
 
     # Global error handlers (ensure friendly pages for non-blueprint routes)
+    @app.errorhandler(403)
+    def app_forbidden_error(error):
+        logger.warning(f"403 error: {error}")
+        return render_template('403.html'), 403
+
     @app.errorhandler(404)
     def app_not_found_error(error):
         logger.warning(f"404 error: {error}")

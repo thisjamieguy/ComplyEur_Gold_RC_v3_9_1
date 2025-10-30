@@ -1,4 +1,4 @@
-# EU 90/180 Employee Travel Tracker v1.6
+# EU 90/180 Employee Travel Tracker v1.6.4
 
 A Flask web application for tracking employee travel to EU/Schengen countries and ensuring compliance with the 90/180-day rule.
 
@@ -9,10 +9,13 @@ A Flask web application for tracking employee travel to EU/Schengen countries an
 - **Compliance Monitoring**: Real-time calculation of days used and remaining in the 90/180-day rolling window
 - **Risk Assessment**: Color-coded risk levels (green/amber/red) based on remaining days
 - **Calendar View**: Visual calendar showing trip history and future compliance dates
+- **Interactive Calendar**: Drag-and-drop trip management with mobile touch support
+- **Trip Reassignment**: Move trips between employees with conflict validation
 - **Data Export**: Export trip data to CSV and generate PDF reports
 - **GDPR Compliance**: Built-in data retention and DSAR (Data Subject Access Request) tools
 - **Security**: Secure authentication, audit logging, and session management
 - **EU Travel News**: Real-time news feed filtered for EU/Schengen travel advisories and policy updates
+- **Comprehensive Testing**: Automated test suite for calendar functionality
 
 ## Quick Start
 
@@ -218,6 +221,45 @@ EU_KEYWORDS = [
 ```
 
 ### Testing
+
+## Calendar Features (v1.6.4)
+
+### Interactive Calendar
+The calendar now supports advanced interaction features:
+
+- **Drag-and-Drop**: Move trips between dates and employees
+- **Trip Resizing**: Resize trips by dragging the edges
+- **Mobile Touch Support**: Full touch support for mobile devices
+- **Trip Reassignment**: Move trips between different employees
+- **Conflict Validation**: Prevents overlapping trips
+- **Visual Feedback**: Real-time visual feedback during interactions
+
+### Testing the Calendar
+
+Access the comprehensive test suite at `/calendar_test`:
+
+1. **Navigate to Test Page**: Go to `http://localhost:5000/calendar_test`
+2. **Generate Mock Data**: Click "Generate Mock Data" to create test data
+3. **Run Tests**: Click "Run All Tests" to execute the full test suite
+4. **Individual Tests**: Run specific tests using individual "Run" buttons
+
+### Test Coverage
+The test suite covers:
+- ✅ Calendar rendering and display
+- ✅ Trip block visibility and positioning
+- ✅ Statistics display accuracy
+- ✅ Drag-and-drop functionality
+- ✅ Trip resizing operations
+- ✅ Mobile touch interactions
+- ✅ Conflict validation
+- ✅ Performance benchmarks
+
+### Known Issues and Fixes
+
+**v1.6.4 Visual QA**: Native calendar timeline validated with accessible color tokens and automated Playwright coverage
+- **Issue**: Legacy trip bars failed to render after API migration
+- **Fix**: Updated rendering pipeline, ensured DOM containers/styles match native calendar implementation
+- **Result**: All trips render with status colors (green/orange/red) and hover tooltips across the six-month view
 
 Run the news filter tests:
 

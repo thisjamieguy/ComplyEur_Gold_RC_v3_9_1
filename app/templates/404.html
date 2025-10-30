@@ -1,82 +1,89 @@
+{# Added error handling templates (500, 404, 403) to restore stability after DayPilot cleanup. #}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 - Page Not Found | EU Trip Tracker</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/hubspot-style.css') }}">
+    <title>404 – Page Not Found | EU Trip Tracker</title>
     <style>
+        :root {
+            color-scheme: light;
+        }
         body {
             margin: 0;
-            padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            background: #f3f4f6;
+            color: #111827;
             display: flex;
             align-items: center;
             justify-content: center;
+            min-height: 100vh;
+            padding: 24px;
         }
-        .error-container {
+        .error-card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 40px 32px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
             text-align: center;
-            padding: 40px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 500px;
-            margin: 20px;
         }
-        .error-icon {
-            font-size: 80px;
-            margin-bottom: 20px;
+        .error-label {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 6px 16px;
+            margin-bottom: 16px;
+            background: #e0e7ff;
+            color: #3730a3;
         }
-        .error-code {
-            font-size: 72px;
-            font-weight: 700;
-            color: #667eea;
-            margin: 0;
-            line-height: 1;
-        }
-        .error-title {
+        h1 {
             font-size: 28px;
-            font-weight: 600;
-            color: #1f2937;
-            margin: 16px 0 12px;
+            margin: 0 0 12px;
+            font-weight: 700;
         }
-        .error-message {
-            font-size: 16px;
-            color: #6b7280;
+        p {
+            margin: 0 0 24px;
+            color: #4b5563;
             line-height: 1.6;
-            margin-bottom: 32px;
         }
-        .btn-home {
-            display: inline-block;
-            padding: 12px 32px;
-            background: #667eea;
-            color: white;
+        a.button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border-radius: 10px;
+            background: #1d4ed8;
+            color: #ffffff;
             text-decoration: none;
-            border-radius: 8px;
             font-weight: 600;
-            transition: all 0.3s ease;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-        .btn-home:hover {
-            background: #5568d3;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        a.button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 18px rgba(29, 78, 216, 0.25);
+        }
+        .details {
+            margin-top: 24px;
+            font-size: 13px;
+            color: #6b7280;
         }
     </style>
 </head>
 <body>
-    <div class="error-container">
-        <div class="error-icon">🔍</div>
-        <h1 class="error-code">404</h1>
-        <h2 class="error-title">Page Not Found</h2>
-        <p class="error-message">
-            The page you're looking for doesn't exist or has been moved.
-            Please check the URL or return to the dashboard.
+    <main class="error-card" role="alert">
+        <div class="error-label">404 – Page Not Found</div>
+        <h1>We can’t find what you’re looking for</h1>
+        <p>
+            The page you requested may have been moved or no longer exists. Double-check the URL
+            or use the link below to head back to safety.
         </p>
-        <a href="{{ url_for('main.dashboard') }}" class="btn-home">Go to Dashboard</a>
-    </div>
+        <a href="{{ url_for('main.dashboard') }}" class="button">Return to Dashboard</a>
+        <div class="details">Request path: {{ request.path }}</div>
+    </main>
 </body>
 </html>
-
