@@ -9,7 +9,8 @@
   },
   "scripts": {
     "test": "node tests/js/calendar.test.js",
-    "test:qa": "npx playwright test"
+    "test:qa": "npx playwright test",
+    "test:excel": "bash scripts/run_excel_tests.sh"
   },
   "repository": {
     "type": "git",
@@ -17,7 +18,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "SEE LICENSE IN LICENSE.txt",
   "type": "commonjs",
   "bugs": {
     "url": "https://github.com/thisjamieguy/eu-trip-tracker/issues"

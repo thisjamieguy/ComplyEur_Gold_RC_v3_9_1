@@ -267,9 +267,37 @@ Run the news filter tests:
 python3 -m pytest tests/test_news_filter.py -v
 ```
 
+## Excel Import QA Tests
+
+Run the Playwright-driven Excel import regression suite:
+
+```bash
+npm run test:excel
+```
+
+This command generates fresh workbooks in `tests/sample_files/`, resets the isolated Playwright database, and executes:
+
+- `tests/excel_import.spec.js` – file upload flows and error handling
+- `tests/excel_display.spec.js` – dashboard/calendar rendering verification
+- `tests/excel_data_validation.spec.js` – importer assertions via Python helper utilities
+- `tests/excel_security.spec.js` – GDPR/privacy and DSAR coverage
+
+Use `reports/excel_import_report.md` as the manual sign-off template when documenting runs.
+
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under a Proprietary "Internal Business Use Only" license. See `LICENSE.txt` for full terms.
+
+<!-- LEGAL INSERT START -->
+## Legal Disclaimer
+
+- The software is licensed for internal business use only by authorised personnel of the licensee organisation. Redistribution, SaaS hosting for third parties, or resale is not permitted without written permission.
+- Compliance outputs (e.g., 90/180 calculations) are provided as guidance only. Always verify outputs and consult legal advisors for immigration and employment compliance decisions.
+- The licensee is the controller of any personal data processed with this software and is responsible for UK GDPR/EU GDPR compliance, including configuration, retention, security, and data subject rights.
+- Third‑party components are used under their respective open‑source licenses; see NOTICE and manifests for details. Those licenses govern their components.
+
+For full terms, see `/legal/LICENSE`. For trademark guidance and NDA template, see `/legal/`.
+<!-- LEGAL INSERT END -->
 
 ## Support
 

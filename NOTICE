@@ -1,0 +1,12 @@
+EU Trip Tracker – Third-Party Notices
+
+This product includes components licensed under open-source licenses. The following acknowledgments apply:
+
+- Flask – BSD License
+- SQLite – Public Domain
+- React – MIT License (used in reports and UI tooling)
+- Playwright – Apache-2.0 License
+- Various npm packages – MIT/Apache-2.0/ISC/MPL-2.0 (see package-locks)
+
+Full license texts are available from the respective projects. See `requirements.txt` and package manifests for the full list of dependencies. This NOTICE is for informational purposes and does not modify the terms in `LICENSE.txt`.
+

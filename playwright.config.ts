@@ -1,4 +1,5 @@
 import path from 'path';
+import fs from 'fs';
 import { defineConfig } from '@playwright/test';
 
 const projectRoot = process.cwd();
@@ -11,9 +12,20 @@ const defaultPython = process.platform === 'win32'
 const pythonInterpreter = process.env.PLAYWRIGHT_PYTHON ?? defaultPython;
 const runLocalScript = process.env.PLAYWRIGHT_APP_ENTRY ?? path.join(projectRoot, 'run_local.py');
 const webServerCommand = process.env.PLAYWRIGHT_SERVER_COMMAND ?? `"${pythonInterpreter}" "${runLocalScript}"`;
+const defaultDbPath = process.env.PLAYWRIGHT_DB_PATH ?? path.join(projectRoot, 'tests', 'tmp', 'playwright_e2e.db');
+
+try {
+  fs.mkdirSync(path.dirname(defaultDbPath), { recursive: true });
+  if (fs.existsSync(defaultDbPath)) {
+    fs.unlinkSync(defaultDbPath);
+  }
+} catch {
+  // best effort cleanup; failures will surface during tests if the DB cannot be initialised
+}
 
 export default defineConfig({
-  testDir: 'tests/e2e',
+  testDir: 'tests',
+  testMatch: ['**/*.spec.{js,ts}'],
   timeout: 30_000,
   expect: {
     timeout: 5_000,
@@ -43,9 +55,8 @@ export default defineConfig({
         PORT: String(port),
         FLASK_DEBUG: 'false',
         PYTHONUNBUFFERED: '1',
+        DATABASE_PATH: defaultDbPath,
       },
     },
   ],
 });
-
-

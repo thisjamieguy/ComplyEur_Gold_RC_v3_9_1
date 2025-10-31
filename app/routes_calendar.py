@@ -21,7 +21,7 @@ MIN_ALLOWED_YEAR = 1990
 
 
 def _validate_year_range(candidate: date, field_name: str) -> None:
-    current_year = datetime.utcnow().year
+https://file+.vscode-resource.vscode-cdn.net/var/folders/gy/4y5fh3ns2pj8dwfsgly_70900000gn/T/TemporaryItems/NSIRD_screencaptureui_vjluKC/Screenshot%202025-10-30%20at%2023.55.25.png?version%3D1761868531011    current_year = datetime.utcnow().year
     if candidate.year < MIN_ALLOWED_YEAR or candidate.year > current_year + MAX_FUTURE_YEARS:
         raise ValueError(
             f"{field_name} year must be between {MIN_ALLOWED_YEAR} and {current_year + MAX_FUTURE_YEARS}"

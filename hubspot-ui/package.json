@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "HubSpot-style responsive web app layout",
   "main": "index.js",
+  "license": "SEE LICENSE IN ../LICENSE.txt",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

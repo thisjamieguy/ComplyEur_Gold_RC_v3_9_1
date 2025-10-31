@@ -1,0 +1,25 @@
+<!-- LEGAL INSERT START -->
+Recommended Source Header (Python):
+"""
+Maavsi EU 90/180 Employee Travel Tracker
+Copyright (c) 2025 Maavsi. All rights reserved.
+
+Licensed for internal business use only under the Maavsi Proprietary License.
+See /legal/LICENSE for terms. Third‑party components are licensed separately.
+"""
+
+Recommended Source Header (JS/TS):
+/*
+ Maavsi EU 90/180 Employee Travel Tracker
+ Copyright (c) 2025 Maavsi. All rights reserved.
+
+ Licensed for internal business use only under the Maavsi Proprietary License.
+ See /legal/LICENSE for terms. Third‑party components are licensed separately.
+*/
+
+SPDX Alternative (where SPDX is preferred):
+# SPDX-License-Identifier: LicenseRef-Maavsi-Internal-Use-Only
+
+Note: Add headers to new files and to core modules as you touch them. Do not remove third‑party license headers.
+<!-- LEGAL INSERT END -->
+

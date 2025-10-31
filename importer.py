@@ -32,8 +32,11 @@ def detect_country_enhanced(cell_text: str) -> Optional[str]:
 
     upper_text = cell_text.upper()
 
-    # Explicit UK markers
-    if ' UK' in f" {upper_text} " or ' GB' in f" {upper_text} ":
+    # Explicit UK markers (handle spaces, slashes, and hyphenated formats like 'tr-UK')
+    if (
+        ' UK' in f" {upper_text} " or ' GB' in f" {upper_text} " or
+        re.search(r'(^|[^A-Z])(UK|GB)([^A-Z]|$)', upper_text)
+    ):
         return 'UK'
     
     # Use regex to find 2-letter country codes as standalone words
