@@ -128,7 +128,7 @@ news_items = fetch_news_from_sources(db_path, max_age_hours=12)  # Change from 6
 
 ### Styling
 
-The home page uses inline styles matching the IES theme:
+The home page uses inline styles matching the ComplyEur theme:
 - Primary Blue: `#2563eb`
 - Success Green: `#10b981`
 - Danger Red: `#ef4444`

@@ -48,7 +48,7 @@
 ### Header Gradient
 ```
 ┌─────────────────────────────────────────────────┐
-│ Gradient: #4C739F → #5B6C8F (IES Blue to Dark) │
+│ Gradient: #4C739F → #5B6C8F (ComplyEur Blue to Dark) │
 │ Text: White (#FFFFFF)                           │
 │ Font: Helvetica Neue, 28px, Bold                │
 └─────────────────────────────────────────────────┘
@@ -256,8 +256,8 @@ Small Text (Sources, Last Checked):
 3. gov.uk/foreign-travel-advice/austr...
 
 Colors:
-  Normal: IES Blue (#4C739F)
-  Hover: IES Dark Blue (#5B6C8F) + underline
+  Normal: ComplyEur Blue (#4C739F)
+  Hover: ComplyEur Dark Blue (#5B6C8F) + underline
 ```
 
 ---
@@ -325,12 +325,12 @@ Colors:
 ```
 Normal:
 ┌─────────────┐
-│ 🔄 Refresh  │  Background: IES Blue (#4C739F)
+│ 🔄 Refresh  │  Background: ComplyEur Blue (#4C739F)
 └─────────────┘  Text: White
 
 Hover:
 ┌─────────────┐
-│ 🔄 Refresh  │  Background: IES Dark Blue (#5B6C8F)
+│ 🔄 Refresh  │  Background: ComplyEur Dark Blue (#5B6C8F)
 └─────────────┘  Cursor: pointer
 ```
 
@@ -488,7 +488,7 @@ When printing (or PDF export in future):
 
 ---
 
-**Visual design complete!** All elements follow IES brand guidelines and provide an intuitive, professional user experience.
+**Visual design complete!** All elements follow ComplyEur brand guidelines and provide an intuitive, professional user experience.
 
 
 

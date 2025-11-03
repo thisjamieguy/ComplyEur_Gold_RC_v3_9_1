@@ -1,5 +1,5 @@
 # 🚀 Production Deployment Checklist
-## IES Employee EU Travel Tracker v1.1
+## ComplyEur Employee EU Travel Tracker v1.1
 
 **Pre-Deployment Security Review:** ✅ COMPLETED  
 **GDPR Compliance:** ✅ VERIFIED  

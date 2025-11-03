@@ -10,7 +10,7 @@
 :root {
     --hubspot-bg: var(--base-bg, #F2F3F5);
     --hubspot-sidebar: #1e293b;
-    --hubspot-orange: var(--color-blue-primary); /* repurpose orange as IES blue */
+    --hubspot-orange: var(--color-blue-primary); /* repurpose orange as ComplyEur blue */
     --hubspot-blue: var(--color-blue-primary);
     --text-primary: var(--color-text, #1f2937);
     --text-secondary: var(--color-grey, #6b7280);

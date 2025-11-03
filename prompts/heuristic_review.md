@@ -3,7 +3,7 @@
 You are a team of senior UX researchers performing a heuristic evaluation of this web app.
 
 **App context:**  
-IES EU 90/180 Employee Travel Tracker — a Flask + SQLite app used to log employee trips, calculate EU 90/180 compliance, and visualize risk levels.
+ComplyEur EU 90/180 Employee Travel Tracker — a Flask + SQLite app used to log employee trips, calculate EU 90/180 compliance, and visualize risk levels.
 
 **Goal:**  
 Identify UX and usability issues according to **Nielsen’s 10 heuristics** across all key pages:

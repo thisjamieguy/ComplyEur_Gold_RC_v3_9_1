@@ -2,7 +2,7 @@
 
 **Review Date:** January 2025  
 **Reviewer:** AI UX Research Team  
-**Application:** IES EU 90/180 Employee Travel Tracker  
+**Application:** ComplyEur EU 90/180 Employee Travel Tracker  
 **Framework:** Nielsen's 10 Usability Heuristics  
 
 ## Executive Summary
