@@ -1,0 +1,199 @@
+---
+# ComplyEur - Infrastructure Security Policy
+# Phase 4: Network & Infrastructure Security
+# Compliance: GDPR, ISO 27001, NIS2
+
+version: "1.0"
+last_updated: "2025-01-XX"
+owner: "AppSec Team"
+
+network_security:
+  firewall:
+    enabled: true
+    description: "Firewall rules enforced by Render platform"
+    rules:
+      - rule: "Allow HTTP (port 80) from Cloudflare only"
+        enabled: true
+        note: "Cloudflare proxies all traffic"
+      - rule: "Allow HTTPS (port 443) from Cloudflare only"
+        enabled: true
+        note: "Cloudflare TLS termination"
+      - rule: "Block all other ports"
+        enabled: true
+        blocked_ports: [22, 3306, 5432, 6379]  # SSH, MySQL, PostgreSQL, Redis
+        note: "Render manages SSH access; database ports blocked from internet"
+  
+  cloudflare_waf:
+    enabled: true
+    managed_ruleset: "OWASP Core Rule Set"
+    description: "Cloudflare WAF with OWASP rules for attack mitigation"
+    
+  rate_limiting:
+    enabled: true
+    rules:
+      - path: "/login"
+        limit: "5 requests per minute per IP"
+      - path: "/api/*"
+        limit: "100 requests per minute per IP"
+      - path: "/*"
+        limit: "1000 requests per minute per IP"
+    
+  geo_blocking:
+    enabled: false  # Optional: set to true to block non-EU traffic
+    allowed_regions:
+      - "EU"  # European Union
+      - "EEA"  # European Economic Area
+      - "CH"   # Switzerland
+    blocked_regions: []  # Empty = allow all if enabled=false
+
+render_services:
+  web_service:
+    name: "eu-trip-tracker"
+    hardening:
+      - item: "Private service discovery"
+        enabled: true
+        note: "Services communicate via private network"
+      
+      - item: "Environment variable secrets"
+        enabled: true
+        note: "All secrets stored in Render Secrets (not code)"
+      
+      - item: "Persistent disk encryption"
+        enabled: true
+        note: "Render disks encrypted at rest"
+      
+      - item: "Auto-scaling disabled"
+        enabled: false
+        note: "Single instance for compliance (no data replication)"
+      
+      - item: "Health check endpoint"
+        enabled: true
+        endpoint: "/health"
+        note: "Monitor service availability"
+    
+    network:
+      - item: "Private database connections"
+        enabled: true
+        note: "Database accessible only via private network"
+      
+      - item: "No public database ports"
+        enabled: true
+        note: "Database not exposed to internet"
+    
+    access:
+      - item: "SSH access via Render dashboard only"
+        enabled: true
+        note: "No direct SSH; managed by Render"
+      
+      - item: "Two-factor authentication required"
+        enabled: true
+        note: "Render account 2FA enforced"
+
+vulnerability_scanning:
+  continuous_scanning:
+    enabled: true
+    tools:
+      - name: "Bandit"
+        frequency: "on every push"
+        scope: "Python codebase"
+        config: ".bandit"
+      
+      - name: "Safety"
+        frequency: "on every push"
+        scope: "Python dependencies"
+      
+      - name: "Snyk"
+        frequency: "on every push + weekly"
+        scope: "Dependencies + container images"
+        integration: "GitHub Actions"
+      
+      - name: "Trivy"
+        frequency: "on every push"
+        scope: "Container images (if using Docker)"
+    
+    blocking: true
+    note: "CI pipeline blocks merge on critical/high findings"
+
+incident_response:
+  tabletop_testing:
+    frequency: "quarterly"
+    scenarios:
+      - "SQL injection attempt detected"
+      - "DDoS attack on login endpoint"
+      - "Unauthorized access to admin account"
+      - "Data breach suspected"
+      - "Backup corruption detected"
+    
+    documentation_required: true
+    log_location: "./logs/incident_response/"
+
+  escalation:
+    - level: "Critical"
+      notify: ["AppSec Lead", "Compliance Officer", "CISO"]
+      timeline: "within 1 hour"
+    
+    - level: "High"
+      notify: ["AppSec Lead", "Compliance Officer"]
+      timeline: "within 4 hours"
+    
+    - level: "Medium"
+      notify: ["AppSec Lead"]
+      timeline: "within 24 hours"
+
+monitoring:
+  siem_integration:
+    provider: "Optional: Datadog / Logtail / ELK"
+    enabled: false  # Set to true when SIEM configured
+    alerts:
+      - "Failed login attempts > 10 per minute"
+      - "Unusual API access patterns"
+      - "Database connection failures"
+      - "Backup job failures"
+      - "Disk space > 80%"
+  
+  log_retention:
+    application_logs: "90 days"
+    audit_logs: "indefinite (GDPR requirement)"
+    access_logs: "30 days"
+    security_logs: "1 year"
+
+backup_security:
+  encrypted_backups: true
+  backup_location: "/var/data/backups"
+  retention_policy: "30 daily, 12 weekly, 12 monthly"
+  offsite_copy: false  # GDPR: local storage only
+  verification: "automated integrity checks"
+
+compliance:
+  standards:
+    - "GDPR (Articles 5-32)"
+    - "ISO 27001"
+    - "NIS2 Directive"
+    - "OWASP Top 10"
+  
+  certifications:
+    - target: "ISO 27001 certification"
+      status: "in_progress"
+      completion_target: "2025-Q2"
+    
+    - target: "SOC 2 Type II"
+      status: "planned"
+      completion_target: "2025-Q3"
+
+review_schedule:
+  - item: "Security policy review"
+    frequency: "quarterly"
+    owner: "AppSec Lead"
+  
+  - item: "Infrastructure hardening review"
+    frequency: "monthly"
+    owner: "DevOps Lead"
+  
+  - item: "Vulnerability assessment"
+    frequency: "weekly (automated)"
+    owner: "CI/CD Pipeline"
+  
+  - item: "Penetration testing"
+    frequency: "annually"
+    owner: "External Security Firm"
+

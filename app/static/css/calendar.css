@@ -47,10 +47,11 @@
     gap: 12px;
     background: var(--calendar-color-surface);
     border-radius: 16px;
-    border: 1px solid var(--calendar-color-surface-strong);
-    padding: 20px 24px 24px;
+    border: none;
+    padding: 24px 28px 28px;
     position: relative;
     min-height: 420px;
+    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
 }
 
 .calendar-toolbar {
@@ -427,6 +428,8 @@
     overscroll-behavior: contain;
     background: #ffffff;
     scroll-behavior: smooth;
+    scrollbar-gutter: stable both-edges;
+    -webkit-overflow-scrolling: touch;
 }
 
 .calendar-employee-item {
@@ -470,6 +473,8 @@
     background: var(--calendar-color-surface-muted);
     overscroll-behavior: contain;
     scroll-behavior: smooth;
+    scrollbar-gutter: stable both-edges;
+    -webkit-overflow-scrolling: touch;
 }
 
 .calendar-timeline-inner {
@@ -486,6 +491,7 @@
     display: flex;
     align-items: stretch;
     border-bottom: 1px solid #f1f5f9;
+    contain: layout paint;
 }
 
 .calendar-grid-row:last-child {
@@ -496,7 +502,7 @@
     position: relative;
     display: flex;
     height: 100%;
-    pointer-events: none;
+    pointer-events: auto;
     z-index: 1;
 }
 
@@ -505,6 +511,8 @@
     height: 100%;
     border-right: 1px solid rgba(148, 163, 184, 0.18);
     background: rgba(255, 255, 255, 0.65);
+    border-radius: 4px;
+    transition: background 0.18s ease, box-shadow 0.18s ease;
 }
 
 .calendar-cell:last-child {
@@ -517,6 +525,18 @@
 
 .calendar-cell--month-start {
     box-shadow: inset 1px 0 0 rgba(37, 99, 235, 0.35);
+}
+
+.calendar-cell--risk {
+    box-shadow: inset 0 -2px 0 rgba(15, 23, 42, 0.08);
+}
+
+.calendar-cell--risk[data-risk-level="critical"] {
+    box-shadow: inset 0 -2px 0 var(--calendar-cell-risk, rgba(244, 67, 54, 0.35));
+}
+
+.calendar-cell--risk[data-risk-level="caution"] {
+    box-shadow: inset 0 -2px 0 rgba(255, 193, 7, 0.35);
 }
 
 .calendar-grid-row--focus::before {
@@ -544,27 +564,30 @@
     display: block;
     overflow: visible;
     z-index: 2;
+    will-change: transform;
+    contain: layout paint;
 }
 
 .calendar-trip,
 .trip-bar {
     position: absolute;
-    border-radius: 10px;
+    border-radius: 6px;
     color: #ffffff;
     font-size: 13px;
     font-weight: 600;
-    padding: 10px 12px;
-    box-shadow: 0 12px 24px var(--calendar-shadow-strong);
+    padding: 8px 12px;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.2);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    transition: transform 0.16s ease, box-shadow 0.16s ease;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.18s ease;
     cursor: pointer;
+    background: var(--calendar-trip-color, var(--calendar-color-safe));
 }
 
 .trip-bar {
     height: 14px;
-    background-color: var(--calendar-color-safe);
+    background: var(--calendar-trip-color, var(--calendar-color-safe));
     display: inline-block;
     position: relative;
     padding: 0;
@@ -578,26 +601,26 @@
 
 .calendar-trip--safe,
 .trip-bar--safe {
-    background: var(--calendar-color-safe);
+    --calendar-trip-color: var(--calendar-color-safe);
     color: #ffffff;
 }
 
 .calendar-trip--warning,
 .trip-bar--warning {
-    background: var(--calendar-color-warning);
+    --calendar-trip-color: var(--calendar-color-warning);
     color: #ffffff;
 }
 
 .calendar-trip--critical,
 .trip-bar--critical {
-    background: var(--calendar-color-critical);
+    --calendar-trip-color: var(--calendar-color-critical);
     color: #ffffff;
 }
 
 .calendar-trip:hover,
 .trip-bar:hover {
     transform: translateY(-2px);
-    box-shadow: 0 16px 28px var(--calendar-shadow-strong);
+    box-shadow: 0 14px 26px rgba(15, 23, 42, 0.22);
 }
 
 .calendar-trip--dragging,
@@ -618,7 +641,7 @@
     top: 0;
     height: calc(100% - 16px);
     margin-top: 8px;
-    border-radius: 10px;
+    border-radius: 6px;
     background: rgba(59, 130, 246, 0.18);
     border: 1px dashed rgba(59, 130, 246, 0.6);
     pointer-events: none;
@@ -683,6 +706,7 @@
     pointer-events: none;
     display: none;
     animation: calendar-today-pulse 3.5s ease-in-out infinite;
+    will-change: transform, height;
 }
 
 .calendar-today-marker::after {
@@ -698,6 +722,7 @@
     padding: 2px 8px;
     border-radius: 999px;
     box-shadow: 0 6px 12px rgba(29, 78, 216, 0.24);
+    will-change: transform, opacity;
 }
 
 .calendar-today-marker--body::after {
@@ -1125,17 +1150,39 @@
 
 .calendar-tooltip {
     position: absolute;
-    min-width: 220px;
+    min-width: 200px;
     max-width: 320px;
-    padding: 12px 14px;
-    background: rgba(15, 23, 42, 0.95);
+    padding: 12px 16px 12px 20px;
+    background: rgba(15, 23, 42, 0.96);
     color: #f8fafc;
     border-radius: 10px;
     font-size: 12px;
     line-height: 1.5;
-    box-shadow: 0 18px 30px rgba(15, 23, 42, 0.35);
+    box-shadow: 0 18px 30px rgba(15, 23, 42, 0.32);
     pointer-events: none;
     z-index: 15;
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+    transition: opacity 0.12s ease, transform 0.12s ease;
+    will-change: opacity, transform;
+    --calendar-tooltip-accent: var(--calendar-color-safe);
+}
+
+.calendar-tooltip::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 12px;
+    bottom: 12px;
+    width: 4px;
+    border-radius: 99px;
+    background: var(--calendar-tooltip-accent);
+    opacity: 0.85;
+}
+
+.calendar-tooltip--visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
 }
 
 .calendar-toast {
@@ -1166,6 +1213,47 @@
 
 .calendar-tooltip div + div {
     margin-top: 4px;
+}
+
+.calendar-tooltip-metric {
+    font-weight: 600;
+}
+
+@media (max-width: 1024px) {
+    .calendar-shell {
+        padding: 20px;
+    }
+    .calendar-header-row,
+    .calendar-body {
+        grid-template-columns: 1fr;
+    }
+    .calendar-employee-header {
+        display: none;
+    }
+    .calendar-employee-list {
+        max-height: 220px;
+    }
+    .calendar-timeline-header {
+        margin-left: -12px;
+        margin-right: -12px;
+    }
+}
+
+@media (max-width: 768px) {
+    .calendar-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .calendar-toolbar-right {
+        width: 100%;
+        margin-left: 0;
+    }
+    .calendar-search {
+        width: 100%;
+    }
+    .calendar-shell {
+        border-radius: 12px;
+    }
 }
 
 .visually-hidden {

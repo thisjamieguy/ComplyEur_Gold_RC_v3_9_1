@@ -293,6 +293,30 @@ def create_app():
         logger.info("Registering blueprint...")
         app.register_blueprint(main_bp)
         app.register_blueprint(calendar_api_bp)
+        
+        # Health check endpoint (no auth required for monitoring)
+        from .routes_health import health_bp
+        app.register_blueprint(health_bp)
+        
+        # Audit trail dashboard
+        from .routes_audit import audit_bp
+        app.register_blueprint(audit_bp)
+        
+        # Register auth blueprint (if available)
+        try:
+            from .routes_auth import auth_bp, init_routes
+            # Auth routes require additional setup (db, csrf, limiter)
+            # For now, register without those dependencies - they'll be None if not set
+            # This allows auth routes to work with basic Flask session auth
+            app.register_blueprint(auth_bp)
+            logger.info("Auth blueprint registered successfully")
+        except ImportError as e:
+            logger.warning(f"Auth blueprint not available: {e}")
+        except Exception as e:
+            logger.error(f"Failed to register auth blueprint: {e}")
+            logger.error(traceback.format_exc())
+            # Don't raise - app can work without advanced auth
+        
         logger.info("Blueprint registered successfully")
 
         logger.info(f"Registered {len(list(app.url_map.iter_rules()))} routes successfully")

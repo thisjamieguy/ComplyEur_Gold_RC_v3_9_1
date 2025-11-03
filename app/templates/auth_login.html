@@ -1,0 +1,33 @@
+{% extends "auth_base.html" %}
+{% block content %}
+<section class="card">
+  {% if not totp_mode %}
+  <h1>Sign in</h1>
+  <form method="POST" autocomplete="off">
+    {{ form.csrf_token }}
+    <label>Username {{ form.username(size=32, autofocus=True) }}</label>
+    <label>Password
+      <div class="password-wrap">
+        {{ form.password(id="password", size=32) }}
+        <button type="button" id="toggle">Show</button>
+      </div>
+    </label>
+    <p id="caps" class="hint" hidden>Caps Lock is ON</p>
+    <button type="submit">Sign in</button>
+  </form>
+  {% else %}
+  <h1>Two-factor code</h1>
+  <form method="POST" autocomplete="one-time-code">
+    {{ form.csrf_token }}
+    <label>Code <input name="token" inputmode="numeric" pattern="[0-9 ]{6,}" required></label>
+    <button type="submit">Verify</button>
+  </form>
+  {% endif %}
+</section>
+{% if csp_nonce %}
+<script nonce="{{ csp_nonce }}" src="{{ url_for('static', filename='js/auth_login.js') }}"></script>
+{% else %}
+<script src="{{ url_for('static', filename='js/auth_login.js') }}"></script>
+{% endif %}
+{% endblock %}
+

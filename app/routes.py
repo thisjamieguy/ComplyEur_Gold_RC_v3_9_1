@@ -124,6 +124,10 @@ MAX_ATTEMPTS = 5
 ATTEMPT_WINDOW_SECONDS = 300  # 5 minutes
 
 def login_required(f):
+    """
+    Authentication decorator supporting both legacy (logged_in) and new (user_id) session systems.
+    Prioritizes new auth system (user_id) when present to avoid authentication loops.
+    """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         # Temporary developer bypass to speed up manual QA when needed
@@ -134,50 +138,73 @@ def login_required(f):
                 return f(*args, **kwargs)
         except Exception:
             pass
-        if not session.get('logged_in'):
-            # Check if this is an AJAX request
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
-                return jsonify({'error': 'Authentication required', 'redirect': url_for('main.login')}), 401
-            return redirect(url_for('main.login'))
         
-        # Check session timeout (compare in UTC to avoid timezone skew)
-        if 'last_activity' in session:
+        # PRIORITY 1: New auth system (user_id) - handle first to avoid conflicts
+        if session.get('user_id'):
             try:
-                last_activity_str = session['last_activity']
-                # Parse to naive UTC
-                if isinstance(last_activity_str, str):
-                    if 'Z' in last_activity_str:
-                        last_activity_str = last_activity_str.replace('Z', '')
-                    if '+' in last_activity_str:
-                        last_activity_str = last_activity_str.split('+')[0]
-                    if 'T' in last_activity_str:
-                        last_activity = datetime.strptime(last_activity_str, '%Y-%m-%dT%H:%M:%S')
-                    else:
-                        last_activity = datetime.fromisoformat(last_activity_str)
-                else:
-                    last_activity = datetime.utcnow()
-
-                # Ensure both datetimes are naive
-                if getattr(last_activity, 'tzinfo', None):
-                    last_activity = last_activity.replace(tzinfo=None)
-
-                if datetime.utcnow() - last_activity > timedelta(minutes=30):
-                    session.clear()
-                    # Check if this is an AJAX request
+                from app.modules.auth import SessionManager
+                if SessionManager.is_expired():
+                    SessionManager.clear_session()
                     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
-                        return jsonify({'error': 'Session expired', 'redirect': url_for('main.login')}), 401
-                    return redirect(url_for('main.login'))
-            except (ValueError, TypeError, AttributeError):
-                # If datetime parsing fails, clear session
+                        return jsonify({'error': 'Session expired', 'redirect': url_for('auth.login')}), 401
+                    return redirect(url_for('auth.login'))
+                SessionManager.touch_session()
+                return f(*args, **kwargs)
+            except ImportError:
+                # If SessionManager not available, fall back to old system
+                logger.warning("SessionManager not available, falling back to legacy auth")
+                pass
+            except Exception as e:
+                logger.error(f"Error in SessionManager: {e}")
+                # Clear session on error and redirect to login
                 session.clear()
-                # Check if this is an AJAX request
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
-                    return jsonify({'error': 'Session invalid', 'redirect': url_for('main.login')}), 401
-                return redirect(url_for('main.login'))
+                    return jsonify({'error': 'Session error', 'redirect': url_for('auth.login')}), 401
+                return redirect(url_for('auth.login'))
         
-        # Update last activity
-        session['last_activity'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
-        return f(*args, **kwargs)
+        # PRIORITY 2: Legacy auth system (logged_in) - only if user_id not present
+        if session.get('logged_in'):
+            # Check session timeout for old system - compare in UTC to avoid timezone skew
+            if 'last_activity' in session:
+                try:
+                    last_activity_str = session['last_activity']
+                    # Parse to naive UTC
+                    if isinstance(last_activity_str, str):
+                        if 'Z' in last_activity_str:
+                            last_activity_str = last_activity_str.replace('Z', '')
+                        if '+' in last_activity_str:
+                            last_activity_str = last_activity_str.split('+')[0]
+                        if 'T' in last_activity_str:
+                            last_activity = datetime.strptime(last_activity_str, '%Y-%m-%dT%H:%M:%S')
+                        else:
+                            last_activity = datetime.fromisoformat(last_activity_str)
+                    else:
+                        last_activity = datetime.utcnow()
+
+                    # Ensure both datetimes are naive
+                    if getattr(last_activity, 'tzinfo', None):
+                        last_activity = last_activity.replace(tzinfo=None)
+
+                    if datetime.utcnow() - last_activity > timedelta(minutes=30):
+                        session.clear()
+                        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
+                            return jsonify({'error': 'Session expired', 'redirect': url_for('auth.login')}), 401
+                        return redirect(url_for('auth.login'))
+                except (ValueError, TypeError, AttributeError):
+                    # If datetime parsing fails, clear session
+                    session.clear()
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
+                        return jsonify({'error': 'Session invalid', 'redirect': url_for('auth.login')}), 401
+                    return redirect(url_for('auth.login'))
+            
+            # Update last activity for legacy system
+            session['last_activity'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+            return f(*args, **kwargs)
+        
+        # No valid session found - require login
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
+            return jsonify({'error': 'Authentication required', 'redirect': url_for('auth.login')}), 401
+        return redirect(url_for('auth.login'))
     return decorated_function
 
 def get_db():
@@ -455,8 +482,9 @@ def refresh_news():
             'message': f'Error starting news refresh: {str(e)}'
         }), 500
 
-@main_bp.route('/login', methods=['GET', 'POST'])
-def login():
+# Login route moved to auth_bp - this route disabled to avoid conflicts
+# @main_bp.route('/login', methods=['GET', 'POST'])
+def login_old():
     if request.method == 'POST':
         from flask import current_app
         CONFIG = current_app.config['CONFIG']
@@ -591,7 +619,7 @@ def setup():
     
     # Check if admin already exists
     if Admin.exists():
-        return redirect(url_for('main.login'))
+        return redirect(url_for('auth.login'))
     
     if request.method == 'POST':
         password = request.form.get('password', '')
@@ -612,7 +640,7 @@ def logout():
     CONFIG = current_app.config['CONFIG']
     session.pop('logged_in', None)
     write_audit(CONFIG['AUDIT_LOG_PATH'], 'logout', 'admin', {})
-    return redirect(url_for('main.login'))
+    return redirect(url_for('auth.login'))
 
 @main_bp.route('/profile')
 @login_required
@@ -1273,11 +1301,20 @@ def import_excel():
                     
             except Exception as e:
                 logger.error(f"Error processing Excel file: {e}")
+                import traceback
+                error_trace = traceback.format_exc()
+                logger.error(f"Excel import traceback: {error_trace}")
                 write_audit(CONFIG['AUDIT_LOG_PATH'], 'excel_import_error', 'admin', {
-                    'filename': file.filename,
+                    'filename': file.filename if file else 'unknown',
                     'error': str(e)
                 })
-                flash(f'Error processing file: {str(e)}')
+                flash(f'Error processing file: {str(e)}. Please check the file format and try again.')
+                # Clean up uploaded file on error
+                try:
+                    if 'file_path' in locals() and os.path.exists(file_path):
+                        os.remove(file_path)
+                except Exception as cleanup_error:
+                    logger.warning(f"Failed to cleanup uploaded file: {cleanup_error}")
                 return render_template('import_excel.html')
         else:
             flash('Invalid file type. Please upload an Excel file (.xlsx or .xls)')

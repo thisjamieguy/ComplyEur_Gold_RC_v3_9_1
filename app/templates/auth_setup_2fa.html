@@ -1,0 +1,12 @@
+{% extends "auth_base.html" %}
+{% block content %}
+<section class="card">
+  <h1>Set up 2FA</h1>
+  <p>Scan this QR with your authenticator app, then use codes at login.</p>
+  <img alt="QR code" src="data:image/png;base64,{{ qr_b64 }}" />
+  <p><strong>Secret:</strong> {{ secret }}</p>
+  <form method="POST"><button type="submit">Regenerate secret</button></form>
+  <p class="hint">Store recovery codes safely (e.g., write down the secret). If you lose your device, an admin must reset 2FA.</p>
+</section>
+{% endblock %}
+

@@ -7,15 +7,15 @@
 
 const { test, expect } = require('@playwright/test');
 const { injectAxe, checkA11y } = require('axe-playwright');
+const { navigateToCalendar, CALENDAR_PATH } = require('./utils/calendarTestHelpers');
 
-const CALENDAR_PATH = '/calendar';
 const DEFAULT_HEIGHT = 900;
+const DAY_WIDTH = 28;
 
 async function bootstrapCalendar(page) {
-  await page.goto(CALENDAR_PATH, { waitUntil: 'networkidle' });
-  await expect(page.locator('.calendar-trip').first()).toBeVisible({ timeout: 10000 });
   const consoleErrors = [];
   page.on('console', msg => msg.type() === 'error' && consoleErrors.push(msg.text()));
+  await navigateToCalendar(page);
   return { consoleErrors };
 }
 
@@ -40,6 +40,24 @@ async function dragTrip(page, trip, distanceX) {
   await page.mouse.down();
   await page.mouse.move(startX + distanceX, startY, { steps: 10 });
   await page.mouse.up();
+}
+
+async function readTripDataset(page, tripId) {
+  return page.evaluate((id) => {
+    const el = document.querySelector(`.calendar-trip[data-trip-id="${id}"]`);
+    if (!el) {
+      return null;
+    }
+    return {
+      id,
+      start: el.getAttribute('data-start'),
+      end: el.getAttribute('data-end'),
+      employee: el.getAttribute('data-employee'),
+      country: el.getAttribute('data-country'),
+      daysUsed: el.getAttribute('data-days-used'),
+      ariaLabel: el.getAttribute('aria-label'),
+    };
+  }, tripId);
 }
 
 /**
@@ -155,4 +173,107 @@ test('QA-13 Drag performance under 1000ms', async ({ page }) => {
   const duration = end - start;
   console.log(`Drag operation took ${duration.toFixed(2)}ms`);
   expect(duration).toBeLessThan(1000);
+});
+
+test('QA-14 Trip dataset remains coherent after drag', async ({ page }) => {
+  await bootstrapCalendar(page);
+
+  const trip = page.locator('.calendar-trip').first();
+  const initialId = await trip.getAttribute('data-trip-id');
+  expect(initialId).toBeTruthy();
+
+  const before = await readTripDataset(page, initialId);
+  expect(before).not.toBeNull();
+
+  await dragTrip(page, trip, DAY_WIDTH * 3);
+  await page.waitForTimeout(500);
+
+  const after = await readTripDataset(page, initialId);
+  expect(after).not.toBeNull();
+
+  const dayDelta = Math.round((new Date(after.start) - new Date(before.start)) / 86_400_000);
+  expect(dayDelta).toBe(3);
+  const durationBefore = Math.round((new Date(before.end) - new Date(before.start)) / 86_400_000);
+  const durationAfter = Math.round((new Date(after.end) - new Date(after.start)) / 86_400_000);
+  expect(durationAfter).toBe(durationBefore);
+  expect(after.country).toBe(before.country);
+  expect(after.employee).toBe(before.employee);
+  expect(after.ariaLabel).toContain(after.country);
+  if (after.daysUsed) {
+    expect(Number.isFinite(Number(after.daysUsed))).toBeTruthy();
+  }
+
+  const uniqueTripIds = await page.evaluate(() => {
+    const ids = Array.from(document.querySelectorAll('.calendar-trip'), (node) => node.getAttribute('data-trip-id'));
+    return new Set(ids).size;
+  });
+  const totalTrips = await page.locator('.calendar-trip').count();
+  expect(uniqueTripIds).toBe(totalTrips);
+});
+
+test('QA-15 Drag results render without jitter across frames', async ({ page }) => {
+  await bootstrapCalendar(page);
+
+  const trip = page.locator('.calendar-trip').nth(1);
+  const tripId = await trip.getAttribute('data-trip-id');
+  expect(tripId).toBeTruthy();
+
+  await dragTrip(page, trip, DAY_WIDTH * 2);
+  await page.waitForTimeout(200);
+
+  const maxVariance = await page.evaluate(async (id) => {
+    const target = document.querySelector(`.calendar-trip[data-trip-id="${id}"]`);
+    if (!target) {
+      return null;
+    }
+    const samples = [];
+    for (let index = 0; index < 8; index += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      const rect = target.getBoundingClientRect();
+      samples.push({ left: rect.left, top: rect.top });
+    }
+    const lefts = samples.map((item) => item.left);
+    const tops = samples.map((item) => item.top);
+    const maxLeft = Math.max(...lefts);
+    const minLeft = Math.min(...lefts);
+    const maxTop = Math.max(...tops);
+    const minTop = Math.min(...tops);
+    return {
+      deltaX: maxLeft - minLeft,
+      deltaY: maxTop - minTop,
+    };
+  }, tripId);
+
+  expect(maxVariance).not.toBeNull();
+  expect(maxVariance.deltaX).toBeLessThan(1);
+  expect(maxVariance.deltaY).toBeLessThan(1);
+});
+
+test.describe('visual regression', () => {
+  test.skip(process.env.CALENDAR_VISUAL_SNAPSHOTS !== '1', 'Enable CALENDAR_VISUAL_SNAPSHOTS=1 to record visual baselines');
+
+  test('QA-16 Post-drag layout matches visual baseline', async ({ page }) => {
+    await bootstrapCalendar(page);
+    const trip = page.locator('.calendar-trip').first();
+    await dragTrip(page, trip, DAY_WIDTH);
+    await page.waitForTimeout(300);
+
+    await page.addStyleTag({
+      content: '* { transition-duration: 0s !important; animation-duration: 0s !important; }',
+    });
+    const toast = page.locator('#calendar-toast');
+    if (await toast.count()) {
+      await toast.evaluate((node) => {
+        node.setAttribute('data-test-hidden', 'true');
+        node.style.display = 'none';
+      });
+    }
+
+    await expect(page.locator('#calendar')).toHaveScreenshot('calendar-post-drag.png', {
+      animations: 'disabled',
+      mask: [page.locator('.calendar-today-marker')],
+      maxDiffPixelRatio: 0.02,
+    });
+  });
 });

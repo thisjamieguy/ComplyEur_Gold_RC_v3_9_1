@@ -1,0 +1,14 @@
+:root { --bg:#0b0f13; --fg:#e7eef7; --muted:#96a2b2; --card:#11161c; --accent:#4da3ff; }
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui, -apple-system, Segoe UI, Roboto}
+.container{max-width:480px;margin:6vh auto;padding:16px}
+.card{background:var(--card);padding:20px;border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.3)}
+label{display:block;margin:.5rem 0}
+input{width:100%;padding:.6rem;border-radius:8px;border:1px solid #2a3440;background:#0e1318;color:var(--fg)}
+button{margin-top:.8rem;padding:.6rem .9rem;border-radius:10px;border:1px solid #2a3440;background:#15202b;color:var(--fg);cursor:pointer}
+.password-wrap{display:flex;gap:8px;align-items:center}
+.password-wrap #toggle{border-color:#344355}
+.flash{list-style:none;padding:0;margin:0 0 1rem 0}
+.flash li{padding:.6rem;border-radius:8px}
+.flash-info{background:#123d28} .flash-warning{background:#3d2f12} .flash-danger{background:#3d1212}
+.hint{color:var(--muted);font-size:.9rem}
+

@@ -75,6 +75,9 @@
             this.boundTrips = new WeakSet();
             this.rows = new WeakSet();
             this.dragging = null;
+            this.dragFrame = null;
+            this.pendingPointer = null;
+            this.lastPointer = null;
             this.labelClass = 'calendar-drag-label';
             this.labelEl = null;
 
@@ -217,6 +220,9 @@
                 nextStart: meta.start,
                 nextEnd: meta.end
             };
+            this.dragFrame = null;
+            this.pendingPointer = null;
+            this.lastPointer = null;
 
             if (event.dataTransfer) {
                 event.dataTransfer.effectAllowed = 'move';
@@ -242,16 +248,7 @@
         }
 
         handleDragOver(event) {
-            if (!this.dragging) {
-                return;
-            }
-            if (event.currentTarget !== this.dragging.layer) {
-                return;
-            }
-
-            const meta = this.dragging.meta;
-            const rangeInfo = this.getRangeInfo();
-            if (!rangeInfo.start) {
+            if (!this.dragging || event.currentTarget !== this.dragging.layer) {
                 return;
             }
 
@@ -262,8 +259,37 @@
                 event.dataTransfer.dropEffect = 'move';
             }
 
+            this.pendingPointer = {
+                clientX: event.clientX,
+                clientY: event.clientY
+            };
+
+            if (!this.dragFrame) {
+                this.dragFrame = requestAnimationFrame(() => this.flushDragOver());
+            }
+        }
+
+        flushDragOver(force = false) {
+            if (!this.dragging) {
+                return;
+            }
+
+            const pointer = this.pendingPointer || (force ? this.lastPointer : null);
+            if (!pointer) {
+                return;
+            }
+            this.pendingPointer = null;
+            this.lastPointer = pointer;
+            this.dragFrame = null;
+
+            const meta = this.dragging.meta;
+            const rangeInfo = this.getRangeInfo();
+            if (!rangeInfo.start) {
+                return;
+            }
+
             const layerRect = this.dragging.layer.getBoundingClientRect();
-            const relativeX = event.clientX - layerRect.left;
+            const relativeX = pointer.clientX - layerRect.left;
             const rawIndex = (relativeX / this.dayWidth) - this.dragging.anchorOffsetDays;
             const maxIndex = Math.max(0, rangeInfo.totalDays - meta.durationDays);
             const snappedIndex = clamp(Math.round(rawIndex), 0, maxIndex);
@@ -283,7 +309,7 @@
                 this.dragging.placeholder.style.top = this.dragging.element.style.top || '0px';
             }
 
-            this.updateLabel(event.clientX, event.clientY, this.dragging.nextStart, this.dragging.nextEnd);
+            this.updateLabel(pointer.clientX, pointer.clientY, this.dragging.nextStart, this.dragging.nextEnd);
         }
 
         handleDrop(event) {
@@ -294,6 +320,12 @@
             if (event.cancelable) {
                 event.preventDefault();
             }
+
+            if (this.dragFrame) {
+                cancelAnimationFrame(this.dragFrame);
+                this.dragFrame = null;
+            }
+            this.flushDragOver(true);
 
             const dragState = this.dragging;
             const meta = dragState.meta;
@@ -409,6 +441,12 @@
             if (placeholder && placeholder.parentNode) {
                 placeholder.parentNode.removeChild(placeholder);
             }
+            if (this.dragFrame) {
+                cancelAnimationFrame(this.dragFrame);
+                this.dragFrame = null;
+            }
+            this.pendingPointer = null;
+            this.lastPointer = null;
             this.hideLabel();
             this.dragging = null;
         }
@@ -416,8 +454,3 @@
 
     global.CalendarDragManager = DragManager;
 })(typeof window !== 'undefined' ? window : globalThis);
-
-
-
-
-

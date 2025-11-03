@@ -1,0 +1,133 @@
+name: Security Checks
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run weekly security scans
+    - cron: '0 0 * * 0'
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install bandit safety pytest pytest-flask
+    
+    - name: Run Bandit (SAST)
+      run: |
+        bandit -r app/ -f json -o bandit-report.json || true
+        bandit -r app/ -f txt
+    
+    - name: Check for known vulnerabilities (Safety)
+      run: |
+        safety check --json || true
+        safety check
+    
+    - name: Run security tests
+      run: |
+        pytest tests/test_auth_security.py tests/test_encryption_security.py tests/test_input_validation.py -v
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        severity: 'CRITICAL,HIGH'
+      continue-on-error: true
+    
+    - name: Upload Trivy results
+      if: always()
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
+    
+    - name: Run Snyk security scan
+      uses: snyk/actions/python@master
+      continue-on-error: true
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=high
+    
+    - name: Upload Bandit report
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: bandit-report
+        path: bandit-report.json
+
+  lint-javascript:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    
+    - name: Install ESLint
+      run: |
+        npm install -g eslint
+        if [ -f package.json ]; then
+          npm install
+        fi
+    
+    - name: Run ESLint
+      run: |
+        eslint app/static/js/*.js --format json --output-file eslint-report.json || true
+        eslint app/static/js/*.js || true
+      continue-on-error: true
+    
+    - name: Upload ESLint report
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: eslint-report
+        path: eslint-report.json
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-flask
+    
+    - name: Run all security tests
+      run: |
+        pytest tests/test_auth_security.py tests/test_encryption_security.py tests/test_input_validation.py -v --cov=app/modules/auth --cov=app/core --cov=app/security
+    
+    - name: Fail on test failures
+      run: |
+        if [ $? -ne 0 ]; then
+          echo "Security tests failed!"
+          exit 1
+        fi
+

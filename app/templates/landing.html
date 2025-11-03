@@ -24,7 +24,7 @@
                 <a href="#features" class="nav-link">Features</a>
                 <a href="#how-it-works" class="nav-link">How It Works</a>
                 <a href="#pricing" class="nav-link">Pricing</a>
-                <a href="{{ url_for('main.login') }}" class="btn-nav-login">Sign In</a>
+                <a href="{{ url_for('auth.login') }}" class="btn-nav-login">Sign In</a>
                 <a href="{{ url_for('main.signup') }}" class="btn-nav-cta">Get Started</a>
             </div>
             <button class="mobile-menu-toggle" aria-label="Toggle menu">
@@ -495,7 +495,7 @@
                             <path d="M5 12h14M12 5l7 7-7 7"/>
                         </svg>
                     </a>
-                    <a href="{{ url_for('main.login') }}" class="btn-secondary btn-large">
+                    <a href="{{ url_for('auth.login') }}" class="btn-secondary btn-large">
                         Sign In
                     </a>
                 </div>

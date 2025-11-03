@@ -23,7 +23,7 @@
             <div class="nav-links">
                 <a href="{{ url_for('main.landing') }}#features" class="nav-link">Features</a>
                 <a href="{{ url_for('main.landing') }}#how-it-works" class="nav-link">How It Works</a>
-                <a href="{{ url_for('main.login') }}" class="btn-nav-login">Sign In</a>
+                <a href="{{ url_for('auth.login') }}" class="btn-nav-login">Sign In</a>
             </div>
         </div>
     </nav>
@@ -273,7 +273,7 @@
                         </form>
                         
                         <div class="form-footer">
-                            <p>Already have an account? <a href="{{ url_for('main.login') }}">Sign in here</a></p>
+                            <p>Already have an account? <a href="{{ url_for('auth.login') }}">Sign in here</a></p>
                         </div>
                     </div>
                 </div>

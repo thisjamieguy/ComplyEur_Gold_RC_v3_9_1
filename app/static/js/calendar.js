@@ -19,10 +19,48 @@
     const HEADER_DAY_CHUNK = 45;
 
     const COLORS = {
-        safe: '#15803d',
-        warning: '#d97706',
-        critical: '#dc2626'
+        safe: '#4CAF50',
+        warning: '#FFC107',
+        critical: '#F44336'
     };
+
+    const RISK_THRESHOLDS = {
+        safe: 60,
+        caution: 85,
+        limit: 90
+    };
+
+    const RISK_COLORS = {
+        safe: COLORS.safe,
+        caution: COLORS.warning,
+        critical: COLORS.critical
+    };
+
+    const DEBUG_CALENDAR = false;
+
+    function debugLog(...args) {
+        if (DEBUG_CALENDAR) {
+            console.debug('[Calendar]', ...args);
+        }
+    }
+
+    function setTimer(handler, delay) {
+        if (typeof globalThis !== 'undefined' && typeof globalThis.setTimeout === 'function') {
+            return globalThis.setTimeout(handler, delay);
+        }
+        return setTimeout(handler, delay);
+    }
+
+    function clearTimer(handle) {
+        if (!handle) {
+            return;
+        }
+        if (typeof globalThis !== 'undefined' && typeof globalThis.clearTimeout === 'function') {
+            globalThis.clearTimeout(handle);
+        } else {
+            clearTimeout(handle);
+        }
+    }
 
     function consumeDomBudget(budget, amount = 1) {
         if (!budget) {
@@ -43,6 +81,24 @@
 
     function isValidIsoDateString(value) {
         return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
+    }
+
+    function hexToRgba(hex, alpha = 1) {
+        if (typeof hex !== 'string') {
+            return `rgba(76, 175, 80, ${alpha})`;
+        }
+        const normalized = hex.replace('#', '').trim();
+        if (!/^[0-9a-fA-F]{3,6}$/.test(normalized)) {
+            return `rgba(76, 175, 80, ${alpha})`;
+        }
+        const value = normalized.length === 3
+            ? normalized.split('').map((char) => char + char).join('')
+            : normalized.padEnd(6, '0');
+        const bigint = Number.parseInt(value, 16);
+        const r = (bigint >> 16) & 255;
+        const g = (bigint >> 8) & 255;
+        const b = bigint & 255;
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
     function parseDate(value) {
@@ -241,6 +297,42 @@
         };
     }
 
+    function calculateRollingDaysUsed(trips, targetDate, limit = RISK_THRESHOLDS.limit) {
+        if (!Array.isArray(trips) || !trips.length || !(targetDate instanceof Date)) {
+            return 0;
+        }
+        const windowStart = addDays(targetDate, -(limit - 1));
+        let total = 0;
+        for (const trip of trips) {
+            if (!trip || !(trip.start instanceof Date) || !(trip.end instanceof Date)) {
+                continue;
+            }
+            if (trip.end < windowStart || trip.start > targetDate) {
+                continue;
+            }
+            const overlapStart = trip.start > windowStart ? trip.start : windowStart;
+            const overlapEnd = trip.end < targetDate ? trip.end : targetDate;
+            if (overlapEnd < overlapStart) {
+                continue;
+            }
+            total += diffInDaysInclusive(overlapStart, overlapEnd) + 1;
+        }
+        return Math.max(0, total);
+    }
+
+    function resolveRiskLevel(daysUsed) {
+        if (!Number.isFinite(daysUsed)) {
+            return { level: 'unknown', color: RISK_COLORS.safe };
+        }
+        if (daysUsed <= RISK_THRESHOLDS.safe) {
+            return { level: 'safe', color: RISK_COLORS.safe };
+        }
+        if (daysUsed <= RISK_THRESHOLDS.caution) {
+            return { level: 'caution', color: RISK_COLORS.caution };
+        }
+        return { level: 'critical', color: RISK_COLORS.critical };
+    }
+
     function buildTripStatusIndex(trips, warningThreshold, criticalThreshold = CRITICAL_THRESHOLD) {
         const sorted = trips.slice().sort((a, b) => a.start - b.start || a.id - b.id);
         const index = new Map();
@@ -386,25 +478,31 @@
         }
 
         return {
-            show(content, x, y) {
+            show(content, x, y, options = {}) {
                 const el = ensureElement();
                 el.innerHTML = content;
-                el.style.display = 'block';
-                el.style.left = `${x + 12}px`;
-                el.style.top = `${y + 12}px`;
-                visible = true;
+                if (options && options.accent) {
+                    el.style.setProperty('--calendar-tooltip-accent', options.accent);
+                }
+                el.style.left = `${x + 16}px`;
+                el.style.top = `${y + 16}px`;
+                requestAnimationFrame(() => {
+                    el.classList.add('calendar-tooltip--visible');
+                    visible = true;
+                });
             },
             move(x, y) {
                 if (!visible || !tooltipEl) {
                     return;
                 }
-                tooltipEl.style.left = `${x + 12}px`;
-                tooltipEl.style.top = `${y + 12}px`;
+                tooltipEl.style.left = `${x + 16}px`;
+                tooltipEl.style.top = `${y + 16}px`;
             },
             hide() {
-                if (tooltipEl) {
-                    tooltipEl.style.display = 'none';
+                if (!tooltipEl) {
+                    return;
                 }
+                tooltipEl.classList.remove('calendar-tooltip--visible');
                 visible = false;
             }
         };
@@ -506,6 +604,19 @@
         this.timelineHeaderFrame = null;
         this.timelineHeaderToken = null;
         this.toastTimer = null;
+        this.timelineScrollFrame = null;
+        this.pendingTimelineScrollLeft = 0;
+        this.verticalScrollFrame = null;
+        this.pendingVerticalScrollTop = 0;
+        this.verticalScrollTarget = null;
+        this.isSyncingVerticalScroll = false;
+        this.tooltipMoveFrame = null;
+        this.pendingTooltipPosition = { x: 0, y: 0 };
+        this.cellTemplate = null;
+        this.cellTemplateKey = '';
+        this.handlersBound = false;
+        this.searchDebounceTimer = null;
+        this.riskCache = new Map();
         this.handleTimelineScroll = this.handleTimelineScroll.bind(this);
         this.handleTimelineVerticalScroll = this.handleTimelineVerticalScroll.bind(this);
         this.handleTripClick = this.handleTripClick.bind(this);
@@ -513,10 +624,13 @@
         this.handleOverlayInteraction = this.handleOverlayInteraction.bind(this);
         this.handleGlobalKeydown = this.handleGlobalKeydown.bind(this);
         this.handleWindowResize = this.handleWindowResize.bind(this);
-        this.syncingScroll = false;
+        this.handleGridMouseover = this.handleGridMouseover.bind(this);
+        this.handleGridMousemove = this.handleGridMousemove.bind(this);
+        this.handleGridMouseout = this.handleGridMouseout.bind(this);
         this.emptyStateMessageNode = this.elements.empty ? this.elements.empty.querySelector('p') : null;
         this.emptyStateDefaultMessage = this.emptyStateMessageNode ? this.emptyStateMessageNode.textContent : '';
         this.attachHandlers();
+        this.root.__calendarController = this;
 
         const DragManagerClass = global && typeof global.CalendarDragManager === 'function'
             ? global.CalendarDragManager
@@ -537,6 +651,10 @@
     }
 
     CalendarController.prototype.attachHandlers = function attachHandlers() {
+        if (this.handlersBound) {
+            return;
+        }
+        this.handlersBound = true;
         const prevBtn = this.root.querySelector('[data-action="prev"]');
         const nextBtn = this.root.querySelector('[data-action="next"]');
         const todayBtn = this.root.querySelector('[data-action="today"]');
@@ -576,13 +694,22 @@
         }
         if (this.elements.searchInput) {
             this.elements.searchInput.addEventListener('input', (event) => {
-                this.state.searchTerm = event.target.value || '';
-                this.updateSearchUI();
-                this.applyFilters();
+                const term = event.target.value || '';
+                if (this.searchDebounceTimer) {
+                    clearTimer(this.searchDebounceTimer);
+                }
+                this.searchDebounceTimer = setTimer(() => {
+                    this.state.searchTerm = term;
+                    this.updateSearchUI();
+                    this.applyFilters();
+                    this.searchDebounceTimer = null;
+                }, 90);
             });
         }
         if (this.elements.searchClear) {
             this.elements.searchClear.addEventListener('click', () => {
+                clearTimer(this.searchDebounceTimer);
+                this.searchDebounceTimer = null;
                 this.state.searchTerm = '';
                 if (this.elements.searchInput) {
                     this.elements.searchInput.value = '';
@@ -599,9 +726,9 @@
             this.elements.employeeList.addEventListener('scroll', this.handleTimelineVerticalScroll, { passive: true });
         }
         if (this.elements.grid) {
-            this.elements.grid.addEventListener('mouseover', (event) => this.handleTripHover(event));
-            this.elements.grid.addEventListener('mousemove', (event) => this.tooltip.move(event.pageX, event.pageY));
-            this.elements.grid.addEventListener('mouseout', (event) => this.handleTripLeave(event));
+            this.elements.grid.addEventListener('mouseover', (event) => this.handleGridMouseover(event));
+            this.elements.grid.addEventListener('mousemove', this.handleGridMousemove);
+            this.elements.grid.addEventListener('mouseout', (event) => this.handleGridMouseout(event));
             this.elements.grid.addEventListener('click', this.handleTripClick);
             this.elements.grid.addEventListener('keydown', this.handleTripKeydown);
         }
@@ -633,63 +760,140 @@
     };
 
     CalendarController.prototype.handleTimelineScroll = function handleTimelineScroll(event) {
-        if (!this.elements.timelineHeader || !this.elements.monthRow || !this.elements.dayRow) {
+        if (!this.elements.monthRow || !this.elements.dayRow) {
             return;
         }
-        const scrollLeft = event.target.scrollLeft;
-        this.elements.monthRow.style.transform = `translateX(${-scrollLeft}px)`;
-        this.elements.dayRow.style.transform = `translateX(${-scrollLeft}px)`;
+        this.pendingTimelineScrollLeft = event.target.scrollLeft;
+        if (this.timelineScrollFrame) {
+            return;
+        }
+        this.timelineScrollFrame = requestAnimationFrame(() => {
+            this.timelineScrollFrame = null;
+            const scrollLeft = this.pendingTimelineScrollLeft;
+            this.elements.monthRow.style.transform = `translateX(${-scrollLeft}px)`;
+            this.elements.dayRow.style.transform = `translateX(${-scrollLeft}px)`;
+        });
     };
 
     CalendarController.prototype.handleTimelineVerticalScroll = function handleTimelineVerticalScroll(event) {
-        if (this.syncingScroll) {
+        if (!this.elements.timelineContainer || !this.elements.employeeList) {
             return;
         }
-        this.syncingScroll = true;
-        const { scrollTop } = event.target;
-        if (event.target === this.elements.timelineContainer && this.elements.employeeList && this.elements.employeeList.scrollTop !== scrollTop) {
-            this.elements.employeeList.scrollTop = scrollTop;
-        } else if (event.target === this.elements.employeeList && this.elements.timelineContainer && this.elements.timelineContainer.scrollTop !== scrollTop) {
-            this.elements.timelineContainer.scrollTop = scrollTop;
+        if (this.isSyncingVerticalScroll) {
+            return;
         }
-        this.syncingScroll = false;
+        const source = event.target;
+        const partner = source === this.elements.timelineContainer
+            ? this.elements.employeeList
+            : source === this.elements.employeeList
+                ? this.elements.timelineContainer
+                : null;
+        if (!partner) {
+            return;
+        }
+        const scrollTop = source.scrollTop;
+        if (partner.scrollTop === scrollTop) {
+            return;
+        }
+        this.pendingVerticalScrollTop = scrollTop;
+        this.verticalScrollTarget = partner;
+        if (this.verticalScrollFrame) {
+            return;
+        }
+        this.verticalScrollFrame = requestAnimationFrame(() => {
+            const target = this.verticalScrollTarget;
+            this.verticalScrollFrame = null;
+            this.verticalScrollTarget = null;
+            if (!target) {
+                return;
+            }
+            this.isSyncingVerticalScroll = true;
+            if (target.scrollTop !== this.pendingVerticalScrollTop) {
+                target.scrollTop = this.pendingVerticalScrollTop;
+            }
+            this.isSyncingVerticalScroll = false;
+        });
     };
 
-    CalendarController.prototype.handleTripHover = function handleTripHover(event) {
-        if (this.isDetailOpen) {
+    CalendarController.prototype.handleGridMouseover = function handleGridMouseover(event) {
+        if (this.isDetailOpen || !this.tooltip) {
             return;
         }
-        const target = event.target.closest('.calendar-trip');
-        if (!target) {
+        const tripTarget = event.target.closest('.calendar-trip');
+        if (tripTarget) {
+            const employee = tripTarget.getAttribute('data-employee');
+            const country = tripTarget.getAttribute('data-country');
+            const start = tripTarget.getAttribute('data-start');
+            const end = tripTarget.getAttribute('data-end');
+            const jobRef = tripTarget.getAttribute('data-job-ref');
+            const statusLabel = tripTarget.getAttribute('data-status-label');
+            const riskDays = tripTarget.getAttribute('data-risk-days-used') || tripTarget.getAttribute('data-days-used') || '0';
+            const riskColor = tripTarget.getAttribute('data-risk-color') || RISK_COLORS.safe;
+
+            const lines = [
+                `<strong>${employee || 'Unknown employee'}</strong>`,
+                `<span>${country || 'Unknown country'}</span>`,
+                `<span>${start} → ${end}</span>`,
+                `<span class="calendar-tooltip-metric">Days used: ${riskDays} / ${RISK_THRESHOLDS.limit}</span>`
+            ];
+
+            if (jobRef) {
+                lines.push(`<span>Job ref: ${jobRef}</span>`);
+            }
+            if (statusLabel) {
+                lines.push(`<span>${statusLabel}</span>`);
+            }
+
+            this.tooltip.show(lines.map((line) => `<div>${line}</div>`).join(''), event.pageX, event.pageY, { accent: riskColor });
             return;
         }
-        const employee = target.getAttribute('data-employee');
-        const country = target.getAttribute('data-country');
-        const start = target.getAttribute('data-start');
-        const end = target.getAttribute('data-end');
-        const daysUsed = target.getAttribute('data-days-used');
-        const compliance = target.getAttribute('data-compliance');
-        const jobRef = target.getAttribute('data-job-ref');
-        const statusLabel = normaliseStatusLabel(compliance);
 
-        const lines = [
-            `<strong>${employee || 'Unknown employee'}</strong>`,
-            `<span>${country || 'Unknown country'}</span>`,
-            `<span>${start} → ${end}</span>`
-        ];
+        const cellTarget = event.target.closest('.calendar-cell');
+        if (cellTarget) {
+            const riskDays = cellTarget.dataset.riskDaysUsed || '0';
+            const riskLevel = cellTarget.dataset.riskLevel || 'safe';
+            const riskColor = cellTarget.dataset.riskColor || RISK_COLORS.safe;
+            const dateLabel = cellTarget.dataset.calendarDate ? `<span>${cellTarget.dataset.calendarDate}</span>` : '';
+            const label = riskLevel === 'safe' ? 'Compliant window' : riskLevel === 'caution' ? 'Approaching limit' : 'Non-compliant';
+            const employeeName = cellTarget.dataset.employeeName || '';
 
-        if (jobRef) {
-            lines.push(`<span>Job ref: ${jobRef}</span>`);
+            const content = [
+                employeeName ? `<strong>${sanitizeText(employeeName)}</strong>` : '',
+                dateLabel,
+                `<span class="calendar-tooltip-metric">Days used: ${riskDays} / ${RISK_THRESHOLDS.limit}</span>`,
+                `<span>${label}</span>`
+            ].filter(Boolean).map((line) => `<div>${line}</div>`).join('');
+
+            this.tooltip.show(content, event.pageX, event.pageY, { accent: riskColor });
+            return;
         }
-        if (daysUsed) {
-            lines.push(`<span>Rolling 180-day usage: ${daysUsed} days (${statusLabel})</span>`);
-        }
-
-        this.tooltip.show(lines.map((line) => `<div>${line}</div>`).join(''), event.pageX, event.pageY);
     };
 
-    CalendarController.prototype.handleTripLeave = function handleTripLeave(event) {
-        if (!event.relatedTarget || !event.relatedTarget.closest('.calendar-trip')) {
+    CalendarController.prototype.handleGridMousemove = function handleGridMousemove(event) {
+        if (!this.tooltip || typeof this.tooltip.move !== 'function') {
+            return;
+        }
+        this.pendingTooltipPosition.x = event.pageX;
+        this.pendingTooltipPosition.y = event.pageY;
+        if (this.tooltipMoveFrame) {
+            return;
+        }
+        this.tooltipMoveFrame = requestAnimationFrame(() => {
+            this.tooltipMoveFrame = null;
+            this.tooltip.move(this.pendingTooltipPosition.x, this.pendingTooltipPosition.y);
+        });
+    };
+
+    CalendarController.prototype.handleGridMouseout = function handleGridMouseout(event) {
+        const nextTarget = event.relatedTarget;
+        if (nextTarget && (nextTarget.closest('.calendar-trip') || nextTarget.closest('.calendar-cell'))) {
+            return;
+        }
+        if (this.tooltipMoveFrame) {
+            cancelAnimationFrame(this.tooltipMoveFrame);
+            this.tooltipMoveFrame = null;
+        }
+        if (this.tooltip) {
             this.tooltip.hide();
         }
     };
@@ -1459,25 +1663,25 @@
 
     CalendarController.prototype.loadData = async function loadData(options = {}) {
         const { force = false, centerOnToday = true, centerOnDate = null } = options;
-        console.log('Loading calendar data...', { force, centerOnToday });
+        debugLog('Loading calendar data...', { force, centerOnToday });
         this.setError(false);
         let payload = null;
         try {
             if (this.dataCache && !force) {
-                console.log('Using cached data');
+                debugLog('Using cached data');
                 payload = this.dataCache;
             } else {
-                console.log('Fetching fresh data...');
+                debugLog('Fetching fresh data...');
                 this.setLoading(true);
                 payload = await this.fetchTrips({ force });
-                console.log('Data fetched:', payload ? Object.keys(payload) : 'null');
+                debugLog('Data fetched', payload ? Object.keys(payload) : 'null');
             }
             if (!payload || typeof payload !== 'object') {
                 throw new Error('Invalid calendar payload.');
             }
-            console.log('Hydrating from payload...');
+            debugLog('Hydrating from payload...');
             this.hydrateFromPayload(payload, { centerOnToday, centerOnDate });
-            console.log('Calendar data loaded successfully');
+            debugLog('Calendar data loaded successfully');
             return payload;
         } catch (error) {
             console.error('Failed to load calendar data', error);
@@ -1489,15 +1693,15 @@
     };
 
     CalendarController.prototype.hydrateFromPayload = function hydrateFromPayload(payload, options = {}) {
-        console.log('Hydrating payload...', payload);
+        debugLog('Hydrating payload...', payload);
         const rawTrips = Array.isArray(payload.trips) ? payload.trips : [];
-        console.log('Raw trips count:', rawTrips.length);
+        debugLog('Raw trips count:', rawTrips.length);
 
         const normalisedTrips = rawTrips
             .map(normaliseTrip)
             .filter(Boolean);
 
-        console.log('Normalised trips:', normalisedTrips.length);
+        debugLog('Normalised trips:', normalisedTrips.length);
 
         const tripGroups = groupTripsByEmployee(normalisedTrips);
         const tripStatus = new Map();
@@ -1507,7 +1711,7 @@
             tripIndex.set(trip.id, trip);
         }
 
-        console.log('Building trip status index...');
+        debugLog('Building trip status index...');
         for (const trips of tripGroups.values()) {
             const statusIndex = buildTripStatusIndex(trips, this.warningThreshold, this.criticalThreshold);
             for (const [tripId, status] of statusIndex.entries()) {
@@ -1516,13 +1720,7 @@
         }
 
         let employees = deriveEmployees(payload.employees || [], normalisedTrips);
-        console.log('Derived employees:', employees.length);
-        // Safety cap to prevent UI lockups on large datasets during triage
-        const EMPLOYEE_RENDER_CAP = 20;
-        if (employees.length > EMPLOYEE_RENDER_CAP) {
-            employees = employees.slice(0, EMPLOYEE_RENDER_CAP);
-            console.warn(`Capped employees to first ${EMPLOYEE_RENDER_CAP} for stability`);
-        }
+        debugLog('Derived employees:', employees.length);
 
         this.state.trips = normalisedTrips;
         this.state.tripGroups = tripGroups;
@@ -1532,6 +1730,9 @@
         this.state.filteredEmployees = employees.slice();
         this.activeTripId = null;
         this.updateGlobalEditButtonState();
+        if (this.riskCache) {
+            this.riskCache.clear();
+        }
         if (options.centerOnToday === false) {
             this.shouldCenterOnToday = false;
             if (options.centerOnDate instanceof Date) {
@@ -1540,11 +1741,11 @@
         } else {
             this.shouldCenterOnToday = true;
         }
-        console.log('About to render calendar...');
+        debugLog('About to render calendar...');
         this.renderCalendar();
         this.updateSearchUI();
         this.populateEmployeeSelect();
-        console.log('Hydration complete');
+        debugLog('Hydration complete');
     };
 
     CalendarController.prototype.setLoading = function setLoading(isLoading) {
@@ -1574,26 +1775,26 @@
     };
 
     CalendarController.prototype.renderCalendar = function renderCalendar() {
-        console.log('renderCalendar() called');
+        debugLog('renderCalendar() called');
         if (!this.elements.rangeLabel) {
             console.warn('Missing rangeLabel element');
             return;
         }
-        console.log('Setting range label...');
+        debugLog('Setting range label...');
         this.elements.rangeLabel.textContent = formatRangeLabel(this.range);
-        console.log('Calling updateTimelineHeader...');
+        debugLog('Calling updateTimelineHeader...');
         this.updateTimelineHeader();
-        console.log('Calling renderRows...');
-    try {
-        this.renderRows();
-        console.log('renderCalendar() complete');
-    } catch (error) {
-        console.error('renderRows failed', error);
-    }
+        debugLog('Calling renderRows...');
+        try {
+            this.renderRows();
+            debugLog('renderCalendar() complete');
+        } catch (error) {
+            console.error('renderRows failed', error);
+        }
     };
 
     CalendarController.prototype.updateTimelineHeader = function updateTimelineHeader() {
-        console.log('Updating timeline header...');
+        debugLog('Updating timeline header...');
         const days = calculateRangeDays(this.range);
         // Cache the current day breakdown so row rendering can reuse it without recomputing.
         this.rangeDays = days;
@@ -1638,7 +1839,7 @@
             this.elements.monthRow.appendChild(monthFragment);
             this.elements.dayRow.appendChild(dayFragment);
             this.timelineHeaderFrame = null;
-            console.log('Timeline header updated');
+            debugLog('Timeline header updated');
             this.updateTodayMarker();
         };
 
@@ -1648,7 +1849,7 @@
             }
 
             const chunkEnd = Math.min(startIndex + HEADER_DAY_CHUNK, days.length);
-            console.log(`Rendering timeline chunk ${startIndex} -> ${chunkEnd} (of ${days.length})`);
+            debugLog('Rendering timeline chunk', startIndex, '→', chunkEnd, 'of', days.length);
             for (let index = startIndex; index < chunkEnd; index += 1) {
                 const day = days[index];
 
@@ -1684,7 +1885,7 @@
             if (chunkEnd < days.length) {
                 this.timelineHeaderFrame = requestAnimationFrame(() => renderChunk(chunkEnd));
             } else {
-                console.log('Timeline header chunks complete, finalizing.');
+                debugLog('Timeline header chunks complete, finalizing.');
                 if (monthCursor) {
                     const monthDays = days.length - monthStartIndex;
                     const monthCell = document.createElement('div');
@@ -1728,19 +1929,17 @@
         }
 
         if (this.state.isRendering) {
-            console.log('Already rendering, skipping');
+            debugLog('Already rendering, skipping');
             return;
         }
-        console.log('Starting row rendering...', this.state.filteredEmployees.length, 'employees');
+        debugLog('Starting row rendering...', this.state.filteredEmployees.length, 'employees');
         this.state.isRendering = true;
 
         this.elements.employeeList.innerHTML = '';
         this.elements.grid.innerHTML = '';
 
         const employees = this.state.filteredEmployees;
-        // Temporary guard while we validate full dataset performance
-        const EMPLOYEE_RENDER_CAP = 20;
-        const totalToRender = Math.min(EMPLOYEE_RENDER_CAP, employees.length);
+        const totalToRender = employees.length;
         if (!employees.length) {
             this.state.isRendering = false;
             this.setEmptyState(true);
@@ -1793,6 +1992,8 @@
             }
 
             const batchEnd = Math.min(startIndex + BATCH_RENDER_SIZE, totalToRender);
+            const employeeFragment = document.createDocumentFragment();
+            const gridFragment = document.createDocumentFragment();
             let nextIndex = startIndex;
 
             while (nextIndex < batchEnd && !renderBudget.exhausted) {
@@ -1804,7 +2005,7 @@
                 const employee = employees[nextIndex];
                 const rowResult = this.buildRow(employee, width, renderBudget, rangeDays);
                 if (rowResult) {
-                    console.log('Rendered employee row', {
+                    debugLog('Rendered employee row', {
                         employee: employee.name,
                         trips: (this.state.tripGroups.get(employee.id) || []).length,
                         visibleTrips: rowResult.hasVisibleTrips,
@@ -1824,8 +2025,8 @@
                     renderBudget.exhausted = true;
                     break;
                 }
-                this.elements.employeeList.appendChild(rowResult.employeeNode);
-                this.elements.grid.appendChild(rowResult.timelineNode);
+                employeeFragment.appendChild(rowResult.employeeNode);
+                gridFragment.appendChild(rowResult.timelineNode);
 
                 if (rowResult.truncated) {
                     renderBudget.exhausted = true;
@@ -1837,6 +2038,13 @@
                 }
             }
 
+            if (employeeFragment.childNodes.length) {
+                this.elements.employeeList.appendChild(employeeFragment);
+            }
+            if (gridFragment.childNodes.length) {
+                this.elements.grid.appendChild(gridFragment);
+            }
+
             if (renderBudget.exhausted || nextIndex >= totalToRender) {
                 finalize(renderBudget.exhausted);
             } else {
@@ -1845,6 +2053,87 @@
         };
 
         processBatch(0);
+    };
+
+    CalendarController.prototype.getRiskSnapshot = function getRiskSnapshot(employeeId, date) {
+        if (!Number.isFinite(employeeId)) {
+            return { level: 'unknown', color: RISK_COLORS.safe, daysUsed: 0 };
+        }
+        const targetDate = date instanceof Date ? date : parseDate(date);
+        if (!(targetDate instanceof Date) || Number.isNaN(targetDate.getTime())) {
+            return { level: 'unknown', color: RISK_COLORS.safe, daysUsed: 0 };
+        }
+        if (!this.riskCache) {
+            this.riskCache = new Map();
+        }
+        const iso = serialiseDate(targetDate);
+        const cacheKey = `${employeeId}:${iso}`;
+        if (this.riskCache.has(cacheKey)) {
+            return this.riskCache.get(cacheKey);
+        }
+        const trips = this.state.tripGroups.get(employeeId) || [];
+        const rolling = calculateRollingDaysUsed(trips, targetDate, RISK_THRESHOLDS.limit);
+        const { level, color } = resolveRiskLevel(rolling);
+        const snapshot = { level, color, daysUsed: rolling };
+        this.riskCache.set(cacheKey, snapshot);
+        return snapshot;
+    };
+
+    CalendarController.prototype.calculateRiskColor = function calculateRiskColor(employeeId, date) {
+        const snapshot = this.getRiskSnapshot(employeeId, date);
+        return snapshot.color;
+    };
+
+    CalendarController.prototype.invalidateRiskCacheForEmployee = function invalidateRiskCacheForEmployee(employeeId) {
+        if (!this.riskCache || !Number.isFinite(employeeId)) {
+            return;
+        }
+        const prefix = `${employeeId}:`;
+        for (const key of Array.from(this.riskCache.keys())) {
+            if (key.startsWith(prefix)) {
+                this.riskCache.delete(key);
+            }
+        }
+    };
+
+    // Cache a template of day cells so each row can clone it without rebuilding all nodes.
+    CalendarController.prototype.ensureCellTemplate = function ensureCellTemplate(rangeDays) {
+        if (!Array.isArray(rangeDays) || !rangeDays.length) {
+            this.cellTemplate = null;
+            this.cellTemplateKey = '';
+            return null;
+        }
+
+        const first = serialiseDate(rangeDays[0].date);
+        const last = serialiseDate(rangeDays[rangeDays.length - 1].date);
+        const key = `${first}:${last}:${rangeDays.length}`;
+
+        if (this.cellTemplate && this.cellTemplateKey === key) {
+            return this.cellTemplate;
+        }
+
+        const template = document.createElement('template');
+        let markup = '';
+
+        for (let index = 0; index < rangeDays.length; index += 1) {
+            const day = rangeDays[index];
+            const classes = ['calendar-cell'];
+            if (day.isWeekend) {
+                classes.push('calendar-cell--weekend');
+            }
+            if (day.isMonthStart) {
+                classes.push('calendar-cell--month-start');
+            }
+            if (day.isWeekStart) {
+                classes.push('calendar-cell--week-start');
+            }
+            markup += `<div class="${classes.join(' ')}" data-calendar-date="${serialiseDate(day.date)}" data-day-index="${index}" role="presentation"></div>`;
+        }
+
+        template.innerHTML = markup;
+        this.cellTemplate = template;
+        this.cellTemplateKey = key;
+        return this.cellTemplate;
     };
 
     CalendarController.prototype.buildRow = function buildRow(employee, width, budget, rangeDays) {
@@ -1887,6 +2176,7 @@
         cellLayer.className = 'calendar-cell-layer';
         cellLayer.style.width = `${width}px`;
         cellLayer.style.height = `${ROW_HEIGHT}px`;
+        cellLayer.dataset.employeeId = String(employee.id);
         if (!consumeDomBudget(budget)) {
             return null;
         }
@@ -1894,30 +2184,31 @@
 
         const days = Array.isArray(rangeDays) && rangeDays.length ? rangeDays : calculateRangeDays(this.range);
         if (days.length) {
-            if (!consumeDomBudget(budget, days.length)) {
-                return null;
+            const template = this.ensureCellTemplate(days);
+            if (template) {
+                const fragment = template.content.cloneNode(true);
+                cellLayer.appendChild(fragment);
+                const cells = cellLayer.querySelectorAll('.calendar-cell');
+                cells.forEach((cell, index) => {
+                    const day = days[index];
+                    const risk = this.getRiskSnapshot(employee.id, day.date);
+                    cell.dataset.employeeId = String(employee.id);
+                    cell.dataset.calendarDate = serialiseDate(day.date);
+                    cell.dataset.dayIndex = String(index);
+                    cell.dataset.employeeName = employee.name;
+                    cell.dataset.riskDaysUsed = String(risk.daysUsed);
+                    cell.dataset.riskLevel = risk.level;
+                    cell.dataset.riskColor = risk.color;
+                    cell.style.setProperty('--calendar-cell-risk', risk.color);
+                    const tintAlpha = risk.level === 'critical' ? 0.32 : risk.level === 'caution' ? 0.22 : 0.12;
+                    const tint = hexToRgba(risk.color, tintAlpha);
+                    cell.style.background = `linear-gradient(180deg, ${tint} 0%, rgba(255, 255, 255, 0) 100%)`;
+                    cell.classList.add('calendar-cell--risk');
+                    if (!cell.hasAttribute('aria-label')) {
+                        cell.setAttribute('aria-label', `Risk usage ${risk.daysUsed} of ${RISK_THRESHOLDS.limit} days`);
+                    }
+                });
             }
-            const cellFragment = document.createDocumentFragment();
-            for (let index = 0; index < days.length; index += 1) {
-                const day = days[index];
-                const cell = document.createElement('div');
-                cell.className = 'calendar-cell';
-                cell.style.width = `${DAY_WIDTH}px`;
-                cell.style.flex = `0 0 ${DAY_WIDTH}px`;
-                cell.dataset.calendarDate = serialiseDate(day.date);
-                cell.dataset.dayIndex = String(index);
-                cell.dataset.employeeId = String(employee.id);
-                cell.setAttribute('role', 'presentation');
-                cell.id = `calendar-cell-${employee.id}-${index}`;
-                if (day.isWeekend) {
-                    cell.classList.add('calendar-cell--weekend');
-                }
-                if (day.isMonthStart) {
-                    cell.classList.add('calendar-cell--month-start');
-                }
-                cellFragment.appendChild(cell);
-            }
-            cellLayer.appendChild(cellFragment);
         }
 
         const tripLayer = document.createElement('div');
@@ -1930,7 +2221,7 @@
         timelineRow.appendChild(tripLayer);
 
         const trips = this.state.tripGroups.get(employee.id) || [];
-        console.log('Building row for employee', employee.name, 'with', trips.length, 'trips');
+        debugLog('Building row for employee', employee.name, 'with', trips.length, 'trips');
         let hasVisibleTrips = false;
         let truncated = false;
 
@@ -1947,33 +2238,41 @@
             const status = this.state.tripStatus.get(trip.id) || { status: 'safe', daysUsed: trip.travelDays };
             const statusKey = typeof status.status === 'string' ? status.status : 'safe';
             const statusLabel = normaliseStatusLabel(statusKey);
-            const statusColor = COLORS[statusKey] || COLORS.safe;
+            const riskSnapshot = this.getRiskSnapshot(employee.id, placement.clampedEnd || trip.end);
+            const statusColor = riskSnapshot.color || COLORS[statusKey] || COLORS.safe;
             tripBlock.className = `calendar-trip calendar-trip--${statusKey}`;
             tripBlock.classList.add('trip-bar', `trip-bar--${statusKey}`);
             tripBlock.style.left = `${positionLeft}px`;
             tripBlock.style.width = `${widthPx}px`;
             tripBlock.style.top = '8px';
             tripBlock.style.height = `${ROW_HEIGHT - 16}px`;
-            tripBlock.style.backgroundColor = statusColor;
+            const tripTintAlpha = riskSnapshot.level === 'critical' ? 0.42 : riskSnapshot.level === 'caution' ? 0.34 : 0.26;
+            const tripTint = hexToRgba(statusColor, tripTintAlpha);
+            tripBlock.style.background = `linear-gradient(135deg, ${tripTint} 0%, ${statusColor} 100%)`;
             tripBlock.textContent = trip.country || 'Trip';
 
             tripBlock.setAttribute('data-trip-id', String(trip.id));
             tripBlock.setAttribute('data-employee', employee.name);
+            tripBlock.setAttribute('data-employee-id', String(employee.id));
             tripBlock.setAttribute('data-country', trip.country || 'Unknown');
             tripBlock.setAttribute('data-start', serialiseDate(trip.start));
             tripBlock.setAttribute('data-end', serialiseDate(trip.end));
             tripBlock.setAttribute('data-job-ref', trip.jobRef || '');
             tripBlock.setAttribute('data-days-used', Number.isFinite(status.daysUsed) ? String(status.daysUsed) : '');
+            tripBlock.setAttribute('data-risk-days-used', String(riskSnapshot.daysUsed));
+            tripBlock.setAttribute('data-risk-level', riskSnapshot.level);
             tripBlock.setAttribute('data-compliance', statusKey);
             tripBlock.setAttribute('data-status-label', statusLabel);
             tripBlock.setAttribute('tabindex', '0');
             tripBlock.setAttribute('role', 'button');
+            tripBlock.style.setProperty('--calendar-trip-color', statusColor);
 
             const ariaParts = [
                 trip.country ? `${trip.country} trip` : 'Trip',
                 `for ${employee.name}`,
                 formatDateRangeDisplay(trip.start, trip.end),
-                statusLabel
+                statusLabel,
+                `Usage ${riskSnapshot.daysUsed} of ${RISK_THRESHOLDS.limit} days`
             ].filter(Boolean);
             tripBlock.setAttribute('aria-label', ariaParts.join('. '));
 
@@ -2176,6 +2475,8 @@
             return;
         }
 
+        this.invalidateRiskCacheForEmployee(updatedTrip.employeeId);
+
         this.state.tripIndex.set(updatedTrip.id, updatedTrip);
 
         const group = this.state.tripGroups.get(updatedTrip.employeeId) || [];
@@ -2229,6 +2530,8 @@
             return;
         }
 
+        this.invalidateRiskCacheForEmployee(employeeId);
+
         for (const [tripId, status] of statusIndex.entries()) {
             const trip = this.state.tripIndex.get(tripId);
             if (!trip) {
@@ -2249,11 +2552,14 @@
         const placement = calculateTripPlacement(this.range, trip);
         const statusKey = status && typeof status.status === 'string' ? status.status : 'safe';
         const statusLabel = normaliseStatusLabel(statusKey);
-        const statusColor = COLORS[statusKey] || COLORS.safe;
+        const riskSnapshot = this.getRiskSnapshot(trip.employeeId, placement.clampedEnd || trip.end);
+        const statusColor = riskSnapshot.color || COLORS[statusKey] || COLORS.safe;
 
         node.style.left = `${placement.offsetDays * DAY_WIDTH}px`;
         node.style.width = `${Math.max(placement.durationDays * DAY_WIDTH, DAY_WIDTH / 2)}px`;
-        node.style.backgroundColor = statusColor;
+        const tripTintAlpha = riskSnapshot.level === 'critical' ? 0.42 : riskSnapshot.level === 'caution' ? 0.34 : 0.26;
+        const tripTint = hexToRgba(statusColor, tripTintAlpha);
+        node.style.background = `linear-gradient(135deg, ${tripTint} 0%, ${statusColor} 100%)`;
 
         node.classList.remove('calendar-trip--safe', 'calendar-trip--warning', 'calendar-trip--critical');
         node.classList.remove('trip-bar--safe', 'trip-bar--warning', 'trip-bar--critical');
@@ -2267,6 +2573,13 @@
         node.dataset.statusLabel = statusLabel;
         node.dataset.employee = trip.employeeName || node.dataset.employee || '';
         node.dataset.country = trip.country || node.dataset.country || '';
+        node.dataset.jobRef = trip.jobRef || '';
+        node.dataset.employeeId = Number.isFinite(trip.employeeId) ? String(trip.employeeId) : node.dataset.employeeId || '';
+        node.dataset.riskDaysUsed = String(riskSnapshot.daysUsed);
+        node.dataset.riskLevel = riskSnapshot.level;
+        node.dataset.riskColor = statusColor;
+        node.textContent = trip.country || 'Trip';
+        node.style.setProperty('--calendar-trip-color', statusColor);
 
         node.classList.remove('calendar-trip--overflow-start', 'trip-bar--overflow-start');
         node.classList.remove('calendar-trip--overflow-end', 'trip-bar--overflow-end');
@@ -2287,7 +2600,8 @@
             trip.country ? `${trip.country} trip` : 'Trip',
             trip.employeeName ? `for ${trip.employeeName}` : null,
             formatDateRangeDisplay(trip.start, trip.end),
-            statusLabel
+            statusLabel,
+            `Usage ${riskSnapshot.daysUsed} of ${RISK_THRESHOLDS.limit} days`
         ].filter(Boolean);
         node.setAttribute('aria-label', ariaParts.join('. '));
         node.setAttribute('aria-grabbed', 'false');
@@ -2352,7 +2666,7 @@
     };
 
     CalendarController.prototype.init = function init() {
-        console.log('Calendar initializing...');
+        debugLog('Calendar initializing...');
         this.setupEventListeners();
         this.populateFutureWeeksSelect();
         this.loadData().catch((error) => {
