@@ -106,3 +106,4 @@ app_backup.py
 original_app.py
 tests/auth/state.json
 node_modules/
+node_modules/
