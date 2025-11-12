@@ -16,6 +16,9 @@ MINIFIED_CSS="$CSS_DIR/bundle.min.css"
 BUNDLE_JS="$JS_DIR/bundle.js"
 MINIFIED_JS="$JS_DIR/bundle.min.js"
 
+# Ensure directories exist
+mkdir -p "$CSS_DIR" "$JS_DIR"
+
 # Build CSS Bundle
 echo "📦 Bundling CSS files..."
 cat "$CSS_DIR/global.css" \

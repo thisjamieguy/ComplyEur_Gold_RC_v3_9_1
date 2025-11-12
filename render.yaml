@@ -1,16 +1,22 @@
 services:
   - type: web
-    name: complyeur
+    name: complyeur-gold-rc
     env: python
+    region: frankfurt
     plan: starter
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn wsgi:app --bind 0.0.0.0:$PORT
+    branch: main
+    buildCommand: ./scripts/render_build.sh
+    startCommand: gunicorn wsgi:app --bind 0.0.0.0:$PORT --log-file - --access-logfile -
     autoDeploy: true
     healthCheckPath: /health
     healthCheckIntervalSeconds: 30
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: FLASK_ENV
+        value: production
+      - key: RENDER
+        value: "true"
       - key: DATABASE_PATH
         value: /var/data/eu_tracker.db
       - key: LOG_LEVEL
@@ -23,6 +29,10 @@ services:
         value: exports
       - key: BACKUP_DIR
         value: /var/data/backups
+      - key: SESSION_COOKIE_SECURE
+        value: "true"
+      - key: SECRET_KEY
+        sync: false
     disks:
       - name: data
         mountPath: /var/data
