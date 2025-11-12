@@ -1,0 +1,27 @@
+Environment Validation Summary (ComplyEur)
+Timestamp: 2025-11-03 21:34:51 GMT
+
+Python Runtime
+- Python 3.9.6
+- Flask 3.0.3
+
+Dependency Installation
+- pip install --upgrade pip (success)
+- pip install -r requirements.txt (success)
+- Verified key packages: Flask-WTF 1.2.1, WTForms 3.2.1, Flask-Limiter 3.7.0, pyotp 2.9.0, qrcode 7.4.2, requests 2.31.0, zxcvbn-python 4.4.24, gunicorn 21.2.0
+
+Local Validation
+- ./venv/bin/python run_local.py (boot OK; server listening on 127.0.0.1:5001 before timeout)
+- Programmatic checks: /login GET 200, invalid credential POST 200 w/ flash, /dashboard 200 with EUTRACKER_BYPASS_LOGIN=1
+
+Database CRUD
+- DATABASE_PATH=data/test_tmp.db ./venv/bin/python -m pytest -q tests/test_crud.py (1 passed)
+
+Production Entrypoint
+- ./venv/bin/python -m gunicorn wsgi:app -b 127.0.0.1:8000 --log-level debug --capture-output (worker booted; shutdown after 30s timeout with no errors)
+
+Regression & Onboarding Suite
+- ./venv/bin/pytest --maxfail=1 --disable-warnings -q (124 passed, 2 warnings, 6.05s)
+
+Notable Warnings
+- urllib3 NotOpenSSLWarning due to system LibreSSL 2.8.3 (informational only)

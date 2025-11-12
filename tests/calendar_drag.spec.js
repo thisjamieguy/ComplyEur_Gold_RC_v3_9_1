@@ -70,8 +70,17 @@ test('QA-08 Dragging a trip updates dates and triggers toast', async ({ page }) 
   const firstTrip = initialTrips.first();
   const initialText = await firstTrip.textContent();
 
-  // Drag trip 100px right (simulate +5 days)
-  await dragTrip(page, firstTrip, 100);
+  const [updateRequest, updateResponse] = await Promise.all([
+    page.waitForRequest((request) => request.url().includes('/api/update_trip_dates') && request.method() === 'POST'),
+    page.waitForResponse((response) => response.url().includes('/api/update_trip_dates') && response.request().method() === 'POST'),
+    dragTrip(page, firstTrip, 100),
+  ]);
+
+  const payload = JSON.parse(updateRequest.postData() || '{}');
+  expect(typeof payload.trip_id).toBe('number');
+  expect(typeof payload.start_date).toBe('string');
+  expect(typeof payload.end_date).toBe('string');
+  expect(updateResponse.ok()).toBeTruthy();
 
   // Expect toast feedback
   const toast = page.locator('#calendar-toast');

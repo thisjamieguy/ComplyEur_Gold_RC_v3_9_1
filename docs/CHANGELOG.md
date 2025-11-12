@@ -1,6 +1,6 @@
 # ComplyEur Employee EU Travel Tracker
 
-## Version 1.1 (Post-Security Review) - October 2025
+## ComplyEur - Version 1.1 (Post-Security Review) - October 2025
 ### 🔒 Security Improvements
 - **Password Security:**
   - Implemented Argon2/bcrypt password hashing (replaced SHA256)
@@ -78,7 +78,7 @@
 
 ---
 
-## Version 1.0 (Pre-Security) - September 2025
+## ComplyEur - Version 1.0 (Pre-Security) - September 2025
 - Fully working MVP build
 - Trip logging, 90/180 calculation, and Excel import functional
 - Weekly calendar view added

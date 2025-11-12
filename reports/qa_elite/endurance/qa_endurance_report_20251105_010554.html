@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Phase 3.10 Endurance Test Report - ComplyEur</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        h1 { color: #2c5282; }
+        .metric { background: #f7fafc; padding: 15px; margin: 10px 0; border-radius: 4px; }
+        .success { color: green; }
+        .warning { color: orange; }
+        .error { color: red; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #2c5282; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌙 Phase 3.10: Elite QA Endurance & Stress Test Report</h1>
+        <p><strong>ComplyEur</strong> - EU 90/180 Employee Travel Tracker</p>
+        
+        <div class="metric">
+            <h2>Test Summary</h2>
+            <p><strong>Start Time:</strong> 2025-11-04T23:05:34.730631</p>
+            <p><strong>End Time:</strong> 2025-11-05T01:05:54.573833</p>
+            <p><strong>Duration:</strong> 2.01 hours</p>
+        </div>
+        
+        <div class="metric">
+            <h2>Excel Import Load Testing</h2>
+            <p><strong>Total Runs:</strong> 930</p>
+            <p><strong>Successes:</strong> <span class="success">930</span></p>
+            <p><strong>Failures:</strong> <span class="error">0</span></p>
+            <p><strong>Avg Processing Time:</strong> 1.77s</p>
+        </div>
+        
+        <div class="metric">
+            <h2>Backend Stability</h2>
+            <p><strong>Recalculations:</strong> 126060</p>
+            <p><strong>Drift Detections:</strong> <span class="error">18</span></p>
+            <p><strong>Deadlocks:</strong> <span class="success">0</span></p>
+        </div>
+        
+        <div class="metric">
+            <h2>Frontend Synchronization</h2>
+            <p><strong>Interactions:</strong> 2490</p>
+            <p><strong>Synchronization Errors:</strong> <span class="error">61</span></p>
+            <p><strong>Lag Events (>50ms):</strong> 2490</p>
+        </div>
+        
+        <div class="metric">
+            <h2>Export Validation</h2>
+            <p><strong>Total Exports:</strong> 620</p>
+            <p><strong>CSV Diffs:</strong> <span class="success">0</span></p>
+            <p><strong>PDF Diffs:</strong> <span class="success">0</span></p>
+        </div>
+        
+        <div class="metric">
+            <h2>System Metrics Summary</h2>
+            
+        <table>
+            <tr><th>Metric</th><th>Value</th></tr>
+            <tr><td>CPU Average</td><td>0.06%</td></tr>
+            <tr><td>CPU Max</td><td>0.30%</td></tr>
+            <tr><td>Memory Average</td><td>105.87 MB</td></tr>
+            <tr><td>Memory Max</td><td>116.55 MB</td></tr>
+            <tr><td>Memory Growth</td><td>-4.03 MB</td></tr>
+            <tr><td>Total I/O Read</td><td>0.00 MB</td></tr>
+            <tr><td>Total I/O Write</td><td>0.00 MB</td></tr>
+        </table>
+        
+        </div>
+        
+        <div class="metric">
+            <h2>Errors & Issues</h2>
+            <p><strong>Total Errors:</strong> <span class="error">61</span></p>
+            
+        <table>
+            <tr><th>Test</th><th>Error</th><th>Timestamp</th></tr>
+            <tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:5001/login
+Call log:
+  - navigating to "http://127.0.0.1:5001/login", waiting until "load"
+</td><td>2025-11-05T00:06:01.559607</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:5001/login
+Call log:
+  - navigating to "http://127.0.0.1:5001/login", waiting until "load"
+</td><td>2025-11-05T00:14:10.183891</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-05T00:22:49.291729</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-05T00:23:33.963833</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-05T00:24:17.889513</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-05T00:25:01.508809</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-05T00:25:44.893849</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-05T00:26:28.566223</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-05T00:27:12.245554</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-05T00:27:55.558439</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-05T00:28:39.319141</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-05T00:29:22.859153</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-05T00:30:06.287287</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-05T00:30:50.092530</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-05T00:31:33.753202</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-05T00:32:17.278900</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-05T00:33:01.275992</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-05T00:33:44.802290</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-05T00:34:28.475111</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-05T00:35:12.504101</td></tr>
+        </table>
+        <p><em>Showing first 20 errors. Total: 61</em></p>
+        
+        </div>
+    </div>
+</body>
+</html>

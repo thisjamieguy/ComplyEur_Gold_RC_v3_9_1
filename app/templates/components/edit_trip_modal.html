@@ -1,0 +1,53 @@
+<!-- # Phase 3.9 — Calendar edit trip modal component -->
+<div class="calendar-form-overlay" id="calendar-form-overlay" role="dialog" aria-modal="true" hidden>
+    <div class="calendar-form" role="document" aria-labelledby="calendar-form-title" tabindex="-1">
+        <header class="calendar-form-header">
+            <div class="calendar-form-titles">
+                <h2 class="calendar-form-title" id="calendar-form-title">Add trip</h2>
+                <p class="calendar-form-subtitle" id="calendar-form-subtitle">Create a new travel record</p>
+            </div>
+            <button type="button" class="calendar-form-close" data-action="close-form" aria-label="Close form">
+                ×
+            </button>
+        </header>
+        <form id="calendar-form" class="calendar-form-body" novalidate>
+            <div class="calendar-form-grid">
+                <label class="calendar-form-field">
+                    <span>Employee</span>
+                    <select id="calendar-form-employee" name="employee_id" required></select>
+                </label>
+                <label class="calendar-form-field">
+                    <span>Country</span>
+                    <input id="calendar-form-country" name="country" type="text" maxlength="80" required>
+                </label>
+                <label class="calendar-form-field">
+                    <span>Entry date</span>
+                    <input id="calendar-form-start" name="start_date" type="date" required>
+                </label>
+                <label class="calendar-form-field">
+                    <span>Exit date</span>
+                    <input id="calendar-form-end" name="end_date" type="date" required>
+                </label>
+                <label class="calendar-form-field">
+                    <span>Job reference <small>(optional)</small></span>
+                    <input id="calendar-form-jobref" name="job_ref" type="text" maxlength="120" autocomplete="off">
+                </label>
+                <label class="calendar-form-field calendar-form-field--wide">
+                    <span>Purpose / notes <small>(optional)</small></span>
+                    <textarea id="calendar-form-purpose" name="purpose" rows="3" maxlength="500"></textarea>
+                </label>
+            </div>
+            <div class="calendar-form-footer">
+                <div class="calendar-form-feedback" id="calendar-form-feedback" aria-live="polite" hidden></div>
+                <div class="calendar-form-actions">
+                    <button type="button" class="calendar-btn calendar-btn--ghost" data-action="close-form">
+                        Cancel
+                    </button>
+                    <button type="submit" class="calendar-btn calendar-btn--primary" data-action="submit-form">
+                        Save Trip
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

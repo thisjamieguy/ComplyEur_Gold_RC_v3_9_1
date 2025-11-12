@@ -169,6 +169,7 @@ class SecureFileUpload:
         Returns:
             Sanitized filename
         """
+        filename = Path(filename).name
         # Use Werkzeug's secure_filename
         sanitized = secure_filename(filename)
         
@@ -244,4 +245,3 @@ class SecureFileUpload:
         
         except Exception as e:
             return False, None, f"Failed to save file: {str(e)}"
-

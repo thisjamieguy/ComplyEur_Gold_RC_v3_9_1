@@ -4,10 +4,13 @@ Supports Google Workspace and Microsoft Entra ID
 """
 
 import os
-import requests
 from abc import ABC, abstractmethod
 from typing import Optional, Dict, Any
 from flask import current_app, url_for
+try:
+    import requests
+except ImportError:
+    requests = None
 
 
 class OAuthProvider(ABC):
@@ -71,6 +74,8 @@ class GoogleOAuthProvider(OAuthProvider):
     
     def get_token(self, code: str) -> Dict[str, Any]:
         """Exchange authorization code for access token"""
+        if not requests:
+            raise RuntimeError("requests library is required for Google OAuth flows")
         data = {
             "client_id": self.client_id,
             "client_secret": self.client_secret,
@@ -85,6 +90,8 @@ class GoogleOAuthProvider(OAuthProvider):
     
     def get_user_info(self, access_token: str) -> Dict[str, Any]:
         """Get user profile from Google"""
+        if not requests:
+            raise RuntimeError("requests library is required for Google OAuth flows")
         headers = {"Authorization": f"Bearer {access_token}"}
         response = requests.get(self.USERINFO_URL, headers=headers, timeout=10)
         response.raise_for_status()
@@ -92,6 +99,8 @@ class GoogleOAuthProvider(OAuthProvider):
     
     def validate_token(self, access_token: str) -> bool:
         """Validate Google access token"""
+        if not requests:
+            return False
         params = {"access_token": access_token}
         try:
             response = requests.get(
@@ -137,6 +146,8 @@ class MicrosoftOAuthProvider(OAuthProvider):
     
     def get_token(self, code: str) -> Dict[str, Any]:
         """Exchange authorization code for access token"""
+        if not requests:
+            raise RuntimeError("requests library is required for Microsoft OAuth flows")
         data = {
             "client_id": self.client_id,
             "client_secret": self.client_secret,
@@ -151,6 +162,8 @@ class MicrosoftOAuthProvider(OAuthProvider):
     
     def get_user_info(self, access_token: str) -> Dict[str, Any]:
         """Get user profile from Microsoft Graph"""
+        if not requests:
+            raise RuntimeError("requests library is required for Microsoft OAuth flows")
         headers = {"Authorization": f"Bearer {access_token}"}
         response = requests.get(self.USERINFO_URL, headers=headers, timeout=10)
         response.raise_for_status()
@@ -158,6 +171,8 @@ class MicrosoftOAuthProvider(OAuthProvider):
     
     def validate_token(self, access_token: str) -> bool:
         """Validate Microsoft access token by attempting to use it"""
+        if not requests:
+            return False
         try:
             # Try to fetch user info - if successful, token is valid
             headers = {"Authorization": f"Bearer {access_token}"}
@@ -167,4 +182,3 @@ class MicrosoftOAuthProvider(OAuthProvider):
             return response.status_code == 200
         except Exception:
             return False
-

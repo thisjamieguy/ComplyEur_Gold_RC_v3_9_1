@@ -310,6 +310,22 @@
             }
 
             this.updateLabel(pointer.clientX, pointer.clientY, this.dragging.nextStart, this.dragging.nextEnd);
+
+            if (typeof this.options.onPreview === 'function') {
+                try {
+                    this.options.onPreview({
+                        element: this.dragging.element,
+                        tripId: meta.id,
+                        employeeId: meta.employeeId,
+                        nextStart: this.dragging.nextStart,
+                        nextEnd: this.dragging.nextEnd,
+                        originalStart: this.dragging.originalStart,
+                        originalEnd: this.dragging.originalEnd
+                    });
+                } catch (error) {
+                    console.error('Calendar drag preview handler failed', error);
+                }
+            }
         }
 
         handleDrop(event) {
@@ -430,7 +446,8 @@
                 return;
             }
 
-            const { element, row, placeholder } = this.dragging;
+            const dragState = this.dragging;
+            const { element, row, placeholder } = dragState;
             if (element) {
                 element.classList.remove('calendar-trip--dragging');
                 element.setAttribute('aria-grabbed', 'false');
@@ -448,6 +465,19 @@
             this.pendingPointer = null;
             this.lastPointer = null;
             this.hideLabel();
+            if (typeof this.options.onPreviewEnd === 'function') {
+                try {
+                    this.options.onPreviewEnd({
+                        element: dragState.element,
+                        tripId: dragState.meta ? dragState.meta.id : undefined,
+                        employeeId: dragState.meta ? dragState.meta.employeeId : undefined,
+                        originalStart: dragState.originalStart,
+                        originalEnd: dragState.originalEnd
+                    });
+                } catch (error) {
+                    console.error('Calendar drag preview cleanup failed', error);
+                }
+            }
             this.dragging = null;
         }
     }

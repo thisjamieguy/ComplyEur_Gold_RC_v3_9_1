@@ -8,8 +8,8 @@ import hashlib
 from typing import Optional
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError, HashingError
-from zxcvbn import zxcvbn
 from flask import current_app
+from app.security import zxcvbn
 
 
 def get_pepper() -> bytes:
@@ -197,4 +197,3 @@ class PasswordManager:
         
         alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
         return ''.join(secrets.choice(alphabet) for _ in range(length))
-

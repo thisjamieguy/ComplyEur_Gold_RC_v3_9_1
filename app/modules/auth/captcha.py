@@ -4,9 +4,12 @@ Supports Google reCAPTCHA v3 for bot prevention
 """
 
 import os
-import requests
 from typing import Optional, Dict, Any
 from flask import request, current_app
+try:
+    import requests
+except ImportError:
+    requests = None
 
 
 class CaptchaManager:
@@ -30,7 +33,11 @@ class CaptchaManager:
     @staticmethod
     def is_enabled() -> bool:
         """Check if CAPTCHA is configured"""
-        return bool(CaptchaManager.get_site_key() and CaptchaManager.get_secret_key())
+        return bool(
+            requests
+            and CaptchaManager.get_site_key()
+            and CaptchaManager.get_secret_key()
+        )
     
     @staticmethod
     def verify(token: str, remote_ip: Optional[str] = None) -> Dict[str, Any]:
@@ -66,6 +73,11 @@ class CaptchaManager:
         
         if remote_ip:
             data['remoteip'] = remote_ip
+        
+        if not requests:
+            if current_app:
+                current_app.logger.warning("requests library not installed; CAPTCHA verification skipped")
+            return {'success': False, 'error_codes': ['requests_missing']}
         
         try:
             response = requests.post(
@@ -118,4 +130,3 @@ class CaptchaManager:
         
         score = result.get('score', 0.0)
         return score >= score_threshold
-

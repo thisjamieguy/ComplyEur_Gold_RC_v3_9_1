@@ -126,3 +126,66 @@ test.describe('visual validation', () => {
     });
   });
 });
+
+test('QA-CI-05 Context menu toggles via right-click and Escape', async ({ page }) => {
+  await bootstrapCalendar(page);
+
+  const trip = page.locator('.calendar-trip').first();
+  await trip.click({ button: 'right' });
+
+  const menu = page.locator('#calendar-context-menu');
+  await expect(menu).toBeVisible({ timeout: 3000 });
+  await expect(menu).toContainText(['Edit Trip', 'Delete Trip', 'Duplicate', 'View Summary']);
+
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeHidden({ timeout: 3000 });
+});
+
+test('QA-CI-06 Fullscreen toggle adds and removes fullscreen state', async ({ page }) => {
+  await page.addInitScript(() => {
+    const doc = document;
+    doc.documentElement.requestFullscreen = () => {
+      doc.fullscreenElement = doc.documentElement;
+      doc.dispatchEvent(new Event('fullscreenchange'));
+      return Promise.resolve();
+    };
+    doc.exitFullscreen = () => {
+      doc.fullscreenElement = null;
+      doc.dispatchEvent(new Event('fullscreenchange'));
+      return Promise.resolve();
+    };
+  });
+
+  await bootstrapCalendar(page);
+
+  const toggle = page.locator('[data-action="toggle-fullscreen"]');
+  await toggle.click();
+
+  await page.waitForFunction(() => document.fullscreenElement !== null);
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#calendar')).toHaveClass(/calendar-shell--fullscreen/);
+
+  await toggle.click();
+  await page.waitForFunction(() => document.fullscreenElement === null);
+  await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.locator('#calendar')).not.toHaveClass(/calendar-shell--fullscreen/);
+});
+
+test('QA-CI-07 Tooltip surfaces trip metadata on hover', async ({ page }) => {
+  await bootstrapCalendar(page);
+
+  const trip = page.locator('.calendar-trip').first();
+  const employee = (await trip.getAttribute('data-employee'))?.trim();
+  const startDate = await trip.getAttribute('data-start');
+
+  await trip.hover();
+  const tooltip = page.locator('.calendar-tooltip--visible');
+  await expect(tooltip).toBeVisible({ timeout: 3000 });
+
+  if (employee) {
+    await expect(tooltip).toContainText(employee);
+  }
+  if (startDate) {
+    await expect(tooltip).toContainText(startDate);
+  }
+});

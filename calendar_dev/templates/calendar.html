@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ComplyEur Calendar Sandbox</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='calendar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='timeline.css') }}">
+</head>
+<body>
+<main class="calendar-page">
+    <div class="calendar-banner" role="status" aria-live="polite">
+        <strong>Heads up:</strong> Native calendar rebuild rolling out in Phase 3.5. All trip data and endpoints remain fully operational.
+    </div>
+    <div id="calendar"
+         class="calendar-shell"
+         data-warning-threshold="{{ warning_threshold }}"
+         data-focus-employee="{{ focus_employee_id }}"
+         data-focus-employee-name="{{ focus_employee_name }}">
+        <div class="calendar-shell-inner">
+            <div class="calendar-view-stack" data-active-view="calendar">
+                <section class="calendar-view-layer is-active" data-view-layer="calendar" aria-label="Calendar view">
+                    <div class="calendar-main-column">
+                <header class="calendar-toolbar">
+                    <div class="calendar-toolbar-left">
+                        <button type="button" class="calendar-btn" data-action="prev" aria-label="Show previous month range">
+                            <span aria-hidden="true">←</span>
+                        </button>
+                        <button type="button" class="calendar-btn calendar-btn--primary" data-action="today">
+                            Today
+                        </button>
+                        <button type="button" class="calendar-btn" data-action="next" aria-label="Show next month range">
+                            <span aria-hidden="true">→</span>
+                        </button>
+                        <h1 class="calendar-title">
+                            <span id="calendar-range-label">Loading range…</span>
+                            {% if focus_employee_name %}
+                            <small class="calendar-focus-label">Focused on {{ focus_employee_name }}</small>
+                            {% endif %}
+                        </h1>
+                    </div>
+                    <div class="calendar-toolbar-right">
+                        <div class="calendar-view-toggle" role="group" aria-label="Calendar display mode">
+                            <button type="button" class="calendar-view-toggle__button is-active" data-view-target="calendar" aria-pressed="true">
+                                Calendar
+                            </button>
+                            <button type="button" class="calendar-view-toggle__button" data-view-target="timeline" aria-pressed="false">
+                                Timeline
+                            </button>
+                        </div>
+                        <div class="calendar-toolbar-actions">
+                            <label for="calendar-future-weeks" class="calendar-toolbar-label">Future view:</label>
+                            <select id="calendar-future-weeks" class="calendar-select">
+                                <option value="4">4 weeks</option>
+                                <option value="5">5 weeks</option>
+                                <option value="6" selected>6 weeks</option>
+                                <option value="7">7 weeks</option>
+                                <option value="8">8 weeks</option>
+                                <option value="9">9 weeks</option>
+                                <option value="10">10 weeks</option>
+                            </select>
+                            <div class="calendar-toolbar-buttons" role="group" aria-label="Trip actions">
+                                <button type="button" class="calendar-btn calendar-btn--accent" data-action="add-trip">
+                                    Add Trip
+                                </button>
+                                <button type="button" class="calendar-btn calendar-btn--secondary" data-action="edit-trip-global" disabled aria-disabled="true">
+                                    Edit Trip
+                                </button>
+                            </div>
+                        </div>
+                        <div class="calendar-toolbar-utilities">
+                            <button type="button" class="calendar-btn calendar-btn--ghost calendar-fullscreen-toggle" data-action="toggle-fullscreen" aria-label="Enter full screen" aria-pressed="false">
+                                <span class="calendar-icon" aria-hidden="true"></span>
+                                <span class="calendar-btn-label">Full Screen</span>
+                            </button>
+                            <div class="calendar-search">
+                                <label for="calendar-search-input" class="visually-hidden">Filter employees</label>
+                                <input id="calendar-search-input" type="search" placeholder="Filter employees…" autocomplete="off">
+                                <button type="button" class="calendar-search-clear" aria-label="Clear search">×</button>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <section class="calendar-legend" aria-label="Calendar legend">
+                    <div class="calendar-legend-item">
+                        <span class="calendar-legend-swatch calendar-legend-swatch--safe"></span>
+                        <span>Compliant &lt; 60 days</span>
+                    </div>
+                    <div class="calendar-legend-item">
+                        <span class="calendar-legend-swatch calendar-legend-swatch--warning"></span>
+                        <span>Approaching limit 60–89 days</span>
+                    </div>
+                    <div class="calendar-legend-item">
+                        <span class="calendar-legend-swatch calendar-legend-swatch--critical"></span>
+                        <span>Exceeded ≥ 90 days</span>
+                    </div>
+                </section>
+
+                <section class="calendar-main" aria-live="polite">
+                    <div class="calendar-header-row">
+                        <div class="calendar-employee-header">
+                            <span>Employees</span>
+                        </div>
+                        <div class="calendar-timeline-header">
+                            <div class="calendar-month-row" id="calendar-month-row"></div>
+                            <div class="calendar-day-row" id="calendar-day-row"></div>
+                            <div class="calendar-today-marker" id="calendar-today-marker" aria-hidden="true"></div>
+                        </div>
+                    </div>
+                    <div class="calendar-body">
+                        <div class="calendar-employee-list" id="calendar-employee-list" role="listbox" aria-label="Employees"></div>
+                        <div class="calendar-timeline">
+                            <div class="calendar-timeline-inner" id="calendar-timeline">
+                                <!-- Phase 3.6.1: Drag-and-drop handles mount inside the grid rows here. -->
+                                <div class="calendar-grid" id="calendar-grid"></div>
+                                <div class="calendar-today-marker calendar-today-marker--body" id="calendar-today-marker-body" aria-hidden="true"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
+        <section class="calendar-view-layer" data-view-layer="timeline" aria-label="Timeline view" aria-hidden="true">
+            {% include 'timeline.html' %}
+        </section>
+        </div>
+
+            <aside class="calendar-alerts-panel" id="calendar-alerts-panel" aria-labelledby="calendar-alerts-title">
+                <header class="calendar-alerts-header">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <h2 id="calendar-alerts-title" style="margin: 0;">Alerts</h2>
+                        <button type="button" class="calendar-alerts-toggle" id="calendar-alerts-toggle" aria-label="Hide alerts panel" title="Hide alerts panel" style="background: none; border: none; cursor: pointer; padding: 4px; font-size: 18px; color: #64748b; transition: color 0.2s; line-height: 1;">×</button>
+                    </div>
+                    <div class="calendar-alerts-filters" role="tablist" aria-label="Alert filters">
+                        <button type="button" class="calendar-alerts-filter is-active" data-alert-filter="all" aria-pressed="true">
+                            All <span class="calendar-alerts-filter-count" aria-hidden="true"></span>
+                        </button>
+                        <button type="button" class="calendar-alerts-filter" data-alert-filter="warning" aria-pressed="false">
+                            Warnings <span class="calendar-alerts-filter-count" aria-hidden="true"></span>
+                        </button>
+                        <button type="button" class="calendar-alerts-filter" data-alert-filter="critical" aria-pressed="false">
+                            Critical <span class="calendar-alerts-filter-count" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </header>
+                <div class="calendar-alerts-body" role="region" aria-live="polite">
+                    <ul class="calendar-alerts-list" id="calendar-alerts-list"></ul>
+                    <div class="calendar-alerts-empty" id="calendar-alerts-empty">
+                        <p>All clear — no active compliance alerts.</p>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <section class="forecast-panel" id="calendar-forecast-panel" data-forecast-state="open" aria-labelledby="forecast-panel-title">
+            <button type="button" class="forecast-panel__toggle" data-forecast-action="toggle" aria-expanded="true">
+                <span class="forecast-panel__toggle-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Collapse mini forecast panel</span>
+            </button>
+            <div class="forecast-panel__content">
+                <header class="forecast-panel__header">
+                    <div class="forecast-panel__header-text">
+                        <p id="forecast-panel-title" class="forecast-panel__title">Mini Forecast</p>
+                        <p class="forecast-panel__subtitle" data-forecast-employee>Loading…</p>
+                    </div>
+                    <span class="forecast-panel__badge forecast-panel__badge--safe" data-forecast-status>Safe</span>
+                </header>
+                <dl class="forecast-panel__metrics">
+                    <div class="forecast-panel__metric">
+                        <dt class="forecast-panel__metric-label">Used days</dt>
+                        <dd class="forecast-panel__metric-value" data-forecast-used>—</dd>
+                    </div>
+                    <div class="forecast-panel__metric">
+                        <dt class="forecast-panel__metric-label">Upcoming days</dt>
+                        <dd class="forecast-panel__metric-value" data-forecast-upcoming>—</dd>
+                    </div>
+                    <div class="forecast-panel__metric">
+                        <dt class="forecast-panel__metric-label">Projected total</dt>
+                        <dd class="forecast-panel__metric-value" data-forecast-total>—</dd>
+                    </div>
+                </dl>
+                <div class="forecast-panel__progress">
+                    <div class="forecast-panel__progress-bar" data-forecast-progress></div>
+                    <span class="forecast-panel__progress-caption" data-forecast-caption>Within 90-day limit</span>
+                </div>
+                <div class="forecast-panel__actions">
+                    <button type="button" class="forecast-panel__refresh" data-forecast-action="refresh">Refresh</button>
+                </div>
+                <div class="forecast-panel__upcoming-wrapper" data-forecast-upcoming-wrapper hidden>
+                    <h3 class="forecast-panel__upcoming-title">Upcoming trips</h3>
+                    <ul class="forecast-panel__upcoming" data-forecast-upcoming-list></ul>
+                </div>
+                <footer class="forecast-panel__footer">
+                    <time class="forecast-panel__timestamp" data-forecast-updated datetime="">Updated moments ago</time>
+                    <span class="forecast-panel__note">Updates automatically when trips change</span>
+                </footer>
+            </div>
+        </section>
+
+        <div class="calendar-detail-overlay" id="calendar-detail-overlay" role="dialog" aria-modal="true" hidden>
+            <div class="calendar-detail" role="document" aria-labelledby="calendar-detail-title" tabindex="-1">
+                <header class="calendar-detail-header">
+                    <div class="calendar-detail-heading">
+                        <div class="calendar-detail-status-row">
+                            <span class="trip-color-badge trip-color" id="calendar-detail-status-dot" aria-hidden="true"></span>
+                            <p class="calendar-detail-label" id="calendar-detail-status">Compliant trip</p>
+                        </div>
+                        <h2 class="calendar-detail-title" id="calendar-detail-title">Trip details</h2>
+                        <p class="calendar-detail-subtitle" id="calendar-detail-employee"></p>
+                    </div>
+                    <div class="calendar-detail-actions">
+                        <button type="button" class="calendar-btn calendar-btn--outline" data-action="edit-trip">
+                            Edit Trip
+                        </button>
+                    </div>
+                    <button type="button" class="calendar-detail-close" data-action="close-detail" aria-label="Close trip details">
+                        ×
+                    </button>
+                </header>
+                <section class="calendar-detail-body" id="calendar-detail-body">
+                    <div class="calendar-detail-meta">
+                        <div>
+                            <span class="calendar-detail-meta-label">Country</span>
+                            <span class="calendar-detail-meta-value" id="calendar-detail-country">—</span>
+                        </div>
+                        <div>
+                            <span class="calendar-detail-meta-label">Travel window</span>
+                            <span class="calendar-detail-meta-value" id="calendar-detail-dates">—</span>
+                        </div>
+                        <div>
+                            <span class="calendar-detail-meta-label">Duration</span>
+                            <span class="calendar-detail-meta-value" id="calendar-detail-duration">—</span>
+                        </div>
+                        <div>
+                            <span class="calendar-detail-meta-label">Rolling 180-day usage</span>
+                            <span class="calendar-detail-meta-value" id="calendar-detail-usage">—</span>
+                        </div>
+                    </div>
+                    <div class="calendar-detail-notes" id="calendar-detail-notes" hidden>
+                        <h3>Notes</h3>
+                        <p id="calendar-detail-purpose"></p>
+                    </div>
+                    <dl class="calendar-detail-list">
+                        <div class="calendar-detail-list-item" id="calendar-detail-jobref" hidden>
+                            <dt>Job reference</dt>
+                            <dd id="calendar-detail-jobref-value">—</dd>
+                        </div>
+                        <div class="calendar-detail-list-item" id="calendar-detail-updated" hidden>
+                            <dt>Last updated</dt>
+                            <dd id="calendar-detail-updated-value">—</dd>
+                        </div>
+                        <div class="calendar-detail-list-item" id="calendar-detail-created" hidden>
+                            <dt>Created</dt>
+                            <dd id="calendar-detail-created-value">—</dd>
+                        </div>
+                    </dl>
+                </section>
+            </div>
+        </div>
+
+        {% include 'components/edit_trip_modal.html' %}
+
+        <div class="calendar-loading" id="calendar-loading" hidden>
+            <svg viewBox="0 0 50 50" class="calendar-spinner" aria-hidden="true">
+                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="4"/>
+            </svg>
+            <p>Loading trips…</p>
+        </div>
+
+        <div class="calendar-empty-state" id="calendar-empty" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <p>No trips found for selected range.</p>
+        </div>
+
+        <div class="calendar-error" id="calendar-error" hidden>
+            <strong>We couldn’t load the calendar.</strong>
+            <p>Check your connection and try again.</p>
+            <button type="button" class="calendar-btn calendar-btn--retry" data-action="retry">Retry</button>
+        </div>
+
+        <div class="calendar-toast" id="calendar-toast" role="status" aria-live="polite" aria-hidden="true"></div>
+        <div class="calendar-context-menu" id="calendar-context-menu" role="menu" aria-hidden="true" hidden tabindex="-1">
+            <button type="button" class="calendar-context-menu__item" data-menu-action="edit" role="menuitem">
+                <span class="calendar-context-menu__icon calendar-context-menu__icon--edit" aria-hidden="true"></span>
+                Edit Trip
+            </button>
+            <button type="button" class="calendar-context-menu__item calendar-context-menu__item--danger" data-menu-action="delete" role="menuitem">
+                <span class="calendar-context-menu__icon calendar-context-menu__icon--delete" aria-hidden="true"></span>
+                Delete Trip
+            </button>
+            <button type="button" class="calendar-context-menu__item" data-menu-action="duplicate" role="menuitem">
+                <span class="calendar-context-menu__icon calendar-context-menu__icon--duplicate" aria-hidden="true"></span>
+                Duplicate Trip
+            </button>
+            <button type="button" class="calendar-context-menu__item" data-menu-action="details" role="menuitem">
+                <span class="calendar-context-menu__icon calendar-context-menu__icon--summary" aria-hidden="true"></span>
+                View Details
+            </button>
+        </div>
+    </div> <!-- /.calendar-shell -->
+</main>
+<script defer src="{{ url_for('static', filename='dragManager.js') }}"></script>
+<script defer src="{{ url_for('static', filename='calendar.js') }}"></script>
+<script defer src="{{ url_for('static', filename='calendar_sync.js') }}"></script>
+<script defer src="{{ url_for('static', filename='timeline.js') }}"></script>
+</body>
+</html>

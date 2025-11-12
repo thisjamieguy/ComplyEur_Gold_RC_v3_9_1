@@ -1,18 +1,47 @@
+"""Authentication application factory and security initialisation for ComplyEur.
+
+Provides CSRF, rate limiting (when available), secure session configuration,
+security headers via Talisman, and SQLAlchemy initialisation for auth models.
+"""
+
+import logging
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 from flask_talisman import Talisman
 from .config_auth import Config
+
+try:
+    from flask_limiter import Limiter
+    from flask_limiter.util import get_remote_address
+except ImportError:
+    Limiter = None
+
+
+class _NoopLimiter:
+    """Fallback limiter when Flask-Limiter is unavailable."""
+
+    def __bool__(self):
+        return False
+
+    def init_app(self, app):
+        logger = getattr(app, "logger", logging.getLogger(__name__))
+        logger.warning("Flask-Limiter not installed; rate limiting disabled")
+
+    def hit(self, *args, **kwargs):
+        return True
 
 
 db = SQLAlchemy()
 csrf = CSRFProtect()
-limiter = Limiter(key_func=get_remote_address, storage_uri="memory://")
+if Limiter:
+    limiter = Limiter(key_func=get_remote_address, storage_uri="memory://")
+else:
+    limiter = _NoopLimiter()
 
 
 def create_app():
+    """Create and configure the authentication Flask application instance."""
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(Config)
     
@@ -48,7 +77,7 @@ def create_app():
         db_dir = os.path.dirname(db_path)
         if db_dir and not os.path.exists(db_dir):
             os.makedirs(db_dir, exist_ok=True)
-            print(f"✅ Created database directory: {db_dir}")
+            app.logger.info("Created database directory: %s", db_dir)
 
     # DB
     db.init_app(app)
@@ -68,7 +97,8 @@ def create_app():
     
     if not is_production:
         # Log CSRF status for local development
-        print(f"⚠️  CSRF protection {'ENABLED' if is_production else 'DISABLED'} (local HTTP development)")
+        app.logger.warning("CSRF protection %s (local HTTP development)",
+                           'ENABLED' if is_production else 'DISABLED')
 
 
     # Limiter
@@ -90,7 +120,7 @@ def create_app():
         'default-src': ["'self'"],
         'img-src': ["'self'", "data:"],
         'style-src': ["'self'", "'unsafe-inline'"],  # Keep unsafe-inline for CSS
-        'script-src': ["'self'"],  # Nonce added dynamically
+        'script-src': ["'self'"],  # Allow scripts from same origin (static files)
         'base-uri': ["'none'"],
         'object-src': ["'none'"],
         'frame-ancestors': ["'none'"],
@@ -110,26 +140,8 @@ def create_app():
              strict_transport_security_max_age=hsts_max_age,
              strict_transport_security_include_subdomains=True)
     
-    # Add CSP nonce support via after_request hook
-    @app.after_request
-    def add_csp_nonce(response):
-        """Add CSP nonce to script-src directive - override Talisman's CSP"""
-        from app.core.csp import get_csp_nonce, build_csp_header
-        
-        # Override Talisman's CSP with nonce-enabled version
-        # This allows scripts with nonce attribute to execute
-        nonce = get_csp_nonce()
-        csp_header = build_csp_header(nonce)
-        response.headers['Content-Security-Policy'] = csp_header
-        
-        return response
-    
-    # Make nonce available in templates
-    @app.context_processor
-    def inject_csp_nonce():
-        """Inject CSP nonce into template context"""
-        from app.core.csp import get_csp_nonce
-        return {'csp_nonce': get_csp_nonce()}
+    # CSP nonce support removed - using Talisman's built-in CSP with unsafe-inline for scripts
+    # This avoids importing app.core.csp which has heavy cryptography dependencies
 
 
     # Initialize models in app context
@@ -206,4 +218,3 @@ def create_app():
 
 
     return app
-

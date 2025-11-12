@@ -1,8 +1,41 @@
-import os, re
+import logging
+import os
+import re
 from datetime import datetime
 from argon2 import PasswordHasher, exceptions as argon_exc
-from zxcvbn import zxcvbn
 from flask import session, current_app
+
+try:
+    from zxcvbn import zxcvbn as _zxcvbn
+except ImportError:
+    _zxcvbn = None
+
+logger = logging.getLogger(__name__)
+
+
+def _fallback_zxcvbn(password: str) -> dict:
+    """Lightweight heuristic when zxcvbn is unavailable."""
+    length = len(password)
+    score = 4 if length >= 16 else 3 if length >= 12 else 1
+    feedback = {
+        "warning": "Install zxcvbn-python for advanced strength checks.",
+        "suggestions": [
+            "Use a longer passphrase with mixed character types.",
+            "Avoid common words and repeated patterns."
+        ],
+    }
+    return {"score": score, "feedback": feedback}
+
+
+if _zxcvbn is None:
+    logger.warning("zxcvbn-python not installed; using heuristic password strength checks")
+
+
+def zxcvbn(password: str) -> dict:
+    """Wrapper to ensure password strength scoring is always available."""
+    if _zxcvbn is not None:
+        return _zxcvbn(password)
+    return _fallback_zxcvbn(password)
 
 
 def get_hasher():
@@ -51,4 +84,3 @@ def session_expired():
 def touch_session():
     from datetime import datetime
     session["last_seen"] = datetime.utcnow().timestamp()
-

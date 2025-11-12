@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ComplyEur Calendar Dev</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="calendar_styles.css" />
+</head>
+<body>
+  <div class="calendar-shell">
+    <header class="calendar-header">
+      <button class="nav-btn" data-nav="prev" aria-label="Previous Month">&#10094;</button>
+      <div class="month-label" id="monthLabel">Loading…</div>
+      <button class="nav-btn" data-nav="next" aria-label="Next Month">&#10095;</button>
+    </header>
+
+    <div class="calendar-body">
+      <section class="calendar-main">
+        <div class="weekday-row">
+          <span>Mon</span>
+          <span>Tue</span>
+          <span>Wed</span>
+          <span>Thu</span>
+          <span>Fri</span>
+          <span>Sat</span>
+          <span>Sun</span>
+        </div>
+        <div class="calendar-grid" id="calendarGrid" aria-live="polite"></div>
+        <div class="lane-board" id="employeeLaneBoard" aria-label="Employee lanes"></div>
+        <div class="debug-controls">
+          <button type="button" id="toggleDragHud" class="hud-toggle">Toggle HUD</button>
+        </div>
+        <div class="drag-overlay" id="dragOverlay" aria-hidden="true"></div>
+        <div class="drag-hud hidden" id="dragDebugHud" aria-live="polite"></div>
+      </section>
+
+      <aside class="calendar-sidebar" id="calendarSidebar"></aside>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="tripModal" role="dialog" aria-modal="true" aria-label="Trip form">
+    <form id="tripForm">
+      <h2 id="modalTitle">Add Trip</h2>
+      <label>
+        Employee
+        <input type="text" name="employee" required />
+      </label>
+      <label>
+        Country
+        <input type="text" name="country" required />
+      </label>
+      <label>
+        Start Date
+        <input type="date" name="startDate" required />
+      </label>
+      <label>
+        End Date
+        <input type="date" name="endDate" required />
+      </label>
+      <div class="modal-actions">
+        <button type="button" id="deleteTripBtn" class="ghost">Delete</button>
+        <div class="action-right">
+          <button type="button" id="cancelModal">Cancel</button>
+          <button type="submit" class="primary">Save</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="tooltip hidden" id="tripTooltip"></div>
+  <div class="context-menu hidden" id="tripContextMenu" role="menu">
+    <button type="button" data-action="edit">Edit Trip</button>
+    <button type="button" data-action="delete" class="danger">Delete Trip</button>
+  </div>
+
+  <script>
+    window.ENABLE_TRIP_DND = window.ENABLE_TRIP_DND ?? true;
+  </script>
+  <script type="module" src="calendar_dev.js"></script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+[
+  {
+    "id": "TC001",
+    "title": "test_login_api_authentication",
+    "description": "Verify that the login API authenticates users correctly with valid credentials, enforces rate limiting, supports CAPTCHA, and returns appropriate responses for success and failure scenarios."
+  },
+  {
+    "id": "TC002",
+    "title": "test_logout_api_session_clearing",
+    "description": "Verify that the logout API successfully logs out the user by clearing the session and returns a success response."
+  },
+  {
+    "id": "TC003",
+    "title": "test_dashboard_api_display",
+    "description": "Verify that the dashboard API displays the main dashboard page with employee compliance overview and returns a 200 status code."
+  },
+  {
+    "id": "TC004",
+    "title": "test_employee_management_api_crud_operations",
+    "description": "Verify CRUD operations for employee records including adding new employees with valid data, retrieving employee details, and handling not found errors."
+  },
+  {
+    "id": "TC005",
+    "title": "test_trip_management_api_crud_operations",
+    "description": "Verify CRUD operations for employee travel trips including adding, editing, and deleting trips with valid and invalid data, and handling ongoing trip scenarios and overlapping trips."
+  },
+  {
+    "id": "TC006",
+    "title": "test_calendar_api_trip_operations_and_filters",
+    "description": "Verify calendar API endpoints for listing employees, retrieving trips with optional date filters, creating, updating, deleting, and duplicating trips, and fetching compliance forecasts and alerts."
+  },
+  {
+    "id": "TC007",
+    "title": "test_health_check_api_endpoints",
+    "description": "Verify health check API endpoints for service status including health, readiness, liveness probes, and version information, ensuring correct status codes and response content."
+  },
+  {
+    "id": "TC008",
+    "title": "test_export_api_data_downloads",
+    "description": "Verify export API endpoints for downloading trip data as CSV, employee reports as PDF, and all employees reports as PDF, ensuring correct file formats and content."
+  },
+  {
+    "id": "TC009",
+    "title": "test_admin_dsar_api_gdpr_data_management",
+    "description": "Verify GDPR Data Subject Access Request endpoints for exporting employee data as ZIP, deleting employee data, rectifying employee names, and anonymizing employee data, ensuring compliance with privacy laws."
+  },
+  {
+    "id": "TC010",
+    "title": "test_admin_retention_api_data_purging",
+    "description": "Verify data retention management endpoints for previewing expired trips, listing expired trips, and purging expired trips, ensuring correct identification and removal of data according to retention policies."
+  }
+]

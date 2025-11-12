@@ -16,7 +16,8 @@ DEFAULTS = {
         'amber': 10   # 10-29 days remaining = amber, < 10 = red
     },
     'FUTURE_JOB_WARNING_THRESHOLD': 80,  # Warn when future trips would use 80+ days
-    'NEWS_FILTER_REGION': 'EU_ONLY'  # News filtering: EU_ONLY or ALL
+    'NEWS_FILTER_REGION': 'EU_ONLY',  # News filtering: EU_ONLY or ALL
+    'ADMIN_EMAIL': None
 }
 
 
@@ -87,7 +88,6 @@ def save_config(updated: dict) -> dict:
 def get_session_lifetime(config: dict) -> timedelta:
     minutes = int(config.get('SESSION_IDLE_TIMEOUT_MINUTES', DEFAULTS['SESSION_IDLE_TIMEOUT_MINUTES']))
     return timedelta(minutes=minutes)
-
 
 
 

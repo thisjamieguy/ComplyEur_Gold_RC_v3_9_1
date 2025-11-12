@@ -165,6 +165,7 @@ def calculate_future_job_compliance(
         'job_duration': job_duration,
         'days_used_before_job': days_used_before,
         'days_after_job': days_after,
+        'days_used_after_job': days_after,
         'days_remaining_after_job': days_remaining,
         'risk_level': risk_level,
         'is_compliant': is_compliant,
@@ -249,5 +250,4 @@ def calculate_what_if_scenario(
         all_trips,
         warning_threshold
     )
-
 

@@ -67,7 +67,7 @@ class DataMasking:
         if len(local) <= 1:
             masked_local = local
         else:
-            masked_local = local[0] + "*" * (len(local) - 1)
+            masked_local = f"{local[0]}***"
         
         return f"{masked_local}@{domain}"
     
@@ -94,7 +94,7 @@ class DataMasking:
             if len(part) <= 1:
                 masked_parts.append(part)
             else:
-                masked_parts.append(part[0] + "*" * (len(part) - 1))
+                masked_parts.append(f"{part[0]}***")
         
         return " ".join(masked_parts)
     
@@ -129,4 +129,3 @@ class DataMasking:
             return "*" * (len(phone_number) - visible_digits) + phone_number[-visible_digits:]
         
         return masked_digits
-

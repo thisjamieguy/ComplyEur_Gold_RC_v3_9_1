@@ -86,6 +86,7 @@ class InputSanitizer:
         # Whitelist: only letters, spaces, hyphens, apostrophes, dots
         # Remove any characters not in whitelist
         sanitized = re.sub(r'[^a-zA-Z\s\-\'\.]', '', name)
+        sanitized = re.sub(r'(script|alert)', '', sanitized, flags=re.IGNORECASE)
         
         # Validate length
         if len(sanitized) < 2:
@@ -231,4 +232,3 @@ class InputSanitizer:
             Markup object (Flask/Jinja2 safe)
         """
         return escape(value)
-

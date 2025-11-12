@@ -23,3 +23,4 @@
 ## Performance & Accessibility
 - Tooltip movement and scroll synchronisation are throttled through `requestAnimationFrame`, avoiding forced reflows under load.
 - Each risk cell carries an ARIA label and dataset attributes for screen-reader compatibility and automation hooks.
+- Calendar tooltips toggle `aria-hidden` during show/hide to reduce noise for assistive technologies.

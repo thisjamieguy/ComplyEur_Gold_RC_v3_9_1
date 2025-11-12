@@ -576,6 +576,225 @@
     visibility: visible;
 }
 
+/* ===== STATUS BADGE COMPONENTS ===== */
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.status-badge-safe {
+    background: var(--status-safe-bg);
+    color: var(--status-safe-text);
+    border-left: 4px solid var(--status-safe);
+}
+
+.status-badge-warning {
+    background: var(--status-warning-bg);
+    color: var(--status-warning-text);
+    border-left: 4px solid var(--status-warning);
+}
+
+.status-badge-danger {
+    background: var(--status-danger-bg);
+    color: var(--status-danger-text);
+    border-left: 4px solid var(--status-danger);
+}
+
+.status-badge-info {
+    background: var(--status-info-bg);
+    color: var(--status-info-text);
+    border-left: 4px solid var(--status-info);
+}
+
+/* Status text colors */
+.text-status-safe { color: var(--status-safe); }
+.text-status-warning { color: var(--status-warning); }
+.text-status-danger { color: var(--status-danger); }
+.text-status-info { color: var(--status-info); }
+
+/* Status background colors */
+.bg-status-safe { background: var(--status-safe-bg); }
+.bg-status-warning { background: var(--status-warning-bg); }
+.bg-status-danger { background: var(--status-danger-bg); }
+.bg-status-info { background: var(--status-info-bg); }
+
+/* ===== SKELETON LOADERS ===== */
+
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+    border-radius: 4px;
+}
+
+@keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.skeleton-text {
+    height: 1em;
+    margin-bottom: 0.5em;
+}
+
+.skeleton-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.skeleton-button {
+    height: 40px;
+    width: 120px;
+}
+
+.skeleton-card {
+    padding: 16px;
+    border-radius: 8px;
+}
+
+/* ===== SCREEN READER ONLY ===== */
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* ===== CARD VARIANTS ===== */
+
+.card-danger {
+    border: 2px solid var(--status-danger);
+    background: linear-gradient(135deg, var(--status-danger-bg) 0%, #fee2e2 100%);
+    margin-bottom: 24px;
+}
+
+.card-danger .card-header {
+    background: var(--status-danger);
+    color: white;
+}
+
+.card-danger .card-title {
+    color: white;
+}
+
+.card-warning {
+    border: 2px solid var(--status-warning);
+    background: linear-gradient(135deg, var(--status-warning-bg) 0%, #fef3c7 100%);
+    margin-bottom: 24px;
+}
+
+.card-warning .card-header {
+    background: var(--status-warning);
+    color: white;
+}
+
+.card-info {
+    border: 2px solid var(--status-info);
+    background: linear-gradient(135deg, var(--status-info-bg) 0%, #dbeafe 100%);
+    margin-bottom: 24px;
+}
+
+/* ===== FORM HINTS ===== */
+
+.form-hint {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    line-height: 1.4;
+}
+
+.invalid-feedback {
+    display: none;
+    width: 100%;
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--status-danger);
+}
+
+.form-input.is-invalid ~ .invalid-feedback,
+.form-input:invalid ~ .invalid-feedback {
+    display: block;
+}
+
+.form-input.is-invalid {
+    border-color: var(--status-danger);
+}
+
+.form-input.is-valid {
+    border-color: var(--status-safe);
+}
+
+/* ===== LAYOUT UTILITIES ===== */
+
+.flex {
+    display: flex;
+}
+
+.flex-column {
+    flex-direction: column;
+}
+
+.flex-align-center {
+    align-items: center;
+}
+
+.flex-justify-between {
+    justify-content: space-between;
+}
+
+.flex-justify-end {
+    justify-content: flex-end;
+}
+
+.gap-8 {
+    gap: 8px;
+}
+
+.gap-12 {
+    gap: 12px;
+}
+
+.gap-16 {
+    gap: 16px;
+}
+
+.mb-24 {
+    margin-bottom: 24px;
+}
+
+.mt-8 {
+    margin-top: 8px;
+}
+
+.mb-8 {
+    margin-bottom: 8px;
+}
+
+.gap-24 {
+    gap: 24px;
+}
+
+.grid {
+    display: grid;
+}
+
+.font-weight-semibold {
+    font-weight: 600;
+}
+
 /* ===== UTILITY CLASSES ===== */
 
 .text-center { text-align: center; }

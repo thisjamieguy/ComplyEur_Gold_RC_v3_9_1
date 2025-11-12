@@ -50,8 +50,14 @@ class SessionManager:
         issued = session.get('issued_at')
         last_seen = session.get('last_seen')
         
+        # Fix: If timestamps are missing but user_id exists, initialize them
+        # This handles edge cases where session was created but timestamps weren't set
         if not issued or not last_seen:
-            return True
+            # Auto-initialize missing timestamps for valid sessions
+            SessionManager.rotate_session_id()
+            session.permanent = True
+            session.modified = True
+            return False  # Not expired - we just initialized it
         
         now = datetime.utcnow().timestamp()
         

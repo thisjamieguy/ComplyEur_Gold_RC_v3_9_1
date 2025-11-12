@@ -26,6 +26,7 @@ if os.path.exists(security_file):
     rotate_session_id = security_module.rotate_session_id
     session_expired = security_module.session_expired
     touch_session = security_module.touch_session
+    zxcvbn = security_module.zxcvbn
 else:
     # Fallback if security.py doesn't exist
     raise ImportError("Could not find app/security.py file")
@@ -39,5 +40,5 @@ __all__ = [
     'rotate_session_id',
     'session_expired',
     'touch_session',
+    'zxcvbn',
 ]
-

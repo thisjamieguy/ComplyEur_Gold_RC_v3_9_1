@@ -1,0 +1,605 @@
+{
+  "test_info": {
+    "start_time": "2025-11-04T22:37:17.157768",
+    "end_time": "2025-11-04T22:44:26.266627",
+    "duration_seconds": 429.10876512527466,
+    "duration_hours": 0.11919687920146518
+  },
+  "results": {
+    "start_time": "2025-11-04T22:37:17.157768",
+    "end_time": "2025-11-04T22:44:26.266627",
+    "duration_seconds": 429.10876512527466,
+    "excel_import_tests": {
+      "runs": 69,
+      "successes": 69,
+      "failures": 0,
+      "processing_times": [
+        1.1286537647247314,
+        0.8542211055755615,
+        1.4740657806396484,
+        0.3094608783721924,
+        0.7895753383636475,
+        1.501734972000122,
+        0.3602311611175537,
+        0.7881419658660889,
+        1.5344219207763672,
+        0.36295080184936523,
+        0.8238780498504639,
+        1.5422589778900146,
+        0.34680700302124023,
+        0.8032348155975342,
+        1.5525639057159424,
+        0.34580183029174805,
+        0.8432221412658691,
+        1.5502889156341553,
+        0.372974157333374,
+        0.909970760345459,
+        1.5675039291381836,
+        0.5354719161987305,
+        0.851611852645874,
+        1.6217269897460938,
+        0.3500077724456787,
+        0.8052220344543457,
+        1.5633971691131592,
+        0.3641357421875,
+        0.8630809783935547,
+        1.5809659957885742,
+        0.3658921718597412,
+        0.8155500888824463,
+        1.5999910831451416,
+        0.3745739459991455,
+        0.8473758697509766,
+        1.653865098953247,
+        0.3592228889465332,
+        0.8583390712738037,
+        1.704129934310913,
+        0.3789498805999756,
+        0.8578591346740723,
+        1.585860252380371,
+        0.3669130802154541,
+        0.8436441421508789,
+        1.613734245300293,
+        0.3638489246368408,
+        0.8645451068878174,
+        1.622135877609253,
+        0.3711531162261963,
+        0.890617847442627,
+        1.6106557846069336,
+        0.32986903190612793,
+        0.808795690536499,
+        1.4786219596862793,
+        0.3659241199493408,
+        0.8669180870056152,
+        1.6731150150299072,
+        0.38922786712646484,
+        0.8708090782165527,
+        1.6692149639129639,
+        0.36206483840942383,
+        0.8793871402740479,
+        1.7445931434631348,
+        0.3452739715576172,
+        0.854093074798584,
+        1.7654967308044434,
+        0.34425997734069824,
+        0.9124689102172852,
+        1.7498209476470947
+      ],
+      "employee_counts": [
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500
+      ]
+    },
+    "backend_stability": {
+      "recalculations": 13340,
+      "drift_detections": 0,
+      "memory_leaks": [],
+      "deadlocks": 0
+    },
+    "frontend_sync": {
+      "interactions": 0,
+      "synchronization_errors": 22,
+      "lag_events": []
+    },
+    "export_validation": {
+      "exports": 44,
+      "csv_diffs": 0,
+      "pdf_diffs": 0,
+      "export_times": [
+        0.0033969879150390625,
+        0.016213655471801758,
+        0.001744985580444336,
+        0.019092082977294922,
+        0.001650094985961914,
+        0.0169827938079834,
+        0.0024971961975097656,
+        0.018795013427734375,
+        0.002190113067626953,
+        0.019956111907958984,
+        0.002626180648803711,
+        0.019086122512817383,
+        0.0022170543670654297,
+        0.01848912239074707,
+        0.0018072128295898438,
+        0.01779794692993164,
+        0.0028319358825683594,
+        0.016025781631469727,
+        0.001611948013305664,
+        0.013575077056884766,
+        0.002096891403198242,
+        0.017889976501464844,
+        0.004091024398803711,
+        0.018330097198486328,
+        0.0030651092529296875,
+        0.018053054809570312,
+        0.001928091049194336,
+        0.019396066665649414,
+        0.00162506103515625,
+        0.014949798583984375,
+        0.006549835205078125,
+        0.017746925354003906,
+        0.002671957015991211,
+        0.018783092498779297,
+        0.0019989013671875,
+        0.017189979553222656,
+        0.002063274383544922,
+        0.014959096908569336,
+        0.002063274383544922,
+        0.0185849666595459,
+        0.0018832683563232422,
+        0.014962911605834961,
+        0.002016782760620117,
+        0.02361893653869629
+      ]
+    },
+    "system_metrics": [
+      {
+        "timestamp": "2025-11-04T22:37:21.197098",
+        "elapsed_seconds": 4.039340972900391,
+        "cpu_percent": 0.1,
+        "memory_mb": 102.46875,
+        "memory_percent": 0.6254196166992188,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:37:40.409426",
+        "elapsed_seconds": 23.25166893005371,
+        "cpu_percent": 0.1,
+        "memory_mb": 106.84375,
+        "memory_percent": 0.6521224975585938,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:37:59.502134",
+        "elapsed_seconds": 42.34437704086304,
+        "cpu_percent": 0.0,
+        "memory_mb": 107.71875,
+        "memory_percent": 0.6574630737304688,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:38:18.639492",
+        "elapsed_seconds": 61.48173475265503,
+        "cpu_percent": 0.0,
+        "memory_mb": 108.671875,
+        "memory_percent": 0.6632804870605469,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:38:37.742080",
+        "elapsed_seconds": 80.58432579040527,
+        "cpu_percent": 0.0,
+        "memory_mb": 109.171875,
+        "memory_percent": 0.6663322448730469,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:38:57.012559",
+        "elapsed_seconds": 99.85480189323425,
+        "cpu_percent": 0.0,
+        "memory_mb": 110.328125,
+        "memory_percent": 0.6733894348144531,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:39:16.291027",
+        "elapsed_seconds": 119.13327097892761,
+        "cpu_percent": 0.0,
+        "memory_mb": 110.390625,
+        "memory_percent": 0.6737709045410156,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:39:35.676073",
+        "elapsed_seconds": 138.51831912994385,
+        "cpu_percent": 0.0,
+        "memory_mb": 110.390625,
+        "memory_percent": 0.6737709045410156,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:39:54.775167",
+        "elapsed_seconds": 157.61741280555725,
+        "cpu_percent": 0.0,
+        "memory_mb": 110.6875,
+        "memory_percent": 0.6755828857421875,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:40:13.942747",
+        "elapsed_seconds": 176.78499507904053,
+        "cpu_percent": 0.0,
+        "memory_mb": 110.6875,
+        "memory_percent": 0.6755828857421875,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:40:24.684602",
+        "elapsed_seconds": 187.52684998512268,
+        "cpu_percent": 0.1,
+        "memory_mb": 110.640625,
+        "memory_percent": 0.6752967834472656,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:40:33.186691",
+        "elapsed_seconds": 196.02893495559692,
+        "cpu_percent": 0.0,
+        "memory_mb": 110.6875,
+        "memory_percent": 0.6755828857421875,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:40:52.390574",
+        "elapsed_seconds": 215.23281979560852,
+        "cpu_percent": 0.0,
+        "memory_mb": 110.203125,
+        "memory_percent": 0.6726264953613281,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:41:11.682934",
+        "elapsed_seconds": 234.5251808166504,
+        "cpu_percent": 0.0,
+        "memory_mb": 110.984375,
+        "memory_percent": 0.6773948669433594,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:41:30.866332",
+        "elapsed_seconds": 253.70857787132263,
+        "cpu_percent": 0.0,
+        "memory_mb": 110.984375,
+        "memory_percent": 0.6773948669433594,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:41:50.039937",
+        "elapsed_seconds": 272.8821837902069,
+        "cpu_percent": 0.1,
+        "memory_mb": 110.75,
+        "memory_percent": 0.67596435546875,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:42:09.252138",
+        "elapsed_seconds": 292.09438371658325,
+        "cpu_percent": 0.0,
+        "memory_mb": 110.5,
+        "memory_percent": 0.6744384765625,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:42:28.492027",
+        "elapsed_seconds": 311.3342740535736,
+        "cpu_percent": 0.0,
+        "memory_mb": 111.0,
+        "memory_percent": 0.677490234375,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:42:47.473231",
+        "elapsed_seconds": 330.31547379493713,
+        "cpu_percent": 0.0,
+        "memory_mb": 112.28125,
+        "memory_percent": 0.6853103637695312,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:43:06.726787",
+        "elapsed_seconds": 349.56902980804443,
+        "cpu_percent": 0.0,
+        "memory_mb": 113.546875,
+        "memory_percent": 0.6930351257324219,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:43:26.045542",
+        "elapsed_seconds": 368.88778495788574,
+        "cpu_percent": 0.0,
+        "memory_mb": 113.03125,
+        "memory_percent": 0.6898880004882812,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:43:36.802990",
+        "elapsed_seconds": 379.64524102211,
+        "cpu_percent": 0.1,
+        "memory_mb": 112.984375,
+        "memory_percent": 0.6896018981933594,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:43:45.529133",
+        "elapsed_seconds": 388.3713757991791,
+        "cpu_percent": 0.1,
+        "memory_mb": 113.03125,
+        "memory_percent": 0.6898880004882812,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:44:04.842644",
+        "elapsed_seconds": 407.68488693237305,
+        "cpu_percent": 0.0,
+        "memory_mb": 114.28125,
+        "memory_percent": 0.6975173950195312,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:44:24.277447",
+        "elapsed_seconds": 427.11968994140625,
+        "cpu_percent": 0.0,
+        "memory_mb": 113.046875,
+        "memory_percent": 0.6899833679199219,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:44:26.266793",
+        "elapsed_seconds": 429.1091010570526,
+        "cpu_percent": 0.2,
+        "memory_mb": 113.03125,
+        "memory_percent": 0.6898880004882812,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      }
+    ],
+    "errors": [
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 494, in test_frontend_synchronization\n    session = self._open_playwright_session()\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 319, in _open_playwright_session\n    page.wait_for_url(f'{self.app_url}/dashboard', timeout=10000)\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:37:32.045899"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 494, in test_frontend_synchronization\n    session = self._open_playwright_session()\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 319, in _open_playwright_session\n    page.wait_for_url(f'{self.app_url}/dashboard', timeout=10000)\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:37:51.042784"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 494, in test_frontend_synchronization\n    session = self._open_playwright_session()\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 319, in _open_playwright_session\n    page.wait_for_url(f'{self.app_url}/dashboard', timeout=10000)\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:38:10.123628"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 494, in test_frontend_synchronization\n    session = self._open_playwright_session()\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 319, in _open_playwright_session\n    page.wait_for_url(f'{self.app_url}/dashboard', timeout=10000)\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:38:29.246186"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 494, in test_frontend_synchronization\n    session = self._open_playwright_session()\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 319, in _open_playwright_session\n    page.wait_for_url(f'{self.app_url}/dashboard', timeout=10000)\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:38:48.432480"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 494, in test_frontend_synchronization\n    session = self._open_playwright_session()\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 319, in _open_playwright_session\n    page.wait_for_url(f'{self.app_url}/dashboard', timeout=10000)\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:39:07.630095"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 494, in test_frontend_synchronization\n    session = self._open_playwright_session()\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 319, in _open_playwright_session\n    page.wait_for_url(f'{self.app_url}/dashboard', timeout=10000)\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:39:26.882776"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 494, in test_frontend_synchronization\n    session = self._open_playwright_session()\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 319, in _open_playwright_session\n    page.wait_for_url(f'{self.app_url}/dashboard', timeout=10000)\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:39:46.305249"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 494, in test_frontend_synchronization\n    session = self._open_playwright_session()\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 319, in _open_playwright_session\n    page.wait_for_url(f'{self.app_url}/dashboard', timeout=10000)\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:40:05.379409"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 494, in test_frontend_synchronization\n    session = self._open_playwright_session()\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 319, in _open_playwright_session\n    page.wait_for_url(f'{self.app_url}/dashboard', timeout=10000)\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:40:24.530037"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 494, in test_frontend_synchronization\n    session = self._open_playwright_session()\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 319, in _open_playwright_session\n    page.wait_for_url(f'{self.app_url}/dashboard', timeout=10000)\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:40:43.758590"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 494, in test_frontend_synchronization\n    session = self._open_playwright_session()\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 319, in _open_playwright_session\n    page.wait_for_url(f'{self.app_url}/dashboard', timeout=10000)\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:41:02.977714"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 494, in test_frontend_synchronization\n    session = self._open_playwright_session()\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 319, in _open_playwright_session\n    page.wait_for_url(f'{self.app_url}/dashboard', timeout=10000)\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:41:22.276144"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 494, in test_frontend_synchronization\n    session = self._open_playwright_session()\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 319, in _open_playwright_session\n    page.wait_for_url(f'{self.app_url}/dashboard', timeout=10000)\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:41:41.439648"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 494, in test_frontend_synchronization\n    session = self._open_playwright_session()\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 319, in _open_playwright_session\n    page.wait_for_url(f'{self.app_url}/dashboard', timeout=10000)\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:42:00.617003"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 494, in test_frontend_synchronization\n    session = self._open_playwright_session()\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 319, in _open_playwright_session\n    page.wait_for_url(f'{self.app_url}/dashboard', timeout=10000)\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:42:19.841308"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 494, in test_frontend_synchronization\n    session = self._open_playwright_session()\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 319, in _open_playwright_session\n    page.wait_for_url(f'{self.app_url}/dashboard', timeout=10000)\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:42:39.096012"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 494, in test_frontend_synchronization\n    except sqlite3.OperationalError as e:\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 319, in _open_playwright_session\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:42:58.055212"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 494, in test_frontend_synchronization\n    except sqlite3.OperationalError as e:\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 319, in _open_playwright_session\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:43:17.328240"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 494, in test_frontend_synchronization\n    except sqlite3.OperationalError as e:\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 319, in _open_playwright_session\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:43:36.644829"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 494, in test_frontend_synchronization\n    except sqlite3.OperationalError as e:\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 319, in _open_playwright_session\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:43:56.115874"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 494, in test_frontend_synchronization\n    except sqlite3.OperationalError as e:\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 319, in _open_playwright_session\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"http://127.0.0.1:5001/dashboard\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:44:15.423221"
+      }
+    ]
+  },
+  "system_summary": {
+    "duration_seconds": 429.1091010570526,
+    "cpu_avg": 0.03076923076923077,
+    "cpu_max": 0.2,
+    "cpu_min": 0.0,
+    "memory_avg_mb": 110.70552884615384,
+    "memory_max_mb": 114.28125,
+    "memory_min_mb": 102.46875,
+    "memory_growth_mb": 10.5625,
+    "total_io_read_mb": 0.0,
+    "total_io_write_mb": 0.0
+  },
+  "drift_log": []
+}

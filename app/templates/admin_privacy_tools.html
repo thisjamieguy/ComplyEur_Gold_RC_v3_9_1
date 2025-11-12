@@ -101,9 +101,15 @@
     <div class="modal-content">
         <h3>Rectify Employee Name</h3>
         <p style="margin: 16px 0;">Current name: <strong id="currentName"></strong></p>
-        <input type="text" id="newName" placeholder="Enter new name..." 
-               style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e0; border-radius: 4px; margin-bottom: 16px;">
-        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+        <div class="form-group">
+            <label for="newName" class="form-label">New Name</label>
+            <input type="text" id="newName" name="newName" class="form-input" 
+                   placeholder="Enter new name..." required minlength="2" maxlength="100"
+                   aria-describedby="newName-error newName-help">
+            <div id="newName-error" class="invalid-feedback" role="alert"></div>
+            <div id="newName-help" class="form-hint">Enter the corrected name (2-100 characters)</div>
+        </div>
+        <div class="flex flex-justify-end gap-12" style="margin-top: 16px;">
             <button onclick="closeRectifyModal()" class="btn btn-secondary">Cancel</button>
             <button onclick="confirmRectify()" class="btn btn-primary">Update Name</button>
         </div>
@@ -240,10 +246,37 @@
 let currentEmployeeId = null;
 let currentEmployeeName = null;
 
+// Helper function to show notifications
+function showNotification(message, type = 'info') {
+    if (typeof showSuccess === 'function' && type === 'success') {
+        showSuccess(message);
+    } else if (typeof showError === 'function' && type === 'error') {
+        showError(message);
+    } else if (typeof NotificationSystem !== 'undefined') {
+        const ns = new NotificationSystem();
+        if (type === 'success') {
+            ns.showSuccess(message);
+        } else if (type === 'error') {
+            ns.showError(message);
+        } else {
+            ns.showInfo(message);
+        }
+    } else {
+        // Fallback to native notification if available
+        console.log(`[${type.toUpperCase()}] ${message}`);
+    }
+    
+    // Update aria-live region
+    const ariaLive = document.getElementById('aria-live-status');
+    if (ariaLive) {
+        ariaLive.textContent = message;
+    }
+}
+
 async function searchEmployee() {
     const searchTerm = document.getElementById('employeeSearch').value.trim();
     if (!searchTerm) {
-        alert('Please enter an employee name');
+        showNotification('Please enter an employee name', 'error');
         return;
     }
 
@@ -252,7 +285,7 @@ async function searchEmployee() {
         const data = await response.json();
         
         if (data.error) {
-            alert(data.error);
+            showNotification(data.error, 'error');
             return;
         }
 
@@ -268,21 +301,26 @@ async function searchEmployee() {
                 <p><strong>Total Trips:</strong> ${emp.trip_count || 0}</p>
             `;
             document.getElementById('employeeResults').style.display = 'block';
+            showNotification(`Found employee: ${emp.name}`, 'success');
         } else {
-            alert('No employee found with that name');
+            showNotification('No employee found with that name', 'error');
         }
     } catch (error) {
-        alert('Error searching employee: ' + error.message);
+        showNotification('Error searching employee: ' + error.message, 'error');
     }
 }
 
 async function exportEmployeeData() {
-    if (!currentEmployeeId) return;
+    if (!currentEmployeeId) {
+        showNotification('Please search and select an employee first', 'error');
+        return;
+    }
     
     try {
+        showNotification('Preparing export...', 'info');
         window.location.href = `/admin/dsar/export/${currentEmployeeId}`;
     } catch (error) {
-        alert('Error exporting data: ' + error.message);
+        showNotification('Error exporting data: ' + error.message, 'error');
     }
 }
 
@@ -298,9 +336,36 @@ function closeRectifyModal() {
 }
 
 async function confirmRectify() {
-    const newName = document.getElementById('newName').value.trim();
+    const input = document.getElementById('newName');
+    const errorDiv = document.getElementById('newName-error');
+    const newName = input.value.trim();
+    
+    // Clear previous errors
+    input.classList.remove('is-invalid', 'is-valid');
+    if (errorDiv) errorDiv.textContent = '';
+    
+    // Validate
     if (!newName) {
-        alert('Name cannot be empty');
+        showNotification('Name cannot be empty', 'error');
+        input.classList.add('is-invalid');
+        if (errorDiv) errorDiv.textContent = 'Name is required';
+        input.focus();
+        return;
+    }
+    
+    if (newName.length < 2) {
+        showNotification('Name must be at least 2 characters', 'error');
+        input.classList.add('is-invalid');
+        if (errorDiv) errorDiv.textContent = 'Name must be at least 2 characters';
+        input.focus();
+        return;
+    }
+    
+    if (newName.length > 100) {
+        showNotification('Name must be no more than 100 characters', 'error');
+        input.classList.add('is-invalid');
+        if (errorDiv) errorDiv.textContent = 'Name must be no more than 100 characters';
+        input.focus();
         return;
     }
 
@@ -313,7 +378,8 @@ async function confirmRectify() {
         
         const data = await response.json();
         if (data.success) {
-            alert('Name updated successfully');
+            input.classList.add('is-valid');
+            showNotification('Name updated successfully', 'success');
             currentEmployeeName = newName;
             document.getElementById('employeeInfo').innerHTML = `
                 <p><strong>Name:</strong> ${newName}</p>
@@ -321,10 +387,17 @@ async function confirmRectify() {
             `;
             closeRectifyModal();
         } else {
-            alert('Error: ' + (data.error || 'Unknown error'));
+            input.classList.add('is-invalid');
+            const errorMsg = data.error || 'Unknown error';
+            showNotification('Error: ' + errorMsg, 'error');
+            const errorDiv = document.getElementById('newName-error');
+            if (errorDiv) errorDiv.textContent = errorMsg;
         }
     } catch (error) {
-        alert('Error updating name: ' + error.message);
+        input.classList.add('is-invalid');
+        showNotification('Error updating name: ' + error.message, 'error');
+        const errorDiv = document.getElementById('newName-error');
+        if (errorDiv) errorDiv.textContent = error.message;
     }
 }
 
@@ -347,17 +420,17 @@ async function confirmDelete() {
         
         const data = await response.json();
         if (data.success) {
-            alert('Employee data deleted successfully');
+            showNotification('Employee data deleted successfully', 'success');
             closeDeleteModal();
             document.getElementById('employeeResults').style.display = 'none';
             document.getElementById('employeeSearch').value = '';
             currentEmployeeId = null;
             currentEmployeeName = null;
         } else {
-            alert('Error: ' + (data.error || 'Unknown error'));
+            showNotification('Error: ' + (data.error || 'Unknown error'), 'error');
         }
     } catch (error) {
-        alert('Error deleting employee: ' + error.message);
+        showNotification('Error deleting employee: ' + error.message, 'error');
     }
 }
 
@@ -376,17 +449,17 @@ async function anonymizeEmployee() {
         
         const data = await response.json();
         if (data.success) {
-            alert('Employee anonymized successfully');
+            showNotification('Employee anonymized successfully', 'success');
             currentEmployeeName = data.new_name;
             document.getElementById('employeeInfo').innerHTML = `
                 <p><strong>Name:</strong> ${data.new_name}</p>
                 <p><strong>ID:</strong> ${currentEmployeeId}</p>
             `;
         } else {
-            alert('Error: ' + (data.error || 'Unknown error'));
+            showNotification('Error: ' + (data.error || 'Unknown error'), 'error');
         }
     } catch (error) {
-        alert('Error anonymizing employee: ' + error.message);
+        showNotification('Error anonymizing employee: ' + error.message, 'error');
     }
 }
 
@@ -409,7 +482,7 @@ async function showPurgeConfirm() {
         `;
         document.getElementById('purgeModal').style.display = 'flex';
     } catch (error) {
-        alert('Error loading purge preview: ' + error.message);
+        showNotification('Error loading purge preview: ' + error.message, 'error');
     }
 }
 
@@ -426,14 +499,14 @@ async function confirmPurge() {
         
         const data = await response.json();
         if (data.success) {
-            alert(`Purge complete:\n${data.trips_deleted} trips deleted\n${data.employees_deleted} employees deleted`);
+            showNotification(`Purge complete: ${data.trips_deleted} trips deleted, ${data.employees_deleted} employees deleted`, 'success');
             closePurgeModal();
             window.location.reload();
         } else {
-            alert('Error: ' + (data.error || 'Unknown error'));
+            showNotification('Error: ' + (data.error || 'Unknown error'), 'error');
         }
     } catch (error) {
-        alert('Error running purge: ' + error.message);
+        showNotification('Error running purge: ' + error.message, 'error');
     }
 }
 

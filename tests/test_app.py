@@ -7,6 +7,7 @@ import pytest
 import sys
 import os
 import sqlite3
+import re
 from datetime import datetime, timedelta
 
 # Add parent directory to path for imports
@@ -31,11 +32,24 @@ def client():
         yield client
 
 
+def _login(client, username='admin', password='admin123'):
+    """Helper to post to login with CSRF token."""
+    resp = client.get('/login')
+    html = resp.get_data(as_text=True)
+    match = re.search(r'name=\"csrf_token\"[^>]*value=\"([^\"]+)\"', html)
+    token = match.group(1) if match else ''
+    return client.post(
+        '/login',
+        data={'username': username, 'password': password, 'csrf_token': token},
+        follow_redirects=True
+    )
+
+
 @pytest.fixture
 def logged_in_client(client):
     """Create a logged-in test client"""
     # Login with default password
-    client.post('/login', data={'password': 'admin123'}, follow_redirects=True)
+    _login(client)
     yield client
 
 
@@ -54,17 +68,13 @@ def test_login_page_loads(client):
 
 def test_login_valid_credentials(client):
     """Test login with valid credentials"""
-    response = client.post('/login', data={
-        'password': 'admin123'
-    }, follow_redirects=True)
+    response = _login(client)
     assert response.status_code == 200
 
 
 def test_login_invalid_credentials(client):
     """Test login with invalid credentials"""
-    response = client.post('/login', data={
-        'password': 'wrongpassword'
-    }, follow_redirects=True)
+    response = _login(client, password='wrongpassword')
     assert b'Invalid' in response.data or b'error' in response.data.lower()
 
 

@@ -28,9 +28,10 @@ class TestSchengenCountryDetection:
     
     def test_invalid_countries(self):
         """Test handling of invalid country inputs"""
-        assert is_schengen_country('') == False
-        assert is_schengen_country(None) == False
-        assert is_schengen_country('XX') == True  # Unknown countries treated as Schengen
+        assert is_schengen_country('') is False
+        assert is_schengen_country(None) is False
+        assert is_schengen_country('XX') is False
+        assert is_schengen_country('United Kingdom') is False
 
 
 class TestPresenceDays:

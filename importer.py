@@ -79,7 +79,8 @@ def is_travel_day(cell_text: str) -> bool:
     if not cell_text or not isinstance(cell_text, str):
         return False
     
-    return cell_text.lower().startswith(('tr', 'tr/'))
+    text = cell_text.lower().strip()
+    return text == 'tr' or text.startswith('tr-') or text.startswith('tr/')
 
 def parse_date_header(date_str: str) -> Optional[date]:
     """
