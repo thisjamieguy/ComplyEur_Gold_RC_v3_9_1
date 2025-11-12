@@ -8,40 +8,128 @@ echo "🔨 ComplyEur Render Build Script"
 echo "================================="
 echo ""
 
+# Use project directory for temp files (more reliable than /tmp on Render)
+TMP_DIR=$(pwd)/.render_build
+mkdir -p "$TMP_DIR"
+
+# Verify requirements.txt exists
+if [ ! -f "requirements.txt" ]; then
+    echo "❌ ERROR: requirements.txt not found!"
+    echo "   Current directory: $(pwd)"
+    echo "   Files in directory:"
+    ls -la | head -20
+    exit 1
+fi
+
 # Create requirements file without problematic/test-only packages
 echo "📦 Preparing requirements (excluding optional/test-only packages)..."
 # Exclude: python-magic (optional, has fallback), playwright (test-only), 
 #          pytest packages (test-only), pandas/matplotlib/psutil (test-only, large)
-grep -v "^python-magic\|^playwright\|^pytest\|^pandas\|^matplotlib\|^psutil" requirements.txt > /tmp/requirements_core.txt
+if ! grep -v "^python-magic\|^playwright\|^pytest\|^pandas\|^matplotlib\|^psutil" requirements.txt > "$TMP_DIR/requirements_core.txt"; then
+    echo "⚠️  Warning: Failed to filter requirements, using full requirements.txt"
+    cp requirements.txt "$TMP_DIR/requirements_core.txt"
+fi
+
+# Verify core requirements file was created
+if [ ! -f "$TMP_DIR/requirements_core.txt" ] || [ ! -s "$TMP_DIR/requirements_core.txt" ]; then
+    echo "❌ ERROR: Failed to create core requirements file"
+    exit 1
+fi
+
+echo "✅ Core requirements file created ($(wc -l < "$TMP_DIR/requirements_core.txt") lines)"
 
 # Install core requirements (these must succeed)
 echo "📦 Installing core Python dependencies..."
 echo "   (This may take a few minutes - packages with C extensions will use pre-built wheels)"
-if ! pip install -r /tmp/requirements_core.txt; then
+echo "   Installing from: $TMP_DIR/requirements_core.txt"
+
+# Upgrade pip, setuptools, wheel first (required for building wheels)
+echo "📦 Upgrading pip, setuptools, wheel..."
+pip install --upgrade pip setuptools wheel --no-cache-dir 2>&1 | tail -5 || echo "⚠️  Warning: pip upgrade had issues, continuing..."
+
+# Install core requirements - try standard install first, then fallback to wheels-only
+echo ""
+echo "📦 Installing core Python dependencies..."
+echo "   Strategy: Prefer wheels, fallback to building from source only if wheels unavailable"
+
+# Try installing all at once with wheel preference
+set +e
+pip install --prefer-binary --no-cache-dir -r "$TMP_DIR/requirements_core.txt" > "$TMP_DIR/pip_install.log" 2>&1
+PIP_EXIT=$?
+set -e
+
+if [ $PIP_EXIT -ne 0 ]; then
     echo ""
-    echo "❌ ERROR: Core dependencies failed to install"
-    echo "   This is a critical failure - the build cannot continue"
-    echo "   Check the error messages above for details"
-    echo ""
-    # Show the core requirements for debugging
-    echo "Core requirements that should be installed:"
-    cat /tmp/requirements_core.txt
-    exit 1
+    echo "⚠️  Install failed, analyzing error..."
+    
+    # Check if it's a metadata-generation-failed error
+    if grep -qi "metadata-generation-failed\|ninja.*build stopped\|Building wheel for" "$TMP_DIR/pip_install.log"; then
+        echo "   Detected build-from-source failure"
+        echo "   Package trying to build from source (no wheel available)"
+        echo ""
+        echo "   Identifying failing package..."
+        
+        # Extract package name from error (look for "Building wheel for <package>")
+        FAILING_PACKAGE=$(grep -i "Building wheel for" "$TMP_DIR/pip_install.log" | head -1 | sed 's/.*Building wheel for \([^ ]*\).*/\1/' || echo "unknown")
+        if [ "$FAILING_PACKAGE" != "unknown" ] && [ -n "$FAILING_PACKAGE" ]; then
+            echo "   ⚠️  Failing package: $FAILING_PACKAGE"
+            echo "   This package doesn't have a pre-built wheel for this platform"
+        fi
+        
+        echo ""
+        echo "   Attempting wheels-only install (skip packages without wheels)..."
+        
+        # Try wheels-only install - this will skip packages without wheels
+        set +e
+        pip install --only-binary :all: --no-cache-dir -r "$TMP_DIR/requirements_core.txt" > "$TMP_DIR/pip_wheels_only.log" 2>&1
+        WHEELS_EXIT=$?
+        set -e
+        
+        if [ $WHEELS_EXIT -ne 0 ]; then
+            echo ""
+            echo "❌ ERROR: Some packages don't have wheels and failed to build"
+            echo ""
+            echo "   Last 40 lines of error log:"
+            tail -40 "$TMP_DIR/pip_install.log"
+            echo ""
+            echo "   Failed packages (no wheels available):"
+            grep -i "ERROR: Could not find a version\|ERROR: No matching distribution\|Skipping" "$TMP_DIR/pip_wheels_only.log" || echo "   (check logs above)"
+            echo ""
+            echo "   Environment info:"
+            echo "   Python: $(python --version 2>&1)"
+            echo "   Pip: $(pip --version 2>&1)"
+            echo "   Platform: $(python -c 'import platform; print(platform.platform())' 2>/dev/null || echo 'unknown')"
+            echo ""
+            echo "   Solution: Update failing packages to versions with wheels"
+            exit 1
+        else
+            echo "✅ Core dependencies installed successfully (using wheels only)"
+            echo "   Note: Some packages may be missing if they don't have wheels"
+        fi
+    else
+        echo ""
+        echo "❌ ERROR: Installation failed (not a build-from-source issue)"
+        echo "   Last 40 lines of error log:"
+        tail -40 "$TMP_DIR/pip_install.log"
+        echo ""
+        exit 1
+    fi
+else
+    echo "✅ Core dependencies installed successfully"
 fi
-echo "✅ Core dependencies installed successfully"
 
 # Try python-magic separately (optional - requires system libmagic, may fail compilation)
 echo ""
 echo "📦 Attempting to install python-magic (optional)..."
 set +e
-pip install python-magic==0.4.27 > /tmp/magic_install.log 2>&1
+pip install python-magic==0.4.27 > "$TMP_DIR/magic_install.log" 2>&1
 MAGIC_EXIT=$?
 set -e
 if [ $MAGIC_EXIT -ne 0 ]; then
     echo "⚠️  python-magic installation skipped (requires system libmagic)"
     echo "   Application will use fallback MIME type detection"
     # Show first few lines of error for debugging
-    head -10 /tmp/magic_install.log 2>/dev/null | grep -i "error\|failed\|ninja\|metadata" || true
+    head -10 "$TMP_DIR/magic_install.log" 2>/dev/null | grep -i "error\|failed\|ninja\|metadata" || true
 else
     echo "✅ python-magic installed successfully"
 fi
@@ -51,11 +139,11 @@ echo ""
 echo "📦 Attempting to install test-only packages (optional)..."
 set +e
 # These are only used in tests, not in production
-pip install pytest==8.3.3 pytest-flask==1.3.0 > /tmp/pytest_install.log 2>&1
+pip install pytest==8.3.3 pytest-flask==1.3.0 > "$TMP_DIR/pytest_install.log" 2>&1
 PYTEST_EXIT=$?
-pip install pandas==2.2.0 matplotlib==3.8.4 psutil==5.9.8 > /tmp/data_install.log 2>&1
+pip install pandas==2.2.0 matplotlib==3.8.4 psutil==5.9.8 > "$TMP_DIR/data_install.log" 2>&1
 DATA_EXIT=$?
-pip install playwright==1.55.0 > /tmp/playwright_install.log 2>&1
+pip install playwright==1.55.0 > "$TMP_DIR/playwright_install.log" 2>&1
 PLAYWRIGHT_EXIT=$?
 set -e
 
@@ -80,7 +168,18 @@ fi
 # Run asset build script
 echo ""
 echo "📦 Building assets..."
-./scripts/build_assets.sh
+if [ ! -f "./scripts/build_assets.sh" ]; then
+    echo "⚠️  Warning: build_assets.sh not found, skipping asset build"
+else
+    if [ ! -x "./scripts/build_assets.sh" ]; then
+        echo "⚠️  Warning: build_assets.sh is not executable, making it executable..."
+        chmod +x ./scripts/build_assets.sh
+    fi
+    ./scripts/build_assets.sh
+fi
+
+# Cleanup temp directory
+rm -rf "$TMP_DIR" 2>/dev/null || true
 
 echo ""
 echo "✅ Build complete!"
