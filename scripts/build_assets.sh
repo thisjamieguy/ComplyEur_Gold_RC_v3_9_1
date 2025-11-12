@@ -1,6 +1,7 @@
 #!/bin/bash
 # Build script for ComplyEur assets - bundles and minifies CSS/JS for production
 # Part of Lighthouse 5-star optimization initiative
+# Compatible with Render.com deployment (handles missing npm tools gracefully)
 
 set -e
 
