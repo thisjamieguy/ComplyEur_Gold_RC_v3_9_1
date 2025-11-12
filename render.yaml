@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: eu-trip-tracker
+    name: complyeur
     env: python
     plan: starter
     buildCommand: pip install -r requirements.txt
