@@ -42,24 +42,88 @@ echo "✅ Core requirements file created ($(wc -l < "$TMP_DIR/requirements_core.
 echo "📦 Installing core Python dependencies..."
 echo "   (This may take a few minutes - packages with C extensions will use pre-built wheels)"
 echo "   Installing from: $TMP_DIR/requirements_core.txt"
-if ! pip install --upgrade pip setuptools wheel; then
-    echo "⚠️  Warning: Failed to upgrade pip, continuing anyway..."
-fi
 
-if ! pip install -r "$TMP_DIR/requirements_core.txt"; then
-    echo ""
-    echo "❌ ERROR: Core dependencies failed to install"
-    echo "   This is a critical failure - the build cannot continue"
-    echo "   Check the error messages above for details"
-    echo ""
-    # Show the core requirements for debugging
-    echo "Core requirements that should be installed:"
-    cat "$TMP_DIR/requirements_core.txt"
-    echo ""
-    echo "Python version: $(python --version 2>&1)"
-    echo "Pip version: $(pip --version 2>&1)"
+# Upgrade pip, setuptools, wheel first (required for building wheels)
+echo "📦 Upgrading pip, setuptools, wheel..."
+pip install --upgrade pip setuptools wheel --no-cache-dir 2>&1 | tail -5 || echo "⚠️  Warning: pip upgrade had issues, continuing..."
+
+# Install packages in groups to isolate failures
+echo ""
+echo "📦 Installing Flask and web framework packages..."
+set +e
+pip install --prefer-binary --no-cache-dir Flask==3.0.3 Flask-WTF==1.2.1 Flask-Talisman==1.1.0 Flask-Limiter==3.7.0 Flask-Caching==2.3.0 Flask-Compress==1.14 Flask-SQLAlchemy==3.1.1 Werkzeug==3.0.3 > "$TMP_DIR/flask_install.log" 2>&1
+FLASK_EXIT=$?
+set -e
+if [ $FLASK_EXIT -ne 0 ]; then
+    echo "❌ ERROR: Flask packages failed to install"
+    cat "$TMP_DIR/flask_install.log" | tail -20
     exit 1
 fi
+
+echo "📦 Installing database packages..."
+set +e
+pip install --prefer-binary --no-cache-dir SQLAlchemy==2.0.35 Flask-SQLAlchemy==3.1.1 python-dotenv==1.0.1 > "$TMP_DIR/db_install.log" 2>&1
+DB_EXIT=$?
+set -e
+if [ $DB_EXIT -ne 0 ]; then
+    echo "❌ ERROR: Database packages failed to install"
+    cat "$TMP_DIR/db_install.log" | tail -20
+    exit 1
+fi
+
+echo "📦 Installing security packages (cryptography, argon2)..."
+set +e
+pip install --prefer-binary --no-cache-dir cryptography==43.0.3 argon2-cffi==23.1.0 bleach==6.1.0 limits==3.13.0 > "$TMP_DIR/security_install.log" 2>&1
+SECURITY_EXIT=$?
+set -e
+if [ $SECURITY_EXIT -ne 0 ]; then
+    echo "⚠️  Warning: Some security packages failed to install"
+    cat "$TMP_DIR/security_install.log" | tail -20
+    echo "   Attempting to install without building from source..."
+    set +e
+    pip install --only-binary :all: --no-cache-dir cryptography argon2-cffi bleach limits 2>&1 | tail -10 || echo "⚠️  Security packages may not be available as wheels"
+    set -e
+fi
+
+echo "📦 Installing utility packages..."
+set +e
+pip install --prefer-binary --no-cache-dir APScheduler==3.10.4 pyotp==2.9.0 qrcode==7.4.2 Pillow==10.4.0 zxcvbn-python==4.4.24 > "$TMP_DIR/utils_install.log" 2>&1
+UTILS_EXIT=$?
+set -e
+if [ $UTILS_EXIT -ne 0 ]; then
+    echo "⚠️  Warning: Some utility packages failed to install"
+    cat "$TMP_DIR/utils_install.log" | tail -20
+    echo "   Attempting to install without building from source..."
+    set +e
+    pip install --only-binary :all: --no-cache-dir pyotp qrcode Pillow zxcvbn-python 2>&1 | tail -10 || echo "⚠️  Utility packages may not be available as wheels"
+    set -e
+fi
+
+echo "📦 Installing file processing packages..."
+set +e
+pip install --prefer-binary --no-cache-dir openpyxl==3.1.5 reportlab==4.2.0 feedparser==6.0.10 requests==2.31.0 diff-match-patch==20230430 > "$TMP_DIR/file_install.log" 2>&1
+FILE_EXIT=$?
+set -e
+if [ $FILE_EXIT -ne 0 ]; then
+    echo "⚠️  Warning: Some file processing packages failed to install"
+    cat "$TMP_DIR/file_install.log" | tail -20
+    echo "   Attempting to install without building from source..."
+    set +e
+    pip install --only-binary :all: --no-cache-dir openpyxl reportlab feedparser requests 2>&1 | tail -10 || echo "⚠️  File processing packages may not be available as wheels"
+    set -e
+fi
+
+echo "📦 Installing server package..."
+set +e
+pip install --prefer-binary --no-cache-dir gunicorn==21.2.0 > "$TMP_DIR/server_install.log" 2>&1
+SERVER_EXIT=$?
+set -e
+if [ $SERVER_EXIT -ne 0 ]; then
+    echo "❌ ERROR: gunicorn failed to install (required for production)"
+    cat "$TMP_DIR/server_install.log" | tail -20
+    exit 1
+fi
+
 echo "✅ Core dependencies installed successfully"
 
 # Try python-magic separately (optional - requires system libmagic, may fail compilation)
