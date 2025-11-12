@@ -8,9 +8,11 @@ echo "🔨 ComplyEur Render Build Script"
 echo "================================="
 echo ""
 
-# Create requirements file without problematic packages
-echo "📦 Preparing requirements (excluding optional/problematic packages)..."
-grep -v "^python-magic\|^playwright" requirements.txt > /tmp/requirements_core.txt
+# Create requirements file without problematic/test-only packages
+echo "📦 Preparing requirements (excluding optional/test-only packages)..."
+# Exclude: python-magic (optional, has fallback), playwright (test-only), 
+#          pytest packages (test-only), pandas/matplotlib/psutil (test-only, large)
+grep -v "^python-magic\|^playwright\|^pytest\|^pandas\|^matplotlib\|^psutil" requirements.txt > /tmp/requirements_core.txt
 
 # Install core requirements (these must succeed)
 echo "📦 Installing core Python dependencies..."
@@ -28,16 +30,16 @@ if [ $MAGIC_EXIT -ne 0 ]; then
     echo "   Application will use fallback MIME type detection"
 fi
 
-# Try playwright separately (optional - very large, may fail)
+# Try test-only packages separately (optional - not needed for production)
 echo ""
-echo "📦 Attempting to install playwright (optional)..."
+echo "📦 Attempting to install test-only packages (optional)..."
 set +e
+# These are only used in tests, not in production
+pip install pytest==8.3.3 pytest-flask==1.3.0 2>&1 | grep -E "(error|failed|ninja|metadata-generation)" > /tmp/pytest_error.log 2>&1 || true
+pip install pandas==2.2.0 matplotlib==3.8.4 psutil==5.9.8 2>&1 | grep -E "(error|failed|ninja|metadata-generation)" > /tmp/data_error.log 2>&1 || true
 pip install playwright==1.55.0 2>&1 | grep -E "(error|failed|ninja|metadata-generation)" > /tmp/playwright_error.log 2>&1 || true
-PLAYWRIGHT_EXIT=$?
 set -e
-if [ $PLAYWRIGHT_EXIT -ne 0 ]; then
-    echo "⚠️  playwright installation skipped (large dependency, not required for production)"
-fi
+echo "⚠️  Test packages installation attempted (failures are OK - not required for production)"
 
 # Run asset build script
 echo ""
