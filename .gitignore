@@ -16,10 +16,13 @@ instance/
 *.db
 *.sqlite
 *.sqlite3
+*.db-shm
+*.db-wal
 
 # Environment Variables
 .env
 .env.local
+.env.production
 
 # IDE
 .vscode/
@@ -27,7 +30,17 @@ instance/
 *.swp
 *.swo
 *~
+
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
 
 # Logs
 *.log
@@ -58,6 +71,10 @@ dist/
 .coverage
 htmlcov/
 .tox/
+test-results/
+playwright-report/
+tests/tmp/
+testsprite_tests/tmp/
 
 # Distribution / packaging
 *.zip
@@ -76,34 +93,27 @@ settings.json
 *.swp
 *~
 
-# macOS
-.DS_Store
-.AppleDouble
-.LSOverride
-
-# Windows
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-$RECYCLE.BIN/
-
-# Node modules (for hubspot-ui)
-hubspot-ui/node_modules/
+# Node modules
 node_modules/
-test-results/
+**/node_modules/
+hubspot-ui/node_modules/
 
 # Don't commit actual database
 eu_tracker.db
 data/eu_tracker.db
-
-# Production files
-.env
-.env.local
-.env.production
+data/*.db
+data/*.db-shm
+data/*.db-wal
 
 # Cleanup artifacts
 app_backup.py
 original_app.py
 tests/auth/state.json
-node_modules/
-node_modules/
+
+# Playwright
+playwright-browsers/
+playwright-report/
+
+# Test artifacts
+tests/tmp/
+testsprite_tests/tmp/
