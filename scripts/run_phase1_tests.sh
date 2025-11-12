@@ -31,6 +31,14 @@ if [ -f "tests/test_db_integrity.py" ]; then
     TEST_SUITES+=("tests/test_db_integrity.py")
 fi
 
+if [ -f "tests/db/test_sqlite_wal_consistency.py" ]; then
+    TEST_SUITES+=("tests/db/test_sqlite_wal_consistency.py")
+fi
+
+if [ -f "tests/db/test_session_manager.py" ]; then
+    TEST_SUITES+=("tests/db/test_session_manager.py")
+fi
+
 # Function to run a test suite
 run_test_suite() {
     local test_file=$1
