@@ -17,7 +17,7 @@ class CentralLogger:
     Central logging service with support for multiple backends.
     """
     
-    def __init__(self, app_name: str = "eu-trip-tracker"):
+    def __init__(self, app_name: str = "complyeur"):
         """
         Initialize central logger.
         

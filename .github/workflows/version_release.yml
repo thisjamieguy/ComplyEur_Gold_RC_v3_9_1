@@ -1,0 +1,126 @@
+name: Version Release
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'  # Trigger on version tags
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for tags
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-flask pytest-cov
+    
+    - name: Run Python tests
+      run: |
+        pytest tests/ -v --tb=short || true
+      continue-on-error: true
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install Playwright browsers
+      run: |
+        npx playwright install --with-deps chromium
+    
+    - name: Run Playwright tests
+      run: |
+        npx playwright test || true
+      continue-on-error: true
+    
+    - name: Check VERSION file
+      run: |
+        if [ ! -f "VERSION" ]; then
+          echo "Error: VERSION file not found"
+          exit 1
+        fi
+        VERSION=$(head -n 1 VERSION | sed -E 's/^([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+        echo "Current version: $VERSION"
+        if [ -z "$VERSION" ]; then
+          echo "Error: Could not parse version"
+          exit 1
+        fi
+    
+    - name: Get version from VERSION file
+      id: version
+      run: |
+        VERSION=$(head -n 1 VERSION | sed -E 's/^([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+    
+    - name: Check if tag exists
+      id: check_tag
+      run: |
+        TAG="${{ steps.version.outputs.tag }}"
+        if git rev-parse "$TAG" >/dev/null 2>&1; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Extract changelog section
+      id: changelog
+      if: steps.check_tag.outputs.exists == 'true'
+      run: |
+        TAG="${{ steps.version.outputs.tag }}"
+        VERSION="${{ steps.version.outputs.version }}"
+        
+        # Extract changelog section for this version
+        # Look for section starting with ## [version]
+        awk -v version="$VERSION" '
+          /^## \[' version '\]/ { found=1; print; next }
+          found && /^## \[/ { exit }
+          found { print }
+        ' CHANGELOG.md > release_notes.txt || echo "No changelog entry found for $VERSION" > release_notes.txt
+        
+        # Read release notes
+        RELEASE_NOTES=$(cat release_notes.txt)
+        # Escape for GitHub Actions
+        RELEASE_NOTES="${RELEASE_NOTES//$'\n'/'%0A'}"
+        echo "notes<<EOF" >> $GITHUB_OUTPUT
+        echo "$RELEASE_NOTES" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+    
+    - name: Create GitHub Release
+      if: steps.check_tag.outputs.exists == 'true'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.version.outputs.tag }}
+        name: Release ${{ steps.version.outputs.tag }}
+        body_path: release_notes.txt
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: |
+          test-results/
+          .pytest_cache/
+        retention-days: 7
+

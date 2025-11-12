@@ -48,7 +48,7 @@ network_security:
 
 render_services:
   web_service:
-    name: "eu-trip-tracker"
+    name: "complyeur"
     hardening:
       - item: "Private service discovery"
         enabled: true
