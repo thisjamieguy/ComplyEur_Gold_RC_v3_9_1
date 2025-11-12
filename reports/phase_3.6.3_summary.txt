@@ -1,0 +1,36 @@
+Phase 3.6.3 — Calendar UI Enhancements & Risk Layer
+====================================================
+Generated: 2025-11-03 17:44:16
+
+Highlights
+----------
+- Inline calendar layout replaces the previous pop-out shell with refreshed spacing and softer elevation.
+- Rolling 90-day risk palette applied to trips and day cells (safe ≤60, caution ≤85, critical ≥86) backed by cached lookups.
+- Tooltips now surface “Days used: XX / 90” with accent bars, fade transitions (120 ms), and keyboard-friendly semantics.
+- Trip blocks adopt 6 px radii, gradient fills, and updated box-shadows to align with the ComplyEur visual language.
+
+Automated Validation
+--------------------
+1. npx playwright test tests/calendar_scroll.spec.js
+2. npx playwright test tests/calendar_interaction.spec.js
+3. npx playwright test tests/calendar_drag.spec.js
+4. npx playwright test tests/calendar_color.spec.js
+
+Key Metrics
+-----------
+- Idle frame sample (32 frames) ≥ 55 FPS measured via requestAnimationFrame loop.
+- Horizontal/vertical scroll misalignment ≤ 1 px across simulated datasets (50 employees / 200 trips).
+- Risk tooltip confirms accurate usage messaging for trips and empty cells alike.
+
+Manual Smoke Checklist
+----------------------
+- python3 run_local.py → http://127.0.0.1:5001/calendar
+  • Verify inline calendar renders without modal or pop-out container.
+  • Hover over trips/day cells – risk tooltip shows “Days used: XX / 90” with colour accent.
+  • Drag any trip; confirm updated start/end dates and retained colour coding.
+  • Resize browser to tablet/mobile widths; ensure rows stack and controls remain accessible.
+
+Artifacts
+---------
+- Changelog: docs/changelog_v3.6.3.md
+- Test runner: scripts/run_phase_3.6.3_tests.sh

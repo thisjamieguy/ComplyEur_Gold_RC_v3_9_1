@@ -1,0 +1,173 @@
+{
+  "config": {
+    "configFile": "/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0 Post MVP/playwright.config.ts",
+    "rootDir": "/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0 Post MVP/tests",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": "/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0 Post MVP/tests/global.setup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "reports/playwright_phase1",
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "reports/phase1_test_report.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0 Post MVP/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0 Post MVP/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.spec.{js,ts}"
+        ],
+        "timeout": 120000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.56.1",
+    "workers": 4,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "phase1_core_logic.spec.js",
+      "file": "phase1_core_logic.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Phase 1 core compliance flows",
+          "file": "phase1_core_logic.spec.js",
+          "line": 52,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Scenario 1: Create → Edit trip recalculates employee compliance",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 11370,
+                      "error": {
+                        "message": "Error: Trip 10801 not found on employee 6452 page after 5000ms",
+                        "stack": "Error: Trip 10801 not found on employee 6452 page after 5000ms\n    at /Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0 Post MVP/tests/phase1_core_logic.spec.js:98:15",
+                        "location": {
+                          "file": "/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0 Post MVP/tests/phase1_core_logic.spec.js",
+                          "column": 15,
+                          "line": 98
+                        },
+                        "snippet": "   96 |         // Take screenshot for debugging\n   97 |         await page.screenshot({ path: `test-results/debug-trip-${trip.id}.png`, fullPage: true });\n>  98 |         throw new Error(`Trip ${trip.id} not found on employee ${employee.id} page after ${10 * 500}ms`);\n      |               ^\n   99 |       }\n  100 |       \n  101 |       await expect(page.locator(rowSelector)).toBeVisible({ timeout: 5000 });"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0 Post MVP/tests/phase1_core_logic.spec.js",
+                            "column": 15,
+                            "line": 98
+                          },
+                          "message": "Error: Trip 10801 not found on employee 6452 page after 5000ms\n\n   96 |         // Take screenshot for debugging\n   97 |         await page.screenshot({ path: `test-results/debug-trip-${trip.id}.png`, fullPage: true });\n>  98 |         throw new Error(`Trip ${trip.id} not found on employee ${employee.id} page after ${10 * 500}ms`);\n      |               ^\n   99 |       }\n  100 |       \n  101 |       await expect(page.locator(rowSelector)).toBeVisible({ timeout: 5000 });\n    at /Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0 Post MVP/tests/phase1_core_logic.spec.js:98:15"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-12T13:58:25.168Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0 Post MVP/test-results/phase1_core_logic-Phase-1--b66a2-culates-employee-compliance/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0 Post MVP/test-results/phase1_core_logic-Phase-1--b66a2-culates-employee-compliance/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0 Post MVP/test-results/phase1_core_logic-Phase-1--b66a2-culates-employee-compliance/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0 Post MVP/test-results/phase1_core_logic-Phase-1--b66a2-culates-employee-compliance/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0 Post MVP/tests/phase1_core_logic.spec.js",
+                        "column": 15,
+                        "line": 98
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "24875c03ade557877bae-8255c8a21ba1e94a552b",
+              "file": "phase1_core_logic.spec.js",
+              "line": 53,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-11-12T13:58:22.747Z",
+    "duration": 15315.264,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

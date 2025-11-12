@@ -1,0 +1,54 @@
+{% extends "auth_base.html" %}
+{% block content %}
+{% set wtforms_enabled = wtforms_enabled if wtforms_enabled is defined else True %}
+{% set form_data = form_data if form_data is defined else {} %}
+<section class="card">
+  {% if not totp_mode %}
+  <h1>Sign in</h1>
+  <form method="POST" autocomplete="off">
+    {% if wtforms_enabled and form %}
+      {{ form.csrf_token }}
+    {% endif %}
+    <label>Username
+      {% if wtforms_enabled and form %}
+        {{ form.username(size=32, autofocus=True) }}
+      {% else %}
+        <input type="text" name="username" id="username" value="{{ form_data.get('username', '') }}" size="32" autocomplete="username" autofocus required>
+      {% endif %}
+    </label>
+    <label>Password
+      <div class="password-wrap">
+        {% if wtforms_enabled and form %}
+          {{ form.password(id="password", size=32) }}
+        {% else %}
+          <input type="password" name="password" id="password" size="32" autocomplete="current-password" required>
+        {% endif %}
+        <button type="button" id="toggle">Show</button>
+      </div>
+    </label>
+    <p id="caps" class="hint" hidden>Caps Lock is ON</p>
+    <button type="submit">Sign in</button>
+  </form>
+  {% else %}
+  <h1>Two-factor code</h1>
+  <form method="POST" autocomplete="one-time-code">
+    {% if wtforms_enabled and form %}
+      {{ form.csrf_token }}
+    {% endif %}
+    <label>Code
+      {% if wtforms_enabled and form %}
+        {{ form.token(inputmode="numeric", pattern="[0-9 ]{6,}", required=True) }}
+      {% else %}
+        <input type="text" name="token" inputmode="numeric" pattern="[0-9 ]{6,}" required>
+      {% endif %}
+    </label>
+    <button type="submit">Verify</button>
+  </form>
+  {% endif %}
+</section>
+{% if csp_nonce %}
+<script defer nonce="{{ csp_nonce }}" src="{{ url_for('static', filename='js/auth_login.js') }}?v=1.0"></script>
+{% else %}
+<script defer src="{{ url_for('static', filename='js/auth_login.js') }}?v=1.0"></script>
+{% endif %}
+{% endblock %}

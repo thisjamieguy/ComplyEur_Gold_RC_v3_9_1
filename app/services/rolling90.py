@@ -9,6 +9,55 @@ This module provides functions to calculate:
 
 from datetime import date, timedelta
 from typing import List, Dict, Optional, Set
+from functools import lru_cache
+
+# Canonical Schengen membership list (codes + friendly names) for accurate compliance checks.
+# This ensures planner/alert calculations do not treat non-Schengen trips as Schengen usage.
+SCHENGEN_COUNTRIES: Dict[str, str] = {
+    "AT": "Austria",
+    "BE": "Belgium",
+    "BG": "Bulgaria",
+    "HR": "Croatia",
+    "CZ": "Czech Republic",
+    "DK": "Denmark",
+    "EE": "Estonia",
+    "FI": "Finland",
+    "FR": "France",
+    "DE": "Germany",
+    "GR": "Greece",
+    "HU": "Hungary",
+    "IS": "Iceland",
+    "IT": "Italy",
+    "LV": "Latvia",
+    "LI": "Liechtenstein",
+    "LT": "Lithuania",
+    "LU": "Luxembourg",
+    "MT": "Malta",
+    "NL": "Netherlands",
+    "NO": "Norway",
+    "PL": "Poland",
+    "PT": "Portugal",
+    "RO": "Romania",
+    "SK": "Slovakia",
+    "SI": "Slovenia",
+    "ES": "Spain",
+    "SE": "Sweden",
+    "CH": "Switzerland",
+}
+
+# Provide extra aliases (e.g., Czechia) so that human-friendly names still resolve.
+SCHENGEN_NAME_ALIASES: Dict[str, str] = {
+    "czechia": "CZ",
+    "czech republic": "CZ",
+    "republic of ireland": "IE",  # explicitly excluded later
+}
+
+SCHENGEN_NAME_LOOKUP: Dict[str, str] = {
+    name.lower(): code for code, name in SCHENGEN_COUNTRIES.items()
+}
+SCHENGEN_NAME_LOOKUP.update({
+    alias.lower(): code for alias, code in SCHENGEN_NAME_ALIASES.items()
+})
 
 
 def is_schengen_country(country_code_or_name: str) -> bool:
@@ -25,19 +74,30 @@ def is_schengen_country(country_code_or_name: str) -> bool:
     if not country_code_or_name:
         return False
     
-    # Ireland is not part of the Schengen Area
-    country_upper = str(country_code_or_name).upper().strip()
-    if country_upper in ['IE', 'IRELAND']:
+    country_str = str(country_code_or_name).strip()
+    if not country_str:
         return False
-    
-    # All other countries in the system are considered Schengen
-    return True
+
+    country_upper = country_str.upper()
+    # Ireland is never counted towards Schengen usage.
+    if country_upper in {"IE", "IRELAND"}:
+        return False
+
+    # Two-character codes are validated against the canonical list.
+    if len(country_upper) == 2:
+        return country_upper in SCHENGEN_COUNTRIES
+
+    # Fall back to friendly-name lookup (case-insensitive).
+    code = SCHENGEN_NAME_LOOKUP.get(country_str.lower())
+    return bool(code and code in SCHENGEN_COUNTRIES)
 
 
 def presence_days(trips: List[Dict]) -> Set[date]:
     """
     Return all individual days spent in Schengen from trip date ranges.
     Ireland (IE) trips are excluded from Schengen calculations.
+    
+    OPTIMIZATION: Uses memoization for repeated calculations (Phase 2).
     
     Args:
         trips: List of trip dicts with 'entry_date', 'exit_date' (YYYY-MM-DD strings), and 'country' or 'country_code'
@@ -54,24 +114,43 @@ def presence_days(trips: List[Dict]) -> Set[date]:
         >>> len(days)
         5  # Only France trip counts (Ireland excluded)
     """
+    # Create a hashable key from trips for caching
+    # Use a simple tuple of (entry, exit, country) for each trip
+    trips_key = tuple(
+        (
+            str(trip.get('entry_date', '')),
+            str(trip.get('exit_date', '')),
+            str(trip.get('country', '') or trip.get('country_code', ''))
+        )
+        for trip in trips
+    )
+    
+    # Check cache (use memoized version)
+    return _presence_days_impl(trips_key)
+
+
+@lru_cache(maxsize=512)
+def _presence_days_impl(trips_key: tuple) -> Set[date]:
+    """
+    Internal implementation of presence_days with caching.
+    """
     days = set()
     
-    for trip in trips:
+    for trip_tuple in trips_key:
+        entry_str, exit_str, country = trip_tuple
+        
         # Check if this is a Schengen country (exclude Ireland)
-        country = trip.get('country') or trip.get('country_code', '')
         if not is_schengen_country(country):
             continue  # Skip non-Schengen countries (like Ireland)
         
         # Parse dates from YYYY-MM-DD strings
-        if isinstance(trip.get('entry_date'), str):
-            entry = date.fromisoformat(trip['entry_date'])
-        else:
-            entry = trip['entry_date']
-            
-        if isinstance(trip.get('exit_date'), str):
-            exit_d = date.fromisoformat(trip['exit_date'])
-        else:
-            exit_d = trip['exit_date']
+        try:
+            entry = date.fromisoformat(entry_str) if entry_str else None
+            exit_d = date.fromisoformat(exit_str) if exit_str else None
+            if not entry or not exit_d:
+                continue
+        except (ValueError, AttributeError):
+            continue
         
         # Add all days in the range (inclusive)
         current = entry
@@ -258,4 +337,3 @@ def days_until_compliant(presence: Set[date], today: date, limit: int = 90) -> t
     # Calculate days until compliance
     days_until = (safe_entry - today).days
     return days_until, safe_entry
-

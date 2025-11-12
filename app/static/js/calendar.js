@@ -19,10 +19,59 @@
     const HEADER_DAY_CHUNK = 45;
 
     const COLORS = {
-        safe: '#15803d',
-        warning: '#d97706',
-        critical: '#dc2626'
+        safe: '#10b981',
+        warning: '#f59e0b',
+        critical: '#ef4444'
     };
+
+    const RISK_THRESHOLDS = {
+        safe: 60,
+        caution: 85,
+        limit: 90
+    };
+
+    const RISK_COLORS = {
+        safe: COLORS.safe,
+        caution: COLORS.warning,
+        critical: COLORS.critical
+    };
+
+    const ALERT_COLORS = {
+        YELLOW: '#facc15',
+        ORANGE: '#f97316',
+        RED: '#dc2626'
+    };
+
+    const VIEW_MODES = {
+        CALENDAR: 'calendar',
+        TIMELINE: 'timeline'
+    };
+
+    const DEBUG_CALENDAR = false;
+
+    function debugLog(...args) {
+        if (DEBUG_CALENDAR) {
+            console.debug('[Calendar]', ...args);
+        }
+    }
+
+    function setTimer(handler, delay) {
+        if (typeof globalThis !== 'undefined' && typeof globalThis.setTimeout === 'function') {
+            return globalThis.setTimeout(handler, delay);
+        }
+        return setTimeout(handler, delay);
+    }
+
+    function clearTimer(handle) {
+        if (!handle) {
+            return;
+        }
+        if (typeof globalThis !== 'undefined' && typeof globalThis.clearTimeout === 'function') {
+            globalThis.clearTimeout(handle);
+        } else {
+            clearTimeout(handle);
+        }
+    }
 
     function consumeDomBudget(budget, amount = 1) {
         if (!budget) {
@@ -41,8 +90,38 @@
         return typeof value === 'string' ? value.trim() : '';
     }
 
+    function escapeHtml(value) {
+        if (value === null || value === undefined) {
+            return '';
+        }
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
     function isValidIsoDateString(value) {
         return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
+    }
+
+    function hexToRgba(hex, alpha = 1) {
+        if (typeof hex !== 'string') {
+            return `rgba(76, 175, 80, ${alpha})`;
+        }
+        const normalized = hex.replace('#', '').trim();
+        if (!/^[0-9a-fA-F]{3,6}$/.test(normalized)) {
+            return `rgba(76, 175, 80, ${alpha})`;
+        }
+        const value = normalized.length === 3
+            ? normalized.split('').map((char) => char + char).join('')
+            : normalized.padEnd(6, '0');
+        const bigint = Number.parseInt(value, 16);
+        const r = (bigint >> 16) & 255;
+        const g = (bigint >> 8) & 255;
+        const b = bigint & 255;
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
     function parseDate(value) {
@@ -119,6 +198,51 @@
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const year = date.getFullYear();
         return `${day}-${month}-${year}`;
+    }
+
+    function formatDayCountLabel(value) {
+        if (value === null || value === undefined || value === '') {
+            return '';
+        }
+        const numeric = Number(value);
+        if (Number.isNaN(numeric)) {
+            return String(value);
+        }
+        const absDays = Math.abs(numeric);
+        const suffix = absDays === 1 ? 'day' : 'days';
+        return `${numeric} ${suffix}`;
+    }
+
+    function formatAlertTimestamp(value) {
+        if (!value) {
+            return { label: '', iso: '' };
+        }
+        try {
+            let parsed = value;
+            if (typeof value === 'string') {
+                const normalized = value.includes('T') ? value : value.replace(' ', 'T');
+                parsed = new Date(normalized.endsWith('Z') ? normalized : `${normalized}Z`);
+            } else if (value instanceof Date) {
+                parsed = value;
+            } else {
+                parsed = new Date(value);
+            }
+            if (parsed instanceof Date && !Number.isNaN(parsed.getTime())) {
+                const label = parsed.toLocaleString(undefined, {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    day: '2-digit',
+                    month: 'short'
+                });
+                return {
+                    label,
+                    iso: parsed.toISOString()
+                };
+            }
+        } catch (error) {
+            console.warn('Unable to format alert timestamp', error);
+        }
+        return { label: String(value), iso: '' };
     }
 
     function formatRangeLabel(range) {
@@ -239,6 +363,42 @@
             offsetDays,
             durationDays
         };
+    }
+
+    function calculateRollingDaysUsed(trips, targetDate, limit = RISK_THRESHOLDS.limit) {
+        if (!Array.isArray(trips) || !trips.length || !(targetDate instanceof Date)) {
+            return 0;
+        }
+        const windowStart = addDays(targetDate, -(limit - 1));
+        let total = 0;
+        for (const trip of trips) {
+            if (!trip || !(trip.start instanceof Date) || !(trip.end instanceof Date)) {
+                continue;
+            }
+            if (trip.end < windowStart || trip.start > targetDate) {
+                continue;
+            }
+            const overlapStart = trip.start > windowStart ? trip.start : windowStart;
+            const overlapEnd = trip.end < targetDate ? trip.end : targetDate;
+            if (overlapEnd < overlapStart) {
+                continue;
+            }
+            total += diffInDaysInclusive(overlapStart, overlapEnd) + 1;
+        }
+        return Math.max(0, total);
+    }
+
+    function resolveRiskLevel(daysUsed) {
+        if (!Number.isFinite(daysUsed)) {
+            return { level: 'unknown', color: RISK_COLORS.safe };
+        }
+        if (daysUsed <= RISK_THRESHOLDS.safe) {
+            return { level: 'safe', color: RISK_COLORS.safe };
+        }
+        if (daysUsed <= RISK_THRESHOLDS.caution) {
+            return { level: 'caution', color: RISK_COLORS.caution };
+        }
+        return { level: 'critical', color: RISK_COLORS.critical };
     }
 
     function buildTripStatusIndex(trips, warningThreshold, criticalThreshold = CRITICAL_THRESHOLD) {
@@ -381,30 +541,39 @@
             tooltipEl = document.createElement('div');
             tooltipEl.className = 'calendar-tooltip';
             tooltipEl.setAttribute('role', 'tooltip');
+            tooltipEl.setAttribute('aria-hidden', 'true');
             document.body.appendChild(tooltipEl);
             return tooltipEl;
         }
 
+        ensureElement();
+
         return {
-            show(content, x, y) {
+            show(content, x, y, options = {}) {
                 const el = ensureElement();
                 el.innerHTML = content;
-                el.style.display = 'block';
-                el.style.left = `${x + 12}px`;
-                el.style.top = `${y + 12}px`;
+                if (options && options.accent) {
+                    el.style.setProperty('--calendar-tooltip-accent', options.accent);
+                }
+                el.style.left = `${x + 16}px`;
+                el.style.top = `${y + 16}px`;
+                el.classList.add('calendar-tooltip--visible');
+                el.setAttribute('aria-hidden', 'false');
                 visible = true;
             },
             move(x, y) {
                 if (!visible || !tooltipEl) {
                     return;
                 }
-                tooltipEl.style.left = `${x + 12}px`;
-                tooltipEl.style.top = `${y + 12}px`;
+                tooltipEl.style.left = `${x + 16}px`;
+                tooltipEl.style.top = `${y + 16}px`;
             },
             hide() {
-                if (tooltipEl) {
-                    tooltipEl.style.display = 'none';
+                if (!tooltipEl) {
+                    return;
                 }
+                tooltipEl.classList.remove('calendar-tooltip--visible');
+                tooltipEl.setAttribute('aria-hidden', 'true');
                 visible = false;
             }
         };
@@ -432,7 +601,11 @@
             isRendering: false,
             formMode: null,
             editingTripId: null,
-            isSubmittingForm: false
+            isSubmittingForm: false,
+            alerts: [],
+            alertIndex: new Map(),
+            alertFilter: 'all',
+            resolvingAlertId: null
         };
         this.elements = {
             toolbar: root.querySelector('.calendar-toolbar'),
@@ -464,6 +637,7 @@
             detailDates: root.querySelector('#calendar-detail-dates'),
             detailDuration: root.querySelector('#calendar-detail-duration'),
             detailUsage: root.querySelector('#calendar-detail-usage'),
+            detailRemaining: root.querySelector('#calendar-detail-remaining'),
             detailNotes: root.querySelector('#calendar-detail-notes'),
             detailPurpose: root.querySelector('#calendar-detail-purpose'),
             detailJobRef: root.querySelector('#calendar-detail-jobref'),
@@ -486,15 +660,50 @@
             formPurpose: root.querySelector('#calendar-form-purpose'),
             formFeedback: root.querySelector('#calendar-form-feedback'),
             formSubmit: root.querySelector('[data-action="submit-form"]'),
-            toast: root.querySelector('#calendar-toast')
+            toast: root.querySelector('#calendar-toast'),
+            alertsPanel: root.querySelector('#calendar-alerts-panel'),
+            alertsToggle: root.querySelector('#calendar-alerts-toggle'),
+            alertsList: root.querySelector('#calendar-alerts-list'),
+            alertsEmpty: root.querySelector('#calendar-alerts-empty'),
+            alertsFilters: Array.from(root.querySelectorAll('[data-alert-filter]')),
+            fullscreenToggle: root.querySelector('[data-action="toggle-fullscreen"]'),
+            contextMenu: root.querySelector('#calendar-context-menu'),
+            viewToggleButtons: Array.from(root.querySelectorAll('.calendar-view-toggle__button')),
+            viewStack: root.querySelector('.calendar-view-stack'),
+            viewLayers: Array.from(root.querySelectorAll('.calendar-view-layer')),
+            forecastPanel: root.querySelector('#calendar-forecast-panel'),
+            forecastToggle: root.querySelector('[data-forecast-action="toggle"]'),
+            forecastRefresh: root.querySelector('[data-forecast-action="refresh"]'),
+            forecastEmployee: root.querySelector('[data-forecast-employee]'),
+            forecastStatus: root.querySelector('[data-forecast-status]'),
+            forecastUsed: root.querySelector('[data-forecast-used]'),
+            forecastUpcoming: root.querySelector('[data-forecast-upcoming]'),
+            forecastTotal: root.querySelector('[data-forecast-total]'),
+            forecastProgress: root.querySelector('[data-forecast-progress]'),
+            forecastCaption: root.querySelector('[data-forecast-caption]'),
+            forecastUpcomingWrapper: root.querySelector('[data-forecast-upcoming-wrapper]'),
+            forecastUpcomingList: root.querySelector('[data-forecast-upcoming-list]'),
+            forecastTimestamp: root.querySelector('[data-forecast-updated]')
         };
         this.tooltip = createTooltip();
+        this.contextMenuState = {
+            node: this.elements.contextMenu,
+            isOpen: false,
+            tripId: null,
+            trigger: null
+        };
         this.editTripButtons = Array.from(root.querySelectorAll('[data-action="edit-trip"]'));
         if (this.elements.editTripGlobal) {
             this.editTripButtons.push(this.elements.editTripGlobal);
         }
         this.formCloseButtons = Array.from(root.querySelectorAll('[data-action="close-form"]'));
         this.timelineWidth = 0;
+        this.state.activeView = VIEW_MODES.CALENDAR;
+        this.state.forecast = {
+            employeeId: null,
+            employeeName: '',
+            isLoading: false
+        };
         this.dataCache = null;
         this.shouldCenterOnToday = false;
         this.isDetailOpen = false;
@@ -506,17 +715,53 @@
         this.timelineHeaderFrame = null;
         this.timelineHeaderToken = null;
         this.toastTimer = null;
+        this.timelineScrollFrame = null;
+        this.pendingTimelineScrollLeft = 0;
+        this.verticalScrollFrame = null;
+        this.pendingVerticalScrollTop = 0;
+        this.verticalScrollTarget = null;
+        this.isSyncingVerticalScroll = false;
+        this.tooltipMoveFrame = null;
+        this.pendingTooltipPosition = { x: 0, y: 0 };
+        this.cellTemplate = null;
+        this.cellTemplateKey = '';
+        this.handlersBound = false;
+        this.searchDebounceTimer = null;
+        this.riskCache = new Map();
+        this.forecastCache = new Map();
+        this.forecastAbortController = null;
         this.handleTimelineScroll = this.handleTimelineScroll.bind(this);
         this.handleTimelineVerticalScroll = this.handleTimelineVerticalScroll.bind(this);
+        this.handleViewToggleClick = this.handleViewToggleClick.bind(this);
+        this.handleForecastToggle = this.handleForecastToggle.bind(this);
+        this.handleForecastRefresh = this.handleForecastRefresh.bind(this);
+        this.handleTimelineSelectTrip = this.handleTimelineSelectTrip.bind(this);
+        this.handleTimelineFocusEmployee = this.handleTimelineFocusEmployee.bind(this);
+        this.handleEmployeeListClick = this.handleEmployeeListClick.bind(this);
         this.handleTripClick = this.handleTripClick.bind(this);
         this.handleTripKeydown = this.handleTripKeydown.bind(this);
+        this.handleTripContextMenu = this.handleTripContextMenu.bind(this);
+        this.handleTripPointerDown = this.handleTripPointerDown.bind(this);
+        this.handleTripResizeMove = this.handleTripResizeMove.bind(this);
+        this.handleTripResizeEnd = this.handleTripResizeEnd.bind(this);
+        this.handleContextMenuClick = this.handleContextMenuClick.bind(this);
+        this.handleOutsideContextPointer = this.handleOutsideContextPointer.bind(this);
+        this.handleContextMenuKeydown = this.handleContextMenuKeydown.bind(this);
         this.handleOverlayInteraction = this.handleOverlayInteraction.bind(this);
         this.handleGlobalKeydown = this.handleGlobalKeydown.bind(this);
         this.handleWindowResize = this.handleWindowResize.bind(this);
-        this.syncingScroll = false;
+        this.handleGridMouseover = this.handleGridMouseover.bind(this);
+        this.handleGridMousemove = this.handleGridMousemove.bind(this);
+        this.handleGridMouseout = this.handleGridMouseout.bind(this);
+        this.handleFullscreenToggle = this.handleFullscreenToggle.bind(this);
+        this.handleFullscreenChange = this.handleFullscreenChange.bind(this);
+        this.handleDragPreview = this.handleDragPreview.bind(this);
+        this.handleDragPreviewEnd = this.handleDragPreviewEnd.bind(this);
         this.emptyStateMessageNode = this.elements.empty ? this.elements.empty.querySelector('p') : null;
         this.emptyStateDefaultMessage = this.emptyStateMessageNode ? this.emptyStateMessageNode.textContent : '';
+        this.resizeSession = null;
         this.attachHandlers();
+        this.root.__calendarController = this;
 
         const DragManagerClass = global && typeof global.CalendarDragManager === 'function'
             ? global.CalendarDragManager
@@ -528,7 +773,9 @@
                 dayWidth: DAY_WIDTH,
                 formatLabel: (start, end) => formatDateRangeDisplay(start, end),
                 getRange: () => this.range,
-                onDrop: (details) => this.handleTripDrop(details)
+                onDrop: (details) => this.handleTripDrop(details),
+                onPreview: (details) => this.handleDragPreview(details),
+                onPreviewEnd: (details) => this.handleDragPreviewEnd(details)
             });
         } else {
             console.warn('CalendarDragManager unavailable; drag-and-drop disabled.');
@@ -537,6 +784,10 @@
     }
 
     CalendarController.prototype.attachHandlers = function attachHandlers() {
+        if (this.handlersBound) {
+            return;
+        }
+        this.handlersBound = true;
         const prevBtn = this.root.querySelector('[data-action="prev"]');
         const nextBtn = this.root.querySelector('[data-action="next"]');
         const todayBtn = this.root.querySelector('[data-action="today"]');
@@ -576,13 +827,22 @@
         }
         if (this.elements.searchInput) {
             this.elements.searchInput.addEventListener('input', (event) => {
-                this.state.searchTerm = event.target.value || '';
-                this.updateSearchUI();
-                this.applyFilters();
+                const term = event.target.value || '';
+                if (this.searchDebounceTimer) {
+                    clearTimer(this.searchDebounceTimer);
+                }
+                this.searchDebounceTimer = setTimer(() => {
+                    this.state.searchTerm = term;
+                    this.updateSearchUI();
+                    this.applyFilters();
+                    this.searchDebounceTimer = null;
+                }, 90);
             });
         }
         if (this.elements.searchClear) {
             this.elements.searchClear.addEventListener('click', () => {
+                clearTimer(this.searchDebounceTimer);
+                this.searchDebounceTimer = null;
                 this.state.searchTerm = '';
                 if (this.elements.searchInput) {
                     this.elements.searchInput.value = '';
@@ -591,19 +851,27 @@
                 this.applyFilters();
             });
         }
+        if (this.elements.viewToggleButtons && this.elements.viewToggleButtons.length) {
+            this.elements.viewToggleButtons.forEach((button) => {
+                button.addEventListener('click', this.handleViewToggleClick);
+            });
+        }
         if (this.elements.timelineContainer) {
             this.elements.timelineContainer.addEventListener('scroll', this.handleTimelineScroll, { passive: true });
             this.elements.timelineContainer.addEventListener('scroll', this.handleTimelineVerticalScroll, { passive: true });
         }
         if (this.elements.employeeList) {
             this.elements.employeeList.addEventListener('scroll', this.handleTimelineVerticalScroll, { passive: true });
+            this.elements.employeeList.addEventListener('click', this.handleEmployeeListClick);
         }
         if (this.elements.grid) {
-            this.elements.grid.addEventListener('mouseover', (event) => this.handleTripHover(event));
-            this.elements.grid.addEventListener('mousemove', (event) => this.tooltip.move(event.pageX, event.pageY));
-            this.elements.grid.addEventListener('mouseout', (event) => this.handleTripLeave(event));
+            this.elements.grid.addEventListener('mouseover', (event) => this.handleGridMouseover(event));
+            this.elements.grid.addEventListener('mousemove', this.handleGridMousemove);
+            this.elements.grid.addEventListener('mouseout', (event) => this.handleGridMouseout(event));
             this.elements.grid.addEventListener('click', this.handleTripClick);
             this.elements.grid.addEventListener('keydown', this.handleTripKeydown);
+            this.elements.grid.addEventListener('contextmenu', this.handleTripContextMenu);
+            this.elements.grid.addEventListener('pointerdown', this.handleTripPointerDown, { passive: false });
         }
         if (this.elements.detailOverlay) {
             this.elements.detailOverlay.addEventListener('click', this.handleOverlayInteraction);
@@ -627,69 +895,334 @@
             this.elements.form.addEventListener('submit', (event) => this.handleFormSubmit(event));
             this.elements.form.addEventListener('input', () => this.clearFormFeedback());
         }
+        if (this.elements.alertsFilters && this.elements.alertsFilters.length) {
+            this.elements.alertsFilters.forEach((button) => {
+                button.addEventListener('click', () => {
+                    const filter = button.getAttribute('data-alert-filter') || 'all';
+                    this.setAlertFilter(filter);
+                });
+            });
+        }
+        if (this.elements.alertsList) {
+            this.elements.alertsList.addEventListener('click', (event) => {
+                const trigger = event.target.closest('[data-action="resolve-alert"]');
+                if (!trigger) {
+                    return;
+                }
+                const alertId = Number.parseInt(trigger.getAttribute('data-alert-id'), 10);
+                const employeeId = Number.parseInt(trigger.getAttribute('data-employee-id'), 10);
+                if (Number.isFinite(alertId)) {
+                    this.resolveAlert(alertId, Number.isFinite(employeeId) ? employeeId : null, trigger);
+                }
+            });
+        }
+        if (this.contextMenuState.node) {
+            this.contextMenuState.node.addEventListener('click', this.handleContextMenuClick);
+            this.contextMenuState.node.addEventListener('keydown', this.handleContextMenuKeydown);
+        }
+        if (this.elements.fullscreenToggle) {
+            this.elements.fullscreenToggle.addEventListener('click', this.handleFullscreenToggle);
+            this.syncFullscreenButton();
+        }
+        if (this.elements.alertsToggle) {
+            this.elements.alertsToggle.addEventListener('click', () => {
+                this.toggleAlertsPanel();
+            });
+        }
+        if (this.elements.forecastToggle) {
+            this.elements.forecastToggle.addEventListener('click', this.handleForecastToggle);
+        }
+        if (this.elements.forecastRefresh) {
+            this.elements.forecastRefresh.addEventListener('click', this.handleForecastRefresh);
+        }
+        if (this.root) {
+            this.root.addEventListener('timeline:select-trip', this.handleTimelineSelectTrip);
+            this.root.addEventListener('timeline:focus-employee', this.handleTimelineFocusEmployee);
+        }
         this.updateGlobalEditButtonState();
         window.addEventListener('resize', this.handleWindowResize, { passive: true });
         document.addEventListener('keydown', this.handleGlobalKeydown);
+        document.addEventListener('fullscreenchange', this.handleFullscreenChange);
     };
 
     CalendarController.prototype.handleTimelineScroll = function handleTimelineScroll(event) {
-        if (!this.elements.timelineHeader || !this.elements.monthRow || !this.elements.dayRow) {
+        this.closeContextMenu();
+        if (!this.elements.monthRow || !this.elements.dayRow) {
             return;
         }
-        const scrollLeft = event.target.scrollLeft;
-        this.elements.monthRow.style.transform = `translateX(${-scrollLeft}px)`;
-        this.elements.dayRow.style.transform = `translateX(${-scrollLeft}px)`;
+        this.pendingTimelineScrollLeft = event.target.scrollLeft;
+        if (this.timelineScrollFrame) {
+            return;
+        }
+        this.timelineScrollFrame = requestAnimationFrame(() => {
+            this.timelineScrollFrame = null;
+            const scrollLeft = this.pendingTimelineScrollLeft;
+            this.elements.monthRow.style.transform = `translateX(${-scrollLeft}px)`;
+            this.elements.dayRow.style.transform = `translateX(${-scrollLeft}px)`;
+        });
     };
 
     CalendarController.prototype.handleTimelineVerticalScroll = function handleTimelineVerticalScroll(event) {
-        if (this.syncingScroll) {
+        this.closeContextMenu();
+        if (!this.elements.timelineContainer || !this.elements.employeeList) {
             return;
         }
-        this.syncingScroll = true;
-        const { scrollTop } = event.target;
-        if (event.target === this.elements.timelineContainer && this.elements.employeeList && this.elements.employeeList.scrollTop !== scrollTop) {
-            this.elements.employeeList.scrollTop = scrollTop;
-        } else if (event.target === this.elements.employeeList && this.elements.timelineContainer && this.elements.timelineContainer.scrollTop !== scrollTop) {
-            this.elements.timelineContainer.scrollTop = scrollTop;
+        if (this.isSyncingVerticalScroll) {
+            return;
         }
-        this.syncingScroll = false;
+        const source = event.target;
+        const partner = source === this.elements.timelineContainer
+            ? this.elements.employeeList
+            : source === this.elements.employeeList
+                ? this.elements.timelineContainer
+                : null;
+        if (!partner) {
+            return;
+        }
+        const scrollTop = source.scrollTop;
+        if (partner.scrollTop === scrollTop) {
+            return;
+        }
+        this.pendingVerticalScrollTop = scrollTop;
+        this.verticalScrollTarget = partner;
+        if (this.verticalScrollFrame) {
+            return;
+        }
+        this.verticalScrollFrame = requestAnimationFrame(() => {
+            const target = this.verticalScrollTarget;
+            this.verticalScrollFrame = null;
+            this.verticalScrollTarget = null;
+            if (!target) {
+                return;
+            }
+            this.isSyncingVerticalScroll = true;
+            if (target.scrollTop !== this.pendingVerticalScrollTop) {
+                target.scrollTop = this.pendingVerticalScrollTop;
+            }
+            this.isSyncingVerticalScroll = false;
+        });
     };
 
-    CalendarController.prototype.handleTripHover = function handleTripHover(event) {
-        if (this.isDetailOpen) {
+    CalendarController.prototype.handleViewToggleClick = function handleViewToggleClick(event) {
+        const button = event.currentTarget || event.target;
+        if (!button || !button.dataset) {
             return;
         }
-        const target = event.target.closest('.calendar-trip');
-        if (!target) {
-            return;
-        }
-        const employee = target.getAttribute('data-employee');
-        const country = target.getAttribute('data-country');
-        const start = target.getAttribute('data-start');
-        const end = target.getAttribute('data-end');
-        const daysUsed = target.getAttribute('data-days-used');
-        const compliance = target.getAttribute('data-compliance');
-        const jobRef = target.getAttribute('data-job-ref');
-        const statusLabel = normaliseStatusLabel(compliance);
-
-        const lines = [
-            `<strong>${employee || 'Unknown employee'}</strong>`,
-            `<span>${country || 'Unknown country'}</span>`,
-            `<span>${start} → ${end}</span>`
-        ];
-
-        if (jobRef) {
-            lines.push(`<span>Job ref: ${jobRef}</span>`);
-        }
-        if (daysUsed) {
-            lines.push(`<span>Rolling 180-day usage: ${daysUsed} days (${statusLabel})</span>`);
-        }
-
-        this.tooltip.show(lines.map((line) => `<div>${line}</div>`).join(''), event.pageX, event.pageY);
+        const targetView = button.dataset.viewTarget || VIEW_MODES.CALENDAR;
+        this.setActiveView(targetView);
     };
 
-    CalendarController.prototype.handleTripLeave = function handleTripLeave(event) {
-        if (!event.relatedTarget || !event.relatedTarget.closest('.calendar-trip')) {
+    CalendarController.prototype.setActiveView = function setActiveView(view) {
+        const target = view === VIEW_MODES.TIMELINE ? VIEW_MODES.TIMELINE : VIEW_MODES.CALENDAR;
+        if (this.state.activeView === target) {
+            return;
+        }
+        this.state.activeView = target;
+        this.updateViewToggleUI();
+        if (this.elements.viewStack) {
+            this.elements.viewStack.dataset.activeView = target;
+        }
+        if (this.elements.viewLayers && this.elements.viewLayers.length) {
+            this.elements.viewLayers.forEach((layer) => {
+                const layerView = layer.getAttribute('data-view-layer');
+                const isActive = layerView === target;
+                layer.classList.toggle('is-active', isActive);
+                layer.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+            });
+        }
+        if (target === VIEW_MODES.TIMELINE && typeof globalThis.TimelineView !== 'undefined') {
+            if (typeof globalThis.TimelineView.sync === 'function') {
+                this.syncTimelineView({ reason: 'view-switch' });
+            }
+            if (typeof globalThis.TimelineView.activate === 'function') {
+                globalThis.TimelineView.activate();
+            }
+        }
+    };
+
+    CalendarController.prototype.updateViewToggleUI = function updateViewToggleUI() {
+        if (!this.elements.viewToggleButtons || !this.elements.viewToggleButtons.length) {
+            return;
+        }
+        this.elements.viewToggleButtons.forEach((button) => {
+            const buttonView = button.dataset.viewTarget || VIEW_MODES.CALENDAR;
+            const isActive = buttonView === this.state.activeView;
+            button.classList.toggle('is-active', isActive);
+            button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+    };
+
+    CalendarController.prototype.handleForecastToggle = function handleForecastToggle(event) {
+        event.preventDefault();
+        this.toggleForecastPanel();
+    };
+
+    CalendarController.prototype.toggleForecastPanel = function toggleForecastPanel(forceState) {
+        if (!this.elements.forecastPanel || !this.elements.forecastToggle) {
+            return;
+        }
+        const current = this.elements.forecastPanel.getAttribute('data-forecast-state') || 'open';
+        const next = forceState === 'open' || forceState === 'closed'
+            ? forceState
+            : current === 'open'
+                ? 'closed'
+                : 'open';
+        this.elements.forecastPanel.setAttribute('data-forecast-state', next);
+        this.elements.forecastToggle.setAttribute('aria-expanded', next === 'open' ? 'true' : 'false');
+        const toggleLabel = this.elements.forecastToggle.querySelector('.visually-hidden');
+        if (toggleLabel) {
+            toggleLabel.textContent = next === 'open' ? 'Collapse mini forecast panel' : 'Expand mini forecast panel';
+        }
+    };
+
+    CalendarController.prototype.handleForecastRefresh = function handleForecastRefresh(event) {
+        event.preventDefault();
+        const employeeId = this.state.forecast && Number.isFinite(this.state.forecast.employeeId)
+            ? this.state.forecast.employeeId
+            : null;
+        if (Number.isFinite(employeeId)) {
+            this.setForecastEmployee(employeeId, { force: true, bypassCache: true, reason: 'manual-refresh' });
+        }
+    };
+
+    CalendarController.prototype.handleEmployeeListClick = function handleEmployeeListClick(event) {
+        if (event.target.closest('a')) {
+            return;
+        }
+        const item = event.target.closest('.calendar-employee-item');
+        if (!item) {
+            return;
+        }
+        const employeeId = Number.parseInt(item.getAttribute('data-employee-id'), 10);
+        if (!Number.isFinite(employeeId)) {
+            return;
+        }
+        this.focusEmployeeId = employeeId;
+        this.setForecastEmployee(employeeId, { reason: 'employee-list' });
+        this.highlightEmployee(employeeId);
+    };
+
+    CalendarController.prototype.handleTimelineSelectTrip = function handleTimelineSelectTrip(event) {
+        if (!event || !event.detail) {
+            return;
+        }
+        const tripId = Number.parseInt(event.detail.tripId, 10);
+        if (!Number.isFinite(tripId)) {
+            return;
+        }
+        this.openTripDetail(tripId);
+    };
+
+    CalendarController.prototype.handleTimelineFocusEmployee = function handleTimelineFocusEmployee(event) {
+        if (!event || !event.detail) {
+            return;
+        }
+        const employeeId = Number.parseInt(event.detail.employeeId, 10);
+        if (!Number.isFinite(employeeId)) {
+            return;
+        }
+        this.setForecastEmployee(employeeId, { reason: 'timeline' });
+        this.focusEmployeeId = employeeId;
+        this.highlightEmployee(employeeId);
+    };
+
+    CalendarController.prototype.handleGridMouseover = function handleGridMouseover(event) {
+        if (this.isDetailOpen || !this.tooltip) {
+            return;
+        }
+        const tripTarget = event.target.closest('.calendar-trip');
+        if (tripTarget) {
+            const employee = sanitizeText(tripTarget.getAttribute('data-employee') || '');
+            const country = sanitizeText(tripTarget.getAttribute('data-country') || 'Trip');
+            const startIso = tripTarget.getAttribute('data-start');
+            const endIso = tripTarget.getAttribute('data-end');
+            const previewLabel = tripTarget.getAttribute('data-preview-label');
+            const jobRef = sanitizeText(tripTarget.getAttribute('data-job-ref') || '');
+            const statusLabel = sanitizeText(tripTarget.getAttribute('data-status-label') || '');
+            const riskDays = sanitizeText(tripTarget.getAttribute('data-risk-days-used') || tripTarget.getAttribute('data-days-used') || '0');
+            const riskColor = tripTarget.getAttribute('data-risk-color') || RISK_COLORS.safe;
+            const daysRemainingAttr = sanitizeText(tripTarget.getAttribute('data-days-remaining') || '');
+            const forecastRemainingAttr = sanitizeText(tripTarget.getAttribute('data-forecast-remaining') || '');
+            const projectedRemaining = forecastRemainingAttr || daysRemainingAttr;
+
+            const startDateValue = parseDate(startIso);
+            const endDateValue = parseDate(endIso);
+            const rangeLabel = previewLabel || formatDateRangeDisplay(startDateValue, endDateValue);
+            const duration = startDateValue && endDateValue ? diffInDaysInclusive(startDateValue, endDateValue) + 1 : null;
+
+            const tooltipContent = `
+                <div class="calendar-tooltip__header">
+                    <span class="calendar-tooltip__title">${escapeHtml(country || 'Trip')}</span>
+                    ${statusLabel ? `<span class="calendar-tooltip__badge">${escapeHtml(statusLabel)}</span>` : ''}
+                </div>
+                <div class="calendar-tooltip__body">
+                    ${employee ? `<span class="calendar-tooltip__employee">${escapeHtml(employee)}</span>` : ''}
+                    ${rangeLabel ? `<span class="calendar-tooltip__dates">${escapeHtml(rangeLabel)}</span>` : ''}
+                </div>
+                <div class="calendar-tooltip__meta">
+                    <span class="calendar-tooltip__metric">Days used: ${escapeHtml(riskDays)} / ${RISK_THRESHOLDS.limit}</span>
+                    ${duration ? `<span class="calendar-tooltip__metric">Duration: ${escapeHtml(String(duration))} day${duration === 1 ? '' : 's'}</span>` : ''}
+                    ${projectedRemaining ? `<span class="calendar-tooltip__metric">Forecast remaining: ${escapeHtml(formatDayCountLabel(projectedRemaining))}</span>` : ''}
+                    ${jobRef ? `<span class="calendar-tooltip__metric">Job: ${escapeHtml(jobRef)}</span>` : ''}
+                </div>
+            `.trim();
+
+            this.tooltip.show(tooltipContent, event.pageX, event.pageY, { accent: riskColor });
+            return;
+        }
+
+        const cellTarget = event.target.closest('.calendar-cell');
+        if (cellTarget) {
+            const riskDays = cellTarget.dataset.riskDaysUsed || '0';
+            const riskLevel = cellTarget.dataset.riskLevel || 'safe';
+            const riskColor = cellTarget.dataset.riskColor || RISK_COLORS.safe;
+            const dateValue = sanitizeText(cellTarget.dataset.calendarDate || '');
+            const label = riskLevel === 'safe' ? 'Compliant window' : riskLevel === 'caution' ? 'Approaching limit' : 'Non-compliant';
+            const employeeName = sanitizeText(cellTarget.dataset.employeeName || '');
+
+            const tooltipContent = `
+                <div class="calendar-tooltip__header">
+                    <span class="calendar-tooltip__title">${escapeHtml(label)}</span>
+                </div>
+                <div class="calendar-tooltip__body">
+                    ${employeeName ? `<span class="calendar-tooltip__employee">${escapeHtml(employeeName)}</span>` : ''}
+                    ${dateValue ? `<span class="calendar-tooltip__dates">${escapeHtml(dateValue)}</span>` : ''}
+                </div>
+                <div class="calendar-tooltip__meta">
+                    <span class="calendar-tooltip__metric">Days used: ${escapeHtml(riskDays)} / ${RISK_THRESHOLDS.limit}</span>
+                </div>
+            `.trim();
+
+            this.tooltip.show(tooltipContent, event.pageX, event.pageY, { accent: riskColor });
+            return;
+        }
+    };
+
+    CalendarController.prototype.handleGridMousemove = function handleGridMousemove(event) {
+        if (!this.tooltip || typeof this.tooltip.move !== 'function') {
+            return;
+        }
+        this.pendingTooltipPosition.x = event.pageX;
+        this.pendingTooltipPosition.y = event.pageY;
+        if (this.tooltipMoveFrame) {
+            return;
+        }
+        this.tooltipMoveFrame = requestAnimationFrame(() => {
+            this.tooltipMoveFrame = null;
+            this.tooltip.move(this.pendingTooltipPosition.x, this.pendingTooltipPosition.y);
+        });
+    };
+
+    CalendarController.prototype.handleGridMouseout = function handleGridMouseout(event) {
+        const nextTarget = event.relatedTarget;
+        if (nextTarget && (nextTarget.closest('.calendar-trip') || nextTarget.closest('.calendar-cell'))) {
+            return;
+        }
+        if (this.tooltipMoveFrame) {
+            cancelAnimationFrame(this.tooltipMoveFrame);
+            this.tooltipMoveFrame = null;
+        }
+        if (this.tooltip) {
             this.tooltip.hide();
         }
     };
@@ -704,6 +1237,7 @@
         if (!Number.isFinite(tripId)) {
             return;
         }
+        this.closeContextMenu();
         this.lastFocusedTrip = target;
         this.openTripDetail(tripId, target);
     };
@@ -713,14 +1247,873 @@
         if (!target) {
             return;
         }
+        if (event.key === 'ContextMenu' || (event.shiftKey && (event.key === 'F10' || event.key === 'f10'))) {
+            event.preventDefault();
+            const rect = target.getBoundingClientRect();
+            const x = rect.left + (rect.width / 2) + window.pageXOffset;
+            const y = rect.top + rect.height + window.pageYOffset;
+            this.openContextMenu(target, { x, y });
+            return;
+        }
         if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
             const tripId = Number.parseInt(target.getAttribute('data-trip-id'), 10);
             if (!Number.isFinite(tripId)) {
                 return;
             }
+            this.closeContextMenu();
             this.lastFocusedTrip = target;
             this.openTripDetail(tripId, target);
+        }
+    };
+
+    CalendarController.prototype.handleTripContextMenu = function handleTripContextMenu(event) {
+        const trigger = event.target.closest('.calendar-trip');
+        if (!trigger) {
+            return;
+        }
+        event.preventDefault();
+        this.openContextMenu(trigger, { x: event.pageX, y: event.pageY });
+    };
+
+    CalendarController.prototype.openContextMenu = function openContextMenu(trigger, coordinates = null) {
+        if (!trigger || !this.contextMenuState || !this.contextMenuState.node) {
+            return;
+        }
+        const tripId = Number.parseInt(trigger.getAttribute('data-trip-id'), 10);
+        if (!Number.isFinite(tripId)) {
+            return;
+        }
+        if (this.contextMenuState.isOpen && this.contextMenuState.tripId === tripId && trigger === this.contextMenuState.trigger) {
+            return;
+        }
+        this.closeContextMenu();
+
+        const menu = this.contextMenuState.node;
+        this.contextMenuState.isOpen = true;
+        this.contextMenuState.tripId = tripId;
+        this.contextMenuState.trigger = trigger;
+
+        menu.hidden = false;
+        menu.setAttribute('aria-hidden', 'false');
+        menu.setAttribute('data-trip-id', String(tripId));
+        menu.dataset.tripId = String(tripId);
+        menu.style.visibility = 'hidden';
+        menu.style.display = 'block';
+
+        let { x, y } = coordinates || {};
+        if (!Number.isFinite(x) || !Number.isFinite(y)) {
+            const rect = trigger.getBoundingClientRect();
+            x = rect.left + (rect.width / 2) + window.pageXOffset;
+            y = rect.top + rect.height + window.pageYOffset;
+        }
+
+        const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        const menuRect = menu.getBoundingClientRect();
+        const margin = 12;
+        let left = x;
+        let top = y;
+        if (left + menuRect.width > viewportWidth - margin) {
+            left = Math.max(margin, viewportWidth - menuRect.width - margin);
+        }
+        if (top + menuRect.height > viewportHeight - margin) {
+            top = Math.max(margin, viewportHeight - menuRect.height - margin);
+        }
+        menu.style.left = `${left}px`;
+        menu.style.top = `${top}px`;
+        menu.style.visibility = 'visible';
+        menu.focus({ preventScroll: true });
+        const firstItem = menu.querySelector('.calendar-context-menu__item');
+        if (firstItem) {
+            firstItem.focus({ preventScroll: true });
+        }
+
+        document.addEventListener('pointerdown', this.handleOutsideContextPointer, true);
+        document.addEventListener('contextmenu', this.handleOutsideContextPointer, true);
+        if (document && document.body && document.body.dataset) {
+            document.body.dataset.calendarContextMenuOpen = 'true';
+        }
+    };
+
+    CalendarController.prototype.closeContextMenu = function closeContextMenu(options = {}) {
+        if (!this.contextMenuState || !this.contextMenuState.node || !this.contextMenuState.isOpen) {
+            return;
+        }
+        const { restoreFocus = false } = options;
+        const menu = this.contextMenuState.node;
+        menu.hidden = true;
+        menu.setAttribute('aria-hidden', 'true');
+        menu.style.display = 'none';
+        menu.style.left = '';
+        menu.style.top = '';
+        menu.style.visibility = '';
+        menu.removeAttribute('data-trip-id');
+
+        document.removeEventListener('pointerdown', this.handleOutsideContextPointer, true);
+        document.removeEventListener('contextmenu', this.handleOutsideContextPointer, true);
+        if (document && document.body && document.body.dataset) {
+            delete document.body.dataset.calendarContextMenuOpen;
+        }
+
+        const trigger = this.contextMenuState.trigger;
+        this.contextMenuState.isOpen = false;
+        this.contextMenuState.tripId = null;
+        this.contextMenuState.trigger = null;
+
+        if (restoreFocus && trigger && typeof trigger.focus === 'function') {
+            trigger.focus();
+        }
+    };
+
+    CalendarController.prototype.handleContextMenuClick = function handleContextMenuClick(event) {
+        if (!this.contextMenuState || !this.contextMenuState.isOpen) {
+            return;
+        }
+        const actionTarget = event.target.closest('.calendar-context-menu__item');
+        if (!actionTarget) {
+            return;
+        }
+        event.preventDefault();
+        const action = actionTarget.getAttribute('data-menu-action');
+        this.executeContextMenuAction(action);
+    };
+
+    CalendarController.prototype.executeContextMenuAction = function executeContextMenuAction(action) {
+        if (!action || !this.contextMenuState) {
+            this.closeContextMenu();
+            return;
+        }
+        const tripId = this.contextMenuState.tripId;
+        const trigger = this.contextMenuState.trigger;
+        if (!Number.isFinite(tripId)) {
+            this.closeContextMenu();
+            return;
+        }
+        switch (action) {
+            case 'edit':
+                this.closeContextMenu();
+                this.openForm('edit', tripId);
+                break;
+            case 'details':
+            case 'summary':
+                this.closeContextMenu();
+                this.lastFocusedTrip = trigger;
+                this.openTripDetail(tripId, trigger);
+                break;
+            case 'duplicate':
+                this.closeContextMenu({ restoreFocus: true });
+                this.duplicateTrip(tripId).catch((error) => {
+                    console.error('[3.9-update-trip] Trip duplication failed', error);
+                    this.showToast('Unable to duplicate trip ❌');
+                });
+                break;
+            case 'delete':
+                this.closeContextMenu();
+                this.confirmAndDeleteTrip(tripId, trigger);
+                break;
+            default:
+                this.closeContextMenu({ restoreFocus: true });
+                break;
+        }
+    };
+
+    CalendarController.prototype.handleOutsideContextPointer = function handleOutsideContextPointer(event) {
+        if (!this.contextMenuState || !this.contextMenuState.isOpen) {
+            return;
+        }
+        const menu = this.contextMenuState.node;
+        const trigger = this.contextMenuState.trigger;
+        const target = event.target;
+        if (menu && menu.contains(target)) {
+            return;
+        }
+        if (trigger && trigger.contains && trigger.contains(target)) {
+            return;
+        }
+        this.closeContextMenu();
+    };
+
+    CalendarController.prototype.handleContextMenuKeydown = function handleContextMenuKeydown(event) {
+        if (!this.contextMenuState || !this.contextMenuState.isOpen || !this.contextMenuState.node) {
+            return;
+        }
+        const menu = this.contextMenuState.node;
+        const items = Array.from(menu.querySelectorAll('.calendar-context-menu__item'));
+        if (!items.length) {
+            return;
+        }
+        const currentIndex = items.indexOf(document.activeElement);
+        if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % items.length;
+            items[nextIndex].focus();
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            const prevIndex = currentIndex <= 0 ? items.length - 1 : currentIndex - 1;
+            items[prevIndex].focus();
+        } else if (event.key === 'Home') {
+            event.preventDefault();
+            items[0].focus();
+        } else if (event.key === 'End') {
+            event.preventDefault();
+            items[items.length - 1].focus();
+        } else if (event.key === 'Tab') {
+            event.preventDefault();
+            if (event.shiftKey) {
+                const prevIndex = currentIndex <= 0 ? items.length - 1 : currentIndex - 1;
+                items[prevIndex].focus();
+            } else {
+                const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % items.length;
+                items[nextIndex].focus();
+            }
+        } else if (event.key === 'Escape') {
+            event.preventDefault();
+            this.closeContextMenu({ restoreFocus: true });
+        }
+    };
+
+    CalendarController.prototype.setForecastEmployee = function setForecastEmployee(employeeId, options = {}) {
+        if (!this.elements.forecastPanel) {
+            return;
+        }
+        const resolvedId = Number.isFinite(employeeId) ? employeeId : null;
+        const employeeName = resolvedId ? this.resolveEmployeeName(resolvedId) : '';
+        if (!resolvedId) {
+            this.state.forecast.employeeId = null;
+            this.state.forecast.employeeName = '';
+            this.renderForecastEmpty('Select an employee to view forecast');
+            return;
+        }
+
+        const previouslySelected = this.state.forecast.employeeId;
+        this.state.forecast.employeeId = resolvedId;
+        this.state.forecast.employeeName = employeeName;
+        const shouldForce = options.force === true;
+        const bypassCache = options.bypassCache === true;
+
+        if (!shouldForce && !bypassCache && previouslySelected === resolvedId && this.forecastCache.has(resolvedId)) {
+            this.renderForecastData(this.forecastCache.get(resolvedId));
+            return;
+        }
+
+        this.renderForecastLoading(employeeName || `Employee ${resolvedId}`);
+        this.fetchForecast(resolvedId, { bypassCache }).catch((error) => {
+            console.error('Forecast fetch failed', error);
+            this.renderForecastError(employeeName || `Employee ${resolvedId}`);
+        });
+    };
+
+    CalendarController.prototype.resolveEmployeeName = function resolveEmployeeName(employeeId) {
+        if (!Number.isFinite(employeeId)) {
+            return '';
+        }
+        const list = Array.isArray(this.state.employees) ? this.state.employees : [];
+        const match = list.find((employee) => employee.id === employeeId);
+        return match ? match.name : '';
+    };
+
+    CalendarController.prototype.renderForecastLoading = function renderForecastLoading(employeeName) {
+        if (!this.elements.forecastPanel) {
+            return;
+        }
+        this.state.forecast.isLoading = true;
+        this.elements.forecastPanel.classList.add('forecast-panel--loading');
+        if (this.elements.forecastEmployee) {
+            this.elements.forecastEmployee.textContent = employeeName ? `Loading ${employeeName}…` : 'Loading forecast…';
+        }
+        if (this.elements.forecastStatus) {
+            this.elements.forecastStatus.textContent = 'Loading';
+            this.elements.forecastStatus.classList.remove('forecast-panel__badge--warning', 'forecast-panel__badge--danger');
+        }
+        if (this.elements.forecastUsed) {
+            this.elements.forecastUsed.textContent = '—';
+        }
+        if (this.elements.forecastUpcoming) {
+            this.elements.forecastUpcoming.textContent = '—';
+        }
+        if (this.elements.forecastTotal) {
+            this.elements.forecastTotal.textContent = '—';
+        }
+        if (this.elements.forecastProgress) {
+            this.elements.forecastProgress.style.setProperty('--forecast-progress', '0%');
+            this.elements.forecastProgress.style.background = '';
+        }
+        if (this.elements.forecastCaption) {
+            this.elements.forecastCaption.textContent = 'Calculating usage…';
+        }
+        if (this.elements.forecastUpcomingWrapper) {
+            this.elements.forecastUpcomingWrapper.hidden = true;
+        }
+        if (this.elements.forecastUpcomingList) {
+            this.elements.forecastUpcomingList.innerHTML = '';
+        }
+        if (this.elements.forecastTimestamp) {
+            this.elements.forecastTimestamp.textContent = 'Updating…';
+            this.elements.forecastTimestamp.dateTime = '';
+        }
+    };
+
+    CalendarController.prototype.renderForecastData = function renderForecastData(payload) {
+        if (!this.elements.forecastPanel) {
+            return;
+        }
+        if (!payload || typeof payload !== 'object') {
+            this.renderForecastError(this.state.forecast.employeeName || '');
+            return;
+        }
+        this.state.forecast.isLoading = false;
+        this.elements.forecastPanel.classList.remove('forecast-panel--loading');
+
+        const employeeName = (payload.employee && payload.employee.name) || this.state.forecast.employeeName || '';
+        const riskLevel = payload.risk_level || 'safe';
+        const usedDays = Number.isFinite(payload.used_days) ? payload.used_days : 0;
+        const upcomingDays = Number.isFinite(payload.upcoming_days) ? payload.upcoming_days : 0;
+        const projectedTotal = Number.isFinite(payload.projected_total) ? payload.projected_total : usedDays + upcomingDays;
+        const updatedIso = payload.generated_at || payload.updated_at || new Date().toISOString();
+
+        if (this.elements.forecastEmployee) {
+            this.elements.forecastEmployee.textContent = employeeName ? `${employeeName}` : 'Forecast';
+        }
+
+        if (this.elements.forecastStatus) {
+            const badge = this.elements.forecastStatus;
+            badge.textContent = riskLevel === 'danger' ? 'High risk' : riskLevel === 'warning' ? 'Monitor' : 'Safe';
+            badge.classList.remove('forecast-panel__badge--warning', 'forecast-panel__badge--danger');
+            if (riskLevel === 'warning') {
+                badge.classList.add('forecast-panel__badge--warning');
+            } else if (riskLevel === 'danger') {
+                badge.classList.add('forecast-panel__badge--danger');
+            }
+        }
+
+        if (this.elements.forecastUsed) {
+            this.elements.forecastUsed.textContent = `${usedDays} day${usedDays === 1 ? '' : 's'}`;
+        }
+        if (this.elements.forecastUpcoming) {
+            this.elements.forecastUpcoming.textContent = `${upcomingDays} day${upcomingDays === 1 ? '' : 's'}`;
+        }
+        if (this.elements.forecastTotal) {
+            this.elements.forecastTotal.textContent = `${projectedTotal} / 90 days`;
+        }
+
+        if (this.elements.forecastProgress) {
+            const percent = Math.max(0, Math.min(100, Math.round((projectedTotal / RISK_THRESHOLDS.limit) * 100)));
+            this.elements.forecastProgress.style.setProperty('--forecast-progress', `${percent}%`);
+            let gradientStart = COLORS.safe;
+            if (riskLevel === 'warning') {
+                gradientStart = COLORS.warning;
+            } else if (riskLevel === 'danger') {
+                gradientStart = COLORS.critical;
+            }
+            this.elements.forecastProgress.style.background = `linear-gradient(90deg, ${gradientStart}, rgba(15, 23, 42, 0.12))`;
+        }
+
+        if (this.elements.forecastCaption) {
+            let caption = 'Within 90-day limit';
+            if (riskLevel === 'warning') {
+                caption = 'Approaching 90-day limit';
+            } else if (riskLevel === 'danger') {
+                caption = 'Exceeds 90-day limit';
+            }
+            this.elements.forecastCaption.textContent = caption;
+        }
+
+        if (this.elements.forecastUpcomingWrapper && this.elements.forecastUpcomingList) {
+            const upcomingTrips = Array.isArray(payload.upcoming_trips) ? payload.upcoming_trips : [];
+            if (upcomingTrips.length) {
+                const fragment = document.createDocumentFragment();
+                upcomingTrips.forEach((trip) => {
+                    const item = document.createElement('li');
+                    const country = sanitizeText(trip.country || 'Trip');
+                    const startIso = sanitizeText(trip.start_date || trip.entry_date || '');
+                    const endIso = sanitizeText(trip.end_date || trip.exit_date || startIso);
+                    const startDate = parseDate(startIso);
+                    const endDate = parseDate(endIso);
+                    const rangeLabel = formatDateRangeDisplay(startDate, endDate) || `${startIso} → ${endIso}`;
+                    const duration = Number.isFinite(trip.duration_days) ? trip.duration_days : (startDate && endDate ? diffInDaysInclusive(startDate, endDate) + 1 : null);
+                    item.innerHTML = `
+                        <span class="forecast-panel__trip-destination">${escapeHtml(country)}</span>
+                        <span class="forecast-panel__trip-range">${escapeHtml(rangeLabel)}</span>
+                        ${duration ? `<span class="forecast-panel__trip-duration">${duration} day${duration === 1 ? '' : 's'}</span>` : ''}
+                    `;
+                    fragment.appendChild(item);
+                });
+                this.elements.forecastUpcomingWrapper.hidden = false;
+                this.elements.forecastUpcomingList.innerHTML = '';
+                this.elements.forecastUpcomingList.appendChild(fragment);
+            } else {
+                this.elements.forecastUpcomingWrapper.hidden = true;
+                this.elements.forecastUpcomingList.innerHTML = '';
+            }
+        }
+
+        if (this.elements.forecastTimestamp) {
+            const updatedDate = parseDate(updatedIso);
+            if (updatedDate instanceof Date && !Number.isNaN(updatedDate.getTime())) {
+                this.elements.forecastTimestamp.dateTime = updatedDate.toISOString();
+                this.elements.forecastTimestamp.textContent = formatDateTimeDisplay(updatedDate);
+            } else {
+                this.elements.forecastTimestamp.dateTime = '';
+                this.elements.forecastTimestamp.textContent = 'Updated just now';
+            }
+        }
+
+        if (!this.forecastCache) {
+            this.forecastCache = new Map();
+        }
+        const activeEmployeeId = this.state.forecast.employeeId;
+        if (Number.isFinite(activeEmployeeId)) {
+            this.forecastCache.set(activeEmployeeId, payload);
+        }
+    };
+
+    CalendarController.prototype.renderForecastEmpty = function renderForecastEmpty(message) {
+        if (!this.elements.forecastPanel) {
+            return;
+        }
+        this.state.forecast.isLoading = false;
+        this.elements.forecastPanel.classList.remove('forecast-panel--loading');
+        if (this.elements.forecastEmployee) {
+            this.elements.forecastEmployee.textContent = message || 'No employee selected';
+        }
+        if (this.elements.forecastStatus) {
+            this.elements.forecastStatus.textContent = '—';
+            this.elements.forecastStatus.classList.remove('forecast-panel__badge--warning', 'forecast-panel__badge--danger');
+        }
+        if (this.elements.forecastUsed) {
+            this.elements.forecastUsed.textContent = '—';
+        }
+        if (this.elements.forecastUpcoming) {
+            this.elements.forecastUpcoming.textContent = '—';
+        }
+        if (this.elements.forecastTotal) {
+            this.elements.forecastTotal.textContent = '—';
+        }
+        if (this.elements.forecastProgress) {
+            this.elements.forecastProgress.style.setProperty('--forecast-progress', '0%');
+            this.elements.forecastProgress.style.background = '';
+        }
+        if (this.elements.forecastCaption) {
+            this.elements.forecastCaption.textContent = 'Forecast unavailable';
+        }
+        if (this.elements.forecastUpcomingWrapper) {
+            this.elements.forecastUpcomingWrapper.hidden = true;
+        }
+        if (this.elements.forecastUpcomingList) {
+            this.elements.forecastUpcomingList.innerHTML = '';
+        }
+        if (this.elements.forecastTimestamp) {
+            this.elements.forecastTimestamp.textContent = '';
+            this.elements.forecastTimestamp.dateTime = '';
+        }
+    };
+
+    CalendarController.prototype.renderForecastError = function renderForecastError(employeeName) {
+        this.renderForecastEmpty(employeeName ? `Unable to load forecast for ${employeeName}` : 'Unable to load forecast');
+    };
+
+    CalendarController.prototype.fetchForecast = async function fetchForecast(employeeId, options = {}) {
+        if (!Number.isFinite(employeeId)) {
+            return null;
+        }
+        if (!this.forecastCache) {
+            this.forecastCache = new Map();
+        }
+        const bypassCache = options && options.bypassCache === true;
+        if (!bypassCache && this.forecastCache.has(employeeId)) {
+            const cached = this.forecastCache.get(employeeId);
+            this.renderForecastData(cached);
+            return cached;
+        }
+
+        if (this.forecastAbortController && typeof this.forecastAbortController.abort === 'function') {
+            this.forecastAbortController.abort();
+        }
+        this.forecastAbortController = typeof AbortController === 'function' ? new AbortController() : null;
+        const signal = this.forecastAbortController ? this.forecastAbortController.signal : undefined;
+
+        try {
+            const response = await fetch(`/api/forecast/${employeeId}`, {
+                headers: { Accept: 'application/json' },
+                signal
+            });
+            if (!response.ok) {
+                throw new Error(`Forecast request failed (${response.status})`);
+            }
+            const payload = await response.json();
+            this.renderForecastData(payload);
+            return payload;
+        } catch (error) {
+            if (error && error.name === 'AbortError') {
+                return null;
+            }
+            throw error;
+        } finally {
+            if (this.forecastAbortController && this.forecastAbortController.signal === signal) {
+                this.forecastAbortController = null;
+            }
+        }
+    };
+
+    CalendarController.prototype.invalidateForecastForEmployee = function invalidateForecastForEmployee(employeeId) {
+        if (!this.forecastCache || !Number.isFinite(employeeId)) {
+            return;
+        }
+        this.forecastCache.delete(employeeId);
+    };
+
+    CalendarController.prototype.refreshForecastContext = function refreshForecastContext(options = {}) {
+        const employees = Array.isArray(this.state.filteredEmployees) ? this.state.filteredEmployees : [];
+        if (!employees.length) {
+            this.renderForecastEmpty('No employees available');
+            return;
+        }
+        const activeId = this.state.forecast.employeeId;
+        const availableIds = new Set(employees.map((employee) => employee.id));
+        if (Number.isFinite(activeId) && availableIds.has(activeId)) {
+            if (options.force) {
+                this.setForecastEmployee(activeId, { force: true, bypassCache: options.bypassCache });
+            }
+            return;
+        }
+        let fallbackId = null;
+        if (Number.isFinite(this.focusEmployeeId) && availableIds.has(this.focusEmployeeId)) {
+            fallbackId = this.focusEmployeeId;
+        } else if (employees.length) {
+            fallbackId = employees[0].id;
+        }
+        if (Number.isFinite(fallbackId)) {
+            this.setForecastEmployee(fallbackId, { force: true });
+        } else {
+            this.renderForecastEmpty('No employees available');
+        }
+    };
+
+    CalendarController.prototype.confirmAndDeleteTrip = function confirmAndDeleteTrip(tripId, trigger) {
+        if (!Number.isFinite(tripId)) {
+            return;
+        }
+        const trip = this.state.tripIndex.get(tripId);
+        const employee = trip && trip.employeeName ? trip.employeeName : 'this employee';
+        const country = trip && trip.country ? `${trip.country} trip` : 'trip';
+        const confirmed = typeof window !== 'undefined' && typeof window.confirm === 'function'
+            ? window.confirm(`Delete ${country} for ${employee}? This action cannot be undone.`)
+            : true;
+        if (!confirmed) {
+            if (trigger && typeof trigger.focus === 'function') {
+                trigger.focus();
+            }
+            return;
+        }
+        this.deleteTrip(tripId).catch((error) => {
+            console.error('[3.9-update-trip] Trip deletion failed', error);
+            this.showToast('Unable to delete trip ❌');
+        });
+    };
+
+    CalendarController.prototype.deleteTrip = async function deleteTrip(tripId) {
+        if (!Number.isFinite(tripId)) {
+            return;
+        }
+        const existingTrip = this.state.tripIndex.get(tripId);
+        const employeeId = existingTrip && Number.isFinite(existingTrip.employeeId) ? existingTrip.employeeId : null;
+        if (Number.isFinite(employeeId)) {
+            this.invalidateForecastForEmployee(employeeId);
+        }
+        const legacyDelete = async () => {
+            const fallback = await fetch(`/api/trips/${tripId}`, {
+                method: 'DELETE',
+                headers: { Accept: 'application/json' }
+            });
+            if (!fallback.ok) {
+                let fallbackMessage = `Delete failed (${fallback.status})`;
+                try {
+                    const fallbackPayload = await fallback.json();
+                    if (fallbackPayload && typeof fallbackPayload.error === 'string') {
+                        fallbackMessage = fallbackPayload.error;
+                    }
+                } catch (fallbackParseError) {
+                    // Ignore legacy parse failures.
+                }
+                throw new Error(fallbackMessage);
+            }
+        };
+
+        // # Phase 3.9 — prefer unified calendar sync API when present
+        // # Phase 3.9 — prefer unified calendar sync API when present
+        // # Phase 3.9 — prefer unified calendar sync API when present
+        // # Phase 3.9 — prefer unified calendar sync API when present
+        const syncApi = typeof window !== 'undefined' ? window.CalendarSync && window.CalendarSync.api : null;
+        if (syncApi && typeof syncApi.deleteTrip === 'function') {
+            await syncApi.deleteTrip({ trip_id: tripId });
+        } else {
+            let response;
+            try {
+                response = await fetch('/api/delete_trip', {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ trip_id: tripId })
+                });
+            } catch (networkError) {
+                throw networkError;
+            }
+            if (!response.ok) {
+                if (response.status === 404) {
+                    await legacyDelete();
+                } else {
+                    let message = `Delete failed (${response.status})`;
+                    try {
+                        const payload = await response.json();
+                        if (payload && typeof payload.error === 'string') {
+                            message = payload.error;
+                        }
+                    } catch (parseError) {
+                        // Ignore parse errors, retain fallback message.
+                    }
+                    throw new Error(message);
+                }
+            } else {
+                try {
+                    const payload = await response.json();
+                    if (payload && typeof payload.error === 'string') {
+                        throw new Error(payload.error);
+                    }
+                } catch (parseError) {
+                    // Ignore JSON parse errors when payload not present.
+                }
+            }
+        }
+
+        if (this.isDetailOpen && this.activeTripId === tripId) {
+            this.closeTripDetail({ skipFocus: true });
+        }
+
+        await this.loadData({ force: true, centerOnToday: false });
+        if (Number.isFinite(employeeId)) {
+            this.setForecastEmployee(employeeId, { force: true, bypassCache: true, reason: 'delete' });
+        } else {
+            this.refreshForecastContext({ force: true });
+        }
+        console.info('[3.9-update-trip] Trip %s deleted', tripId);
+        this.showToast('Trip deleted ✅');
+    };
+
+    CalendarController.prototype.duplicateTrip = async function duplicateTrip(tripId) {
+        if (!Number.isFinite(tripId)) {
+            throw new Error('Invalid trip identifier.');
+        }
+        let sourceTrip = this.state.tripIndex.get(tripId);
+        if (!sourceTrip) {
+            try {
+                const lookup = await fetch(`/api/trips/${tripId}`, { headers: { Accept: 'application/json' } });
+                if (lookup.ok) {
+                    const payload = await lookup.json();
+                    const normalised = normaliseTrip(payload);
+                    if (normalised) {
+                        sourceTrip = normalised;
+                        this.state.tripIndex.set(normalised.id, normalised);
+                    }
+                }
+            } catch (error) {
+                console.error('Trip lookup failed during duplication', error);
+            }
+        }
+        if (!sourceTrip) {
+            throw new Error('Trip not found for duplication.');
+        }
+
+        const payload = {
+            employee_id: sourceTrip.employeeId,
+            country: sourceTrip.country,
+            start_date: serialiseDate(sourceTrip.start),
+            end_date: serialiseDate(sourceTrip.end)
+        };
+        if (sourceTrip.jobRef) {
+            payload.job_ref = sourceTrip.jobRef;
+        }
+        if (sourceTrip.purpose) {
+            payload.purpose = sourceTrip.purpose;
+        }
+
+        const syncApi = typeof window !== 'undefined' ? window.CalendarSync && window.CalendarSync.api : null;
+        let result;
+        if (syncApi && typeof syncApi.duplicateTrip === 'function') {
+            result = await syncApi.duplicateTrip({ trip_id: tripId, overrides: payload });
+        } else {
+            let response;
+            try {
+                response = await fetch('/api/duplicate_trip', {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ trip_id: tripId, overrides: payload })
+                });
+            } catch (networkError) {
+                throw networkError;
+            }
+            if (!response.ok) {
+                if (response.status === 404) {
+                    response = await fetch('/api/trips', {
+                        method: 'POST',
+                        headers: {
+                            Accept: 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) {
+                        let legacyMessage = `Duplicate failed (${response.status})`;
+                        try {
+                            const legacyErrorPayload = await response.json();
+                            if (legacyErrorPayload && typeof legacyErrorPayload.error === 'string') {
+                                legacyMessage = legacyErrorPayload.error;
+                            }
+                        } catch (legacyParseError) {
+                            // Ignore parse failures for legacy flow.
+                        }
+                        throw new Error(legacyMessage);
+                    }
+                } else {
+                    let message = `Duplicate failed (${response.status})`;
+                    try {
+                        const errorPayload = await response.json();
+                        if (errorPayload && typeof errorPayload.error === 'string') {
+                            message = errorPayload.error;
+                        }
+                    } catch (parseError) {
+                        // Ignore parse errors and retain fallback message.
+                    }
+                    throw new Error(message);
+                }
+            }
+            result = await response.json();
+        }
+        const normalised = normaliseTrip(result);
+        if (!normalised) {
+            throw new Error('Unexpected duplicate payload.');
+        }
+        this.pendingCenterDate = normalised.start instanceof Date ? normalised.start : parseDate(normalised.start);
+        this.pendingFocusTripId = normalised.id;
+        this.invalidateForecastForEmployee(normalised.employeeId);
+        await this.loadData({
+            force: true,
+            centerOnToday: false,
+            centerOnDate: this.pendingCenterDate instanceof Date ? this.pendingCenterDate : null
+        });
+        if (Number.isFinite(normalised.employeeId)) {
+            this.setForecastEmployee(normalised.employeeId, { force: true, bypassCache: true, reason: 'duplicate' });
+        }
+        if (this.pendingCenterDate instanceof Date) {
+            this.centerOnDate(this.pendingCenterDate);
+            this.pendingCenterDate = null;
+        }
+        if (Number.isFinite(this.pendingFocusTripId)) {
+            this.openTripDetail(this.pendingFocusTripId);
+            this.pendingFocusTripId = null;
+        }
+        this.showToast('Trip duplicated ✅');
+        console.info('[3.9-update-trip] Trip %s duplicated as %s', tripId, normalised.id);
+    };
+
+    CalendarController.prototype.isFullscreen = function isFullscreen() {
+        if (typeof document === 'undefined') {
+            return false;
+        }
+        return Boolean(document.fullscreenElement);
+    };
+
+    CalendarController.prototype.getFullscreenTarget = function getFullscreenTarget() {
+        return document && document.documentElement ? document.documentElement : null;
+    };
+
+    CalendarController.prototype.enterFullscreen = async function enterFullscreen() {
+        const target = this.getFullscreenTarget();
+        if (!target || typeof target.requestFullscreen !== 'function') {
+            this.showToast('Fullscreen is not supported in this browser ❌');
+            return;
+        }
+        try {
+            await target.requestFullscreen({ navigationUI: 'hide' });
+        } catch (error) {
+            try {
+                await target.requestFullscreen();
+            } catch (fallbackError) {
+                console.error('Fullscreen request failed', fallbackError || error);
+                this.showToast('Unable to enter full screen ❌');
+            }
+        }
+    };
+
+    CalendarController.prototype.exitFullscreen = async function exitFullscreen() {
+        if (typeof document === 'undefined' || typeof document.exitFullscreen !== 'function') {
+            return;
+        }
+        try {
+            await document.exitFullscreen();
+        } catch (error) {
+            console.error('Fullscreen exit failed', error);
+        }
+    };
+
+    CalendarController.prototype.handleFullscreenToggle = function handleFullscreenToggle(event) {
+        if (event) {
+            event.preventDefault();
+        }
+        this.closeContextMenu();
+        if (this.isFullscreen()) {
+            this.exitFullscreen();
+        } else {
+            this.enterFullscreen();
+        }
+    };
+
+    CalendarController.prototype.handleFullscreenChange = function handleFullscreenChange() {
+        const active = this.isFullscreen();
+        if (this.root) {
+            this.root.classList.toggle('calendar-shell--fullscreen', active);
+        }
+        if (document && document.body) {
+            document.body.classList.toggle('calendar-body--fullscreen', active);
+        }
+        this.syncFullscreenButton();
+    };
+
+    CalendarController.prototype.toggleAlertsPanel = function toggleAlertsPanel() {
+        if (!this.elements.alertsPanel || !this.elements.alertsToggle) {
+            return;
+        }
+        const isCollapsed = this.elements.alertsPanel.classList.contains('collapsed');
+        if (isCollapsed) {
+            this.elements.alertsPanel.classList.remove('collapsed');
+            this.elements.alertsToggle.textContent = '×';
+            this.elements.alertsToggle.setAttribute('title', 'Hide alerts panel');
+            this.elements.alertsToggle.setAttribute('aria-label', 'Hide alerts panel');
+        } else {
+            this.elements.alertsPanel.classList.add('collapsed');
+            this.elements.alertsToggle.textContent = '☰';
+            this.elements.alertsToggle.setAttribute('title', 'Show alerts panel');
+            this.elements.alertsToggle.setAttribute('aria-label', 'Show alerts panel');
+        }
+    };
+
+    CalendarController.prototype.syncFullscreenButton = function syncFullscreenButton() {
+        if (!this.elements.fullscreenToggle) {
+            return;
+        }
+        const active = this.isFullscreen();
+        const label = active ? 'Exit full screen' : 'Enter full screen';
+        this.elements.fullscreenToggle.setAttribute('aria-pressed', active ? 'true' : 'false');
+        this.elements.fullscreenToggle.setAttribute('aria-label', label);
+        this.elements.fullscreenToggle.classList.toggle('is-active', active);
+        const labelNode = this.elements.fullscreenToggle.querySelector('.calendar-btn-label');
+        if (labelNode) {
+            labelNode.textContent = active ? 'Exit' : 'Full Screen';
         }
     };
 
@@ -732,6 +2125,11 @@
 
     CalendarController.prototype.handleGlobalKeydown = function handleGlobalKeydown(event) {
         if (event.key !== 'Escape') {
+            return;
+        }
+        if (this.contextMenuState && this.contextMenuState.isOpen) {
+            event.preventDefault();
+            this.closeContextMenu({ restoreFocus: true });
             return;
         }
         if (this.state.formMode) {
@@ -746,6 +2144,7 @@
     };
 
     CalendarController.prototype.handleWindowResize = function handleWindowResize() {
+        this.closeContextMenu();
         if (this.resizeFrame) {
             cancelAnimationFrame(this.resizeFrame);
         }
@@ -759,7 +2158,10 @@
         if (!this.elements.detailOverlay) {
             return;
         }
+        this.closeContextMenu();
         const targetElement = originElement || (this.elements.grid ? this.elements.grid.querySelector(`.calendar-trip[data-trip-id="${tripId}"]`) : null);
+        const detailDataRemaining = targetElement && targetElement.dataset ? targetElement.dataset.daysRemaining || '' : '';
+        const detailForecastRemaining = targetElement && targetElement.dataset ? targetElement.dataset.forecastRemaining || '' : '';
         let trip = this.state.tripIndex.get(tripId);
         let status = this.state.tripStatus.get(tripId);
         if (!trip && targetElement) {
@@ -840,6 +2242,31 @@
                 : '—';
             this.elements.detailUsage.textContent = daysUsedLabel === '—' ? statusLabel : `${daysUsedLabel} (${statusLabel})`;
         }
+        if (this.elements.detailRemaining) {
+            let remainingValue = null;
+            const attrValue = detailForecastRemaining || detailDataRemaining;
+            if (attrValue && attrValue.trim().length) {
+                const parsed = Number(attrValue);
+                remainingValue = Number.isFinite(parsed) ? parsed : attrValue;
+            } else if (Number.isFinite(statusData.daysUsed)) {
+                remainingValue = RISK_THRESHOLDS.limit - statusData.daysUsed;
+            }
+            if (typeof remainingValue === 'number') {
+                this.elements.detailRemaining.textContent = formatDayCountLabel(remainingValue);
+                const statusKeyForRemaining = remainingValue <= 0
+                    ? 'critical'
+                    : remainingValue < this.warningThreshold
+                        ? 'warning'
+                        : 'safe';
+                this.elements.detailRemaining.dataset.status = statusKeyForRemaining;
+            } else if (typeof remainingValue === 'string' && remainingValue.trim().length) {
+                this.elements.detailRemaining.textContent = remainingValue;
+                this.elements.detailRemaining.dataset.status = 'unknown';
+            } else {
+                this.elements.detailRemaining.textContent = '—';
+                this.elements.detailRemaining.dataset.status = 'unknown';
+            }
+        }
 
         const noteCopy = trip.purpose || trip.notes || '';
         if (this.elements.detailNotes && this.elements.detailPurpose) {
@@ -879,6 +2306,10 @@
         this.activeTripId = tripId;
         this.updateGlobalEditButtonState();
         this.tooltip.hide();
+
+        if (Number.isFinite(trip.employeeId)) {
+            this.setForecastEmployee(trip.employeeId, { reason: 'trip-detail' });
+        }
 
         if (typeof document !== 'undefined' && document.body) {
             document.body.dataset.calendarDetailOpen = 'true';
@@ -1036,6 +2467,373 @@
         select.disabled = employees.length === 0;
         if (employees.length > 0 && this.state.formMode) {
             this.clearFormFeedback();
+        }
+    };
+
+    CalendarController.prototype.rebuildAlertIndex = function rebuildAlertIndex() {
+        const alerts = Array.isArray(this.state.alerts) ? this.state.alerts : [];
+        const index = new Map();
+        for (const alert of alerts) {
+            if (!alert) {
+                continue;
+            }
+            const employeeId = Number.parseInt(alert.employee_id, 10);
+            if (Number.isNaN(employeeId)) {
+                continue;
+            }
+            index.set(employeeId, alert);
+        }
+        this.state.alertIndex = index;
+    };
+
+    CalendarController.prototype.setAlertFilter = function setAlertFilter(filter) {
+        const allowed = new Set(['all', 'warning', 'critical', 'yellow', 'orange', 'red']);
+        const resolved = typeof filter === 'string' ? filter.toLowerCase() : 'all';
+        const target = allowed.has(resolved) ? resolved : 'all';
+        if (this.state.alertFilter === target) {
+            this.updateAlertFilterUI();
+            this.renderAlertsPanel();
+            return;
+        }
+        this.state.alertFilter = target;
+        this.updateAlertFilterUI();
+        this.renderAlertsPanel();
+    };
+
+    CalendarController.prototype.updateAlertFilterUI = function updateAlertFilterUI() {
+        if (!this.elements.alertsFilters || !this.elements.alertsFilters.length) {
+            return;
+        }
+        const filter = this.state.alertFilter || 'all';
+        this.elements.alertsFilters.forEach((button) => {
+            const value = button.getAttribute('data-alert-filter') || 'all';
+            const isActive = value === filter;
+            button.classList.toggle('is-active', isActive);
+            button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+    };
+
+    CalendarController.prototype.renderAlertsPanel = function renderAlertsPanel() {
+        if (!this.elements.alertsList) {
+            return;
+        }
+        const alerts = Array.isArray(this.state.alerts) ? this.state.alerts : [];
+        const filter = this.state.alertFilter || 'all';
+        const normalizedAlerts = alerts.map((alert) => ({
+            ...alert,
+            risk_level: typeof alert.risk_level === 'string' ? alert.risk_level.toUpperCase() : ''
+        }));
+
+        const filtered = normalizedAlerts.filter((alert) => {
+            const level = alert.risk_level;
+            switch (filter) {
+                case 'critical':
+                case 'red':
+                    return level === 'RED';
+                case 'warning':
+                    return level === 'YELLOW' || level === 'ORANGE';
+                case 'orange':
+                    return level === 'ORANGE';
+                case 'yellow':
+                    return level === 'YELLOW';
+                case 'all':
+                case 'green':
+                default:
+                    return true;
+            }
+        });
+
+        const totals = {
+            all: normalizedAlerts.length,
+            warning: normalizedAlerts.filter((alert) => alert.risk_level === 'YELLOW' || alert.risk_level === 'ORANGE').length,
+            critical: normalizedAlerts.filter((alert) => alert.risk_level === 'RED').length,
+            yellow: normalizedAlerts.filter((alert) => alert.risk_level === 'YELLOW').length,
+            orange: normalizedAlerts.filter((alert) => alert.risk_level === 'ORANGE').length,
+            red: normalizedAlerts.filter((alert) => alert.risk_level === 'RED').length
+        };
+
+        if (this.elements.alertsFilters && this.elements.alertsFilters.length) {
+            this.elements.alertsFilters.forEach((button) => {
+                const value = button.getAttribute('data-alert-filter') || 'all';
+                const count =
+                    totals[value] !== undefined
+                        ? totals[value]
+                        : value === 'all'
+                            ? totals.all
+                            : 0;
+                button.dataset.count = String(count);
+                const badge = button.querySelector('.calendar-alerts-filter-count');
+                if (badge) {
+                    badge.textContent = String(count);
+                }
+            });
+        }
+
+        this.elements.alertsList.innerHTML = '';
+        if (this.elements.alertsEmpty) {
+            this.elements.alertsEmpty.hidden = filtered.length !== 0;
+        }
+
+        if (!filtered.length) {
+            this.updateAlertFilterUI();
+            return;
+        }
+
+        const fragment = document.createDocumentFragment();
+        for (const alert of filtered) {
+            const item = document.createElement('li');
+            const levelKey = alert.risk_level || 'YELLOW';
+            item.className = `calendar-alerts-item calendar-alerts-item--${levelKey.toLowerCase()}`;
+            item.setAttribute('data-alert-id', String(alert.id));
+            item.setAttribute('data-employee-id', String(alert.employee_id));
+            item.tabIndex = -1;
+
+            const content = document.createElement('div');
+            content.className = 'calendar-alerts-item-content';
+
+            const meta = document.createElement('div');
+            meta.className = 'calendar-alerts-item-meta';
+
+            const pill = document.createElement('span');
+            pill.className = `calendar-alerts-item-pill calendar-alerts-item-pill--${levelKey.toLowerCase()}`;
+            const riskLabel = levelKey === 'RED' ? 'Critical' : levelKey === 'ORANGE' ? 'High warning' : 'Warning';
+            pill.textContent = riskLabel;
+            meta.appendChild(pill);
+
+            if (alert.created_at) {
+                const timestamp = formatAlertTimestamp(alert.created_at);
+                if (timestamp.label) {
+                    const time = document.createElement('time');
+                    time.className = 'calendar-alerts-item-time';
+                    if (timestamp.iso) {
+                        time.setAttribute('datetime', timestamp.iso);
+                    }
+                    time.textContent = timestamp.label;
+                    meta.appendChild(time);
+                }
+            }
+
+            content.appendChild(meta);
+
+            const title = document.createElement('h3');
+            title.className = 'calendar-alerts-item-title';
+            title.textContent = sanitizeText(alert.employee_name || 'Employee');
+            content.appendChild(title);
+
+            const message = document.createElement('p');
+            message.className = 'calendar-alerts-item-message';
+            message.textContent = sanitizeText(alert.message || '');
+            content.appendChild(message);
+
+            const alertDaysUsed = Number(alert.days_used);
+            if (Number.isFinite(alertDaysUsed)) {
+                const usage = document.createElement('p');
+                usage.className = 'calendar-alerts-item-usage';
+                const daysRemaining = Number.isFinite(Number(alert.days_remaining))
+                    ? Number(alert.days_remaining)
+                    : (RISK_THRESHOLDS.limit - alertDaysUsed);
+                const remainingLabel = daysRemaining >= 0
+                    ? `${daysRemaining} days remaining`
+                    : `${Math.abs(daysRemaining)} days over limit`;
+                usage.textContent = `${alertDaysUsed}/${RISK_THRESHOLDS.limit} days used · ${remainingLabel}`;
+                content.appendChild(usage);
+            }
+
+            item.appendChild(content);
+
+            const actions = document.createElement('div');
+            actions.className = 'calendar-alerts-item-actions';
+
+            const resolveBtn = document.createElement('button');
+            resolveBtn.type = 'button';
+            resolveBtn.className = 'calendar-alerts-resolve';
+            resolveBtn.setAttribute('data-action', 'resolve-alert');
+            resolveBtn.setAttribute('data-alert-id', String(alert.id));
+            resolveBtn.setAttribute('data-employee-id', String(alert.employee_id));
+            resolveBtn.textContent = 'Resolve';
+            actions.appendChild(resolveBtn);
+
+            item.appendChild(actions);
+            fragment.appendChild(item);
+        }
+
+        this.elements.alertsList.appendChild(fragment);
+        this.updateAlertFilterUI();
+    };
+
+    CalendarController.prototype.createAlertIcon = function createAlertIcon(alert) {
+        if (!alert) {
+            return null;
+        }
+        const level = typeof alert.risk_level === 'string' ? alert.risk_level.toUpperCase() : null;
+        if (!level) {
+            return null;
+        }
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `calendar-employee-alert calendar-employee-alert--${level.toLowerCase()}`;
+        button.setAttribute('data-alert-level', level);
+        button.setAttribute('data-employee-id', String(alert.employee_id));
+        button.innerHTML = '<span aria-hidden="true">⚠️</span>';
+
+        const statusLabel = level === 'RED' ? 'Critical risk' : level === 'ORANGE' ? 'High risk' : 'Warning';
+        const employeeName = sanitizeText(alert.employee_name || '');
+        const safeMessage = sanitizeText(alert.message || '');
+        const ariaLabelParts = [
+            statusLabel,
+            employeeName ? `for ${employeeName}` : '',
+            safeMessage
+        ].filter(Boolean);
+        button.setAttribute('aria-label', ariaLabelParts.join('. '));
+
+        const accent = ALERT_COLORS[level] || ALERT_COLORS.YELLOW;
+        const showTooltip = (event) => {
+            if (!this.tooltip) {
+                return;
+            }
+            const tooltipContent = `
+                <div class="calendar-alert-tooltip-heading">${escapeHtml(statusLabel)}</div>
+                <div class="calendar-alert-tooltip-body">${escapeHtml(safeMessage)}</div>
+            `;
+            this.tooltip.show(tooltipContent, event.pageX, event.pageY, { accent });
+        };
+        const moveTooltip = (event) => {
+            if (!this.tooltip) {
+                return;
+            }
+            this.tooltip.move(event.pageX, event.pageY);
+        };
+        const hideTooltip = () => {
+            if (this.tooltip) {
+                this.tooltip.hide();
+            }
+        };
+
+        button.addEventListener('mouseenter', showTooltip);
+        button.addEventListener('focus', showTooltip);
+        button.addEventListener('mousemove', moveTooltip);
+        button.addEventListener('mouseleave', hideTooltip);
+        button.addEventListener('blur', hideTooltip);
+        button.addEventListener('click', (event) => {
+            event.preventDefault();
+            this.focusAlertForEmployee(Number.parseInt(alert.employee_id, 10));
+        });
+
+        requestAnimationFrame(() => {
+            button.classList.add('calendar-employee-alert--visible');
+        });
+
+        return button;
+    };
+
+    CalendarController.prototype.highlightAlertForEmployee = function highlightAlertForEmployee(employeeId) {
+        if (!Number.isFinite(employeeId) || !this.elements.alertsList) {
+            return;
+        }
+        const node = this.elements.alertsList.querySelector(`[data-employee-id="${employeeId}"]`);
+        if (!node) {
+            return;
+        }
+        node.classList.add('calendar-alerts-item--pulse');
+        if (typeof node.focus === 'function') {
+            node.focus({ preventScroll: true });
+        }
+        if (typeof node.scrollIntoView === 'function') {
+            node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        setTimeout(() => {
+            node.classList.remove('calendar-alerts-item--pulse');
+        }, 700);
+    };
+
+    CalendarController.prototype.focusAlertForEmployee = function focusAlertForEmployee(employeeId) {
+        if (!Number.isFinite(employeeId)) {
+            return;
+        }
+        const alert = this.state.alertIndex instanceof Map ? this.state.alertIndex.get(employeeId) : null;
+        let targetFilter = this.state.alertFilter || 'all';
+        if (alert) {
+            const level = typeof alert.risk_level === 'string' ? alert.risk_level.toUpperCase() : '';
+            targetFilter = level === 'RED' ? 'critical' : 'warning';
+        } else {
+            targetFilter = 'all';
+        }
+        const previousFilter = this.state.alertFilter;
+        this.state.alertFilter = targetFilter;
+        if (previousFilter !== targetFilter) {
+            this.updateAlertFilterUI();
+            this.renderAlertsPanel();
+        } else {
+            this.renderAlertsPanel();
+        }
+        setTimeout(() => this.highlightAlertForEmployee(employeeId), 120);
+    };
+
+    CalendarController.prototype.removeEmployeeAlertIndicator = function removeEmployeeAlertIndicator(employeeId) {
+        if (!Number.isFinite(employeeId) || !this.elements.employeeList) {
+            return;
+        }
+        const item = this.elements.employeeList.querySelector(`.calendar-employee-item[data-employee-id="${employeeId}"]`);
+        if (!item) {
+            return;
+        }
+        item.classList.remove('calendar-employee-item--alert');
+        const badge = item.querySelector('.calendar-employee-alert');
+        if (badge) {
+            badge.classList.remove('calendar-employee-alert--visible');
+            setTimeout(() => {
+                if (badge.parentNode) {
+                    badge.parentNode.removeChild(badge);
+                }
+            }, 180);
+        }
+    };
+
+    CalendarController.prototype.resolveAlert = async function resolveAlert(alertId, employeeId, trigger) {
+        if (!Number.isFinite(alertId)) {
+            return;
+        }
+        if (this.state.resolvingAlertId === alertId) {
+            return;
+        }
+        this.state.resolvingAlertId = alertId;
+        if (trigger) {
+            trigger.disabled = true;
+            trigger.setAttribute('aria-busy', 'true');
+        }
+        try {
+            const response = await fetch(`/api/alerts/${alertId}/resolve`, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json'
+                }
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            this.state.alerts = (this.state.alerts || []).filter((alert) => alert.id !== alertId);
+            this.rebuildAlertIndex();
+            if (this.dataCache && typeof this.dataCache === 'object') {
+                this.dataCache.alerts = Array.isArray(this.state.alerts) ? this.state.alerts.slice() : [];
+            }
+            if (trigger) {
+                trigger.removeAttribute('aria-busy');
+                trigger.disabled = false;
+            }
+            this.renderAlertsPanel();
+            if (Number.isFinite(employeeId)) {
+                this.removeEmployeeAlertIndicator(employeeId);
+            }
+            this.showToast('Alert resolved ✅');
+        } catch (error) {
+            console.error('Failed to resolve alert', error);
+            this.showToast('Unable to resolve alert ❌');
+            if (trigger) {
+                trigger.disabled = false;
+                trigger.removeAttribute('aria-busy');
+            }
+        } finally {
+            this.state.resolvingAlertId = null;
         }
     };
 
@@ -1240,18 +3038,49 @@
         this.clearFormFeedback();
 
         try {
-            let response;
+            let result;
             if (this.state.formMode === 'edit' && Number.isFinite(this.state.editingTripId)) {
-                response = await fetch(`/api/trips/${this.state.editingTripId}`, {
-                    method: 'PATCH',
-                    headers: {
-                        Accept: 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
+                // # Phase 3.9 — prefer unified calendar sync API when present
+                const syncApi = typeof window !== 'undefined' ? window.CalendarSync && window.CalendarSync.api : null;
+                if (syncApi && typeof syncApi.updateTrip === 'function') {
+                    result = await syncApi.updateTrip({ ...payload, trip_id: this.state.editingTripId });
+                } else {
+                    let response = await fetch('/api/update_trip', {
+                        method: 'POST',
+                        headers: {
+                            Accept: 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ ...payload, trip_id: this.state.editingTripId })
+                    });
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            response = await fetch(`/api/trips/${this.state.editingTripId}`, {
+                                method: 'PATCH',
+                                headers: {
+                                    Accept: 'application/json',
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(payload)
+                            });
+                        }
+                        if (!response.ok) {
+                            let message = `Request failed (${response.status})`;
+                            try {
+                                const errorPayload = await response.json();
+                                if (errorPayload && typeof errorPayload.error === 'string') {
+                                    message = errorPayload.error;
+                                }
+                            } catch (readError) {
+                                // Ignore JSON parse errors and keep fallback message.
+                            }
+                            throw new Error(message);
+                        }
+                    }
+                    result = await response.json();
+                }
             } else {
-                response = await fetch('/api/trips', {
+                const response = await fetch('/api/trips', {
                     method: 'POST',
                     headers: {
                         Accept: 'application/json',
@@ -1259,22 +3088,21 @@
                     },
                     body: JSON.stringify(payload)
                 });
-            }
-
-            if (!response.ok) {
-                let message = `Request failed (${response.status})`;
-                try {
-                    const errorPayload = await response.json();
-                    if (errorPayload && typeof errorPayload.error === 'string') {
-                        message = errorPayload.error;
+                if (!response.ok) {
+                    let message = `Request failed (${response.status})`;
+                    try {
+                        const errorPayload = await response.json();
+                        if (errorPayload && typeof errorPayload.error === 'string') {
+                            message = errorPayload.error;
+                        }
+                    } catch (readError) {
+                        // Ignore JSON parse errors and keep fallback message.
                     }
-                } catch (readError) {
-                    // Ignore JSON parse errors and keep fallback message.
+                    throw new Error(message);
                 }
-                throw new Error(message);
+                result = await response.json();
             }
 
-            const result = await response.json();
             const normalised = normaliseTrip(result);
             if (!normalised) {
                 throw new Error('Unexpected response payload from server.');
@@ -1284,6 +3112,7 @@
             this.pendingCenterDate = normalised.start instanceof Date ? normalised.start : parseDate(normalised.start);
             this.pendingFocusTripId = normalised.id;
             const successMessage = this.state.formMode === 'edit' ? 'Trip updated successfully ✅' : 'Trip added successfully ✅';
+            this.invalidateForecastForEmployee(normalised.employeeId);
 
             await this.loadData({
                 force: true,
@@ -1291,8 +3120,13 @@
                 centerOnDate: this.pendingCenterDate instanceof Date ? this.pendingCenterDate : null
             });
 
+            if (Number.isFinite(normalised.employeeId)) {
+                this.setForecastEmployee(normalised.employeeId, { force: true, bypassCache: true, reason: 'form-submit' });
+            }
+
             this.closeForm();
             this.showToast(successMessage);
+            console.info('[3.9-update-trip] Trip %s saved via form (%s)', normalised.id, this.state.formMode);
 
             if (this.pendingCenterDate instanceof Date) {
                 this.centerOnDate(this.pendingCenterDate);
@@ -1304,7 +3138,7 @@
                 this.pendingFocusTripId = null;
             }
         } catch (error) {
-            console.error('Trip save failed', error);
+            console.error('[3.9-update-trip] Trip save failed', error);
             this.showFormFeedback(error.message || 'Unable to save trip.');
             return;
         } finally {
@@ -1400,6 +3234,8 @@
         const filtered = filterEmployees(this.state.employees, this.state.searchTerm);
         this.state.filteredEmployees = filtered;
         this.renderRows();
+        this.syncTimelineView({ reason: 'filter' });
+        this.refreshForecastContext();
     };
 
     // Fetches trip data with a guard timeout so the UI thread never waits indefinitely.
@@ -1459,25 +3295,25 @@
 
     CalendarController.prototype.loadData = async function loadData(options = {}) {
         const { force = false, centerOnToday = true, centerOnDate = null } = options;
-        console.log('Loading calendar data...', { force, centerOnToday });
+        debugLog('Loading calendar data...', { force, centerOnToday });
         this.setError(false);
         let payload = null;
         try {
             if (this.dataCache && !force) {
-                console.log('Using cached data');
+                debugLog('Using cached data');
                 payload = this.dataCache;
             } else {
-                console.log('Fetching fresh data...');
+                debugLog('Fetching fresh data...');
                 this.setLoading(true);
                 payload = await this.fetchTrips({ force });
-                console.log('Data fetched:', payload ? Object.keys(payload) : 'null');
+                debugLog('Data fetched', payload ? Object.keys(payload) : 'null');
             }
             if (!payload || typeof payload !== 'object') {
                 throw new Error('Invalid calendar payload.');
             }
-            console.log('Hydrating from payload...');
+            debugLog('Hydrating from payload...');
             this.hydrateFromPayload(payload, { centerOnToday, centerOnDate });
-            console.log('Calendar data loaded successfully');
+            debugLog('Calendar data loaded successfully');
             return payload;
         } catch (error) {
             console.error('Failed to load calendar data', error);
@@ -1489,15 +3325,15 @@
     };
 
     CalendarController.prototype.hydrateFromPayload = function hydrateFromPayload(payload, options = {}) {
-        console.log('Hydrating payload...', payload);
+        debugLog('Hydrating payload...', payload);
         const rawTrips = Array.isArray(payload.trips) ? payload.trips : [];
-        console.log('Raw trips count:', rawTrips.length);
+        debugLog('Raw trips count:', rawTrips.length);
 
         const normalisedTrips = rawTrips
             .map(normaliseTrip)
             .filter(Boolean);
 
-        console.log('Normalised trips:', normalisedTrips.length);
+        debugLog('Normalised trips:', normalisedTrips.length);
 
         const tripGroups = groupTripsByEmployee(normalisedTrips);
         const tripStatus = new Map();
@@ -1507,7 +3343,7 @@
             tripIndex.set(trip.id, trip);
         }
 
-        console.log('Building trip status index...');
+        debugLog('Building trip status index...');
         for (const trips of tripGroups.values()) {
             const statusIndex = buildTripStatusIndex(trips, this.warningThreshold, this.criticalThreshold);
             for (const [tripId, status] of statusIndex.entries()) {
@@ -1516,13 +3352,7 @@
         }
 
         let employees = deriveEmployees(payload.employees || [], normalisedTrips);
-        console.log('Derived employees:', employees.length);
-        // Safety cap to prevent UI lockups on large datasets during triage
-        const EMPLOYEE_RENDER_CAP = 20;
-        if (employees.length > EMPLOYEE_RENDER_CAP) {
-            employees = employees.slice(0, EMPLOYEE_RENDER_CAP);
-            console.warn(`Capped employees to first ${EMPLOYEE_RENDER_CAP} for stability`);
-        }
+        debugLog('Derived employees:', employees.length);
 
         this.state.trips = normalisedTrips;
         this.state.tripGroups = tripGroups;
@@ -1530,8 +3360,14 @@
         this.state.tripIndex = tripIndex;
         this.state.employees = employees;
         this.state.filteredEmployees = employees.slice();
+        this.state.alerts = Array.isArray(payload.alerts) ? payload.alerts : [];
+        this.rebuildAlertIndex();
+
         this.activeTripId = null;
         this.updateGlobalEditButtonState();
+        if (this.riskCache) {
+            this.riskCache.clear();
+        }
         if (options.centerOnToday === false) {
             this.shouldCenterOnToday = false;
             if (options.centerOnDate instanceof Date) {
@@ -1540,11 +3376,14 @@
         } else {
             this.shouldCenterOnToday = true;
         }
-        console.log('About to render calendar...');
+        debugLog('About to render calendar...');
         this.renderCalendar();
         this.updateSearchUI();
         this.populateEmployeeSelect();
-        console.log('Hydration complete');
+        this.renderAlertsPanel();
+        this.syncTimelineView({ reason: 'hydrate' });
+        this.refreshForecastContext({ force: true });
+        debugLog('Hydration complete');
     };
 
     CalendarController.prototype.setLoading = function setLoading(isLoading) {
@@ -1574,26 +3413,27 @@
     };
 
     CalendarController.prototype.renderCalendar = function renderCalendar() {
-        console.log('renderCalendar() called');
+        debugLog('renderCalendar() called');
         if (!this.elements.rangeLabel) {
             console.warn('Missing rangeLabel element');
             return;
         }
-        console.log('Setting range label...');
+        debugLog('Setting range label...');
         this.elements.rangeLabel.textContent = formatRangeLabel(this.range);
-        console.log('Calling updateTimelineHeader...');
+        debugLog('Calling updateTimelineHeader...');
         this.updateTimelineHeader();
-        console.log('Calling renderRows...');
-    try {
-        this.renderRows();
-        console.log('renderCalendar() complete');
-    } catch (error) {
-        console.error('renderRows failed', error);
-    }
+        debugLog('Calling renderRows...');
+        try {
+            this.renderRows();
+            this.syncTimelineView({ reason: 'render' });
+            debugLog('renderCalendar() complete');
+        } catch (error) {
+            console.error('renderRows failed', error);
+        }
     };
 
     CalendarController.prototype.updateTimelineHeader = function updateTimelineHeader() {
-        console.log('Updating timeline header...');
+        debugLog('Updating timeline header...');
         const days = calculateRangeDays(this.range);
         // Cache the current day breakdown so row rendering can reuse it without recomputing.
         this.rangeDays = days;
@@ -1638,7 +3478,7 @@
             this.elements.monthRow.appendChild(monthFragment);
             this.elements.dayRow.appendChild(dayFragment);
             this.timelineHeaderFrame = null;
-            console.log('Timeline header updated');
+            debugLog('Timeline header updated');
             this.updateTodayMarker();
         };
 
@@ -1648,7 +3488,7 @@
             }
 
             const chunkEnd = Math.min(startIndex + HEADER_DAY_CHUNK, days.length);
-            console.log(`Rendering timeline chunk ${startIndex} -> ${chunkEnd} (of ${days.length})`);
+            debugLog('Rendering timeline chunk', startIndex, '→', chunkEnd, 'of', days.length);
             for (let index = startIndex; index < chunkEnd; index += 1) {
                 const day = days[index];
 
@@ -1684,7 +3524,7 @@
             if (chunkEnd < days.length) {
                 this.timelineHeaderFrame = requestAnimationFrame(() => renderChunk(chunkEnd));
             } else {
-                console.log('Timeline header chunks complete, finalizing.');
+                debugLog('Timeline header chunks complete, finalizing.');
                 if (monthCursor) {
                     const monthDays = days.length - monthStartIndex;
                     const monthCell = document.createElement('div');
@@ -1728,19 +3568,17 @@
         }
 
         if (this.state.isRendering) {
-            console.log('Already rendering, skipping');
+            debugLog('Already rendering, skipping');
             return;
         }
-        console.log('Starting row rendering...', this.state.filteredEmployees.length, 'employees');
+        debugLog('Starting row rendering...', this.state.filteredEmployees.length, 'employees');
         this.state.isRendering = true;
 
         this.elements.employeeList.innerHTML = '';
         this.elements.grid.innerHTML = '';
 
         const employees = this.state.filteredEmployees;
-        // Temporary guard while we validate full dataset performance
-        const EMPLOYEE_RENDER_CAP = 20;
-        const totalToRender = Math.min(EMPLOYEE_RENDER_CAP, employees.length);
+        const totalToRender = employees.length;
         if (!employees.length) {
             this.state.isRendering = false;
             this.setEmptyState(true);
@@ -1793,6 +3631,8 @@
             }
 
             const batchEnd = Math.min(startIndex + BATCH_RENDER_SIZE, totalToRender);
+            const employeeFragment = document.createDocumentFragment();
+            const gridFragment = document.createDocumentFragment();
             let nextIndex = startIndex;
 
             while (nextIndex < batchEnd && !renderBudget.exhausted) {
@@ -1804,7 +3644,7 @@
                 const employee = employees[nextIndex];
                 const rowResult = this.buildRow(employee, width, renderBudget, rangeDays);
                 if (rowResult) {
-                    console.log('Rendered employee row', {
+                    debugLog('Rendered employee row', {
                         employee: employee.name,
                         trips: (this.state.tripGroups.get(employee.id) || []).length,
                         visibleTrips: rowResult.hasVisibleTrips,
@@ -1824,8 +3664,8 @@
                     renderBudget.exhausted = true;
                     break;
                 }
-                this.elements.employeeList.appendChild(rowResult.employeeNode);
-                this.elements.grid.appendChild(rowResult.timelineNode);
+                employeeFragment.appendChild(rowResult.employeeNode);
+                gridFragment.appendChild(rowResult.timelineNode);
 
                 if (rowResult.truncated) {
                     renderBudget.exhausted = true;
@@ -1837,6 +3677,13 @@
                 }
             }
 
+            if (employeeFragment.childNodes.length) {
+                this.elements.employeeList.appendChild(employeeFragment);
+            }
+            if (gridFragment.childNodes.length) {
+                this.elements.grid.appendChild(gridFragment);
+            }
+
             if (renderBudget.exhausted || nextIndex >= totalToRender) {
                 finalize(renderBudget.exhausted);
             } else {
@@ -1845,6 +3692,178 @@
         };
 
         processBatch(0);
+    };
+
+    CalendarController.prototype.syncTimelineView = function syncTimelineView(options = {}) {
+        if (typeof globalThis.TimelineView === 'undefined' || typeof globalThis.TimelineView.sync !== 'function') {
+            return;
+        }
+        const dataset = this.buildTimelineDataset();
+        globalThis.TimelineView.sync(dataset, options);
+    };
+
+    CalendarController.prototype.buildTimelineDataset = function buildTimelineDataset() {
+        if (!this.range) {
+            return null;
+        }
+        const rangeDays = Array.isArray(this.rangeDays) && this.rangeDays.length
+            ? this.rangeDays
+            : calculateRangeDays(this.range);
+        const rangeStartDate = this.range.start instanceof Date ? this.range.start : parseDate(this.range.start);
+        const rangeEndDate = this.range.end instanceof Date ? this.range.end : parseDate(this.range.end);
+        const startIso = rangeStartDate instanceof Date ? serialiseDate(rangeStartDate) : '';
+        const endIso = rangeEndDate instanceof Date ? serialiseDate(rangeEndDate) : '';
+        const todayIso = this.today instanceof Date ? serialiseDate(this.today) : '';
+
+        const dayDescriptors = rangeDays.map((day) => ({
+            iso: serialiseDate(day.date),
+            day: day.day,
+            isWeekend: day.isWeekend,
+            isMonthStart: day.isMonthStart,
+            isWeekStart: day.isWeekStart,
+            monthLabel: day.date.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+        }));
+
+        const employees = Array.isArray(this.state.filteredEmployees) ? this.state.filteredEmployees : [];
+        const employeePayload = employees.map((employee) => {
+            const trips = this.state.tripGroups.get(employee.id) || [];
+            const timelineTrips = [];
+            for (const trip of trips) {
+                if (trip.end < this.range.start || trip.start > this.range.end) {
+                    continue;
+                }
+                const placement = calculateTripPlacement(this.range, trip);
+                if (!placement || !Number.isFinite(placement.durationDays) || placement.durationDays <= 0) {
+                    continue;
+                }
+                const status = this.state.tripStatus.get(trip.id) || { status: 'safe', daysUsed: trip.travelDays };
+                const statusKey = typeof status.status === 'string' ? status.status : 'safe';
+                const riskSnapshot = this.getRiskSnapshot(employee.id, placement.clampedEnd || trip.end);
+                const color = riskSnapshot.color || COLORS[statusKey] || COLORS.safe;
+                timelineTrips.push({
+                    id: trip.id,
+                    employeeId: employee.id,
+                    country: trip.country || 'Trip',
+                    startIso: serialiseDate(trip.start),
+                    endIso: serialiseDate(trip.end),
+                    offsetDays: placement.offsetDays,
+                    durationDays: placement.durationDays,
+                    status: statusKey,
+                    statusLabel: normaliseStatusLabel(statusKey),
+                    riskLevel: riskSnapshot.level,
+                    riskColor: riskSnapshot.color,
+                    color,
+                    daysUsed: status.daysUsed,
+                    tooltip: `${trip.country || 'Trip'} · ${formatDateRangeDisplay(trip.start, trip.end)}`
+                });
+            }
+            const todayRisk = this.getRiskSnapshot(employee.id, this.today);
+            const timelineRiskLevel = todayRisk.level === 'caution'
+                ? 'warning'
+                : todayRisk.level === 'critical'
+                    ? 'critical'
+                    : 'safe';
+            return {
+                id: employee.id,
+                name: employee.name,
+                active: employee.active !== false,
+                riskLevel: timelineRiskLevel,
+                riskColor: todayRisk.color,
+                trips: timelineTrips
+            };
+        });
+
+        return {
+            range: {
+                start: startIso,
+                end: endIso,
+                days: dayDescriptors
+            },
+            today: todayIso,
+            employees: employeePayload,
+            dayWidth: DAY_WIDTH
+        };
+    };
+
+    CalendarController.prototype.getRiskSnapshot = function getRiskSnapshot(employeeId, date) {
+        if (!Number.isFinite(employeeId)) {
+            return { level: 'unknown', color: RISK_COLORS.safe, daysUsed: 0 };
+        }
+        const targetDate = date instanceof Date ? date : parseDate(date);
+        if (!(targetDate instanceof Date) || Number.isNaN(targetDate.getTime())) {
+            return { level: 'unknown', color: RISK_COLORS.safe, daysUsed: 0 };
+        }
+        if (!this.riskCache) {
+            this.riskCache = new Map();
+        }
+        const iso = serialiseDate(targetDate);
+        const cacheKey = `${employeeId}:${iso}`;
+        if (this.riskCache.has(cacheKey)) {
+            return this.riskCache.get(cacheKey);
+        }
+        const trips = this.state.tripGroups.get(employeeId) || [];
+        const rolling = calculateRollingDaysUsed(trips, targetDate, RISK_THRESHOLDS.limit);
+        const { level, color } = resolveRiskLevel(rolling);
+        const snapshot = { level, color, daysUsed: rolling };
+        this.riskCache.set(cacheKey, snapshot);
+        return snapshot;
+    };
+
+    CalendarController.prototype.calculateRiskColor = function calculateRiskColor(employeeId, date) {
+        const snapshot = this.getRiskSnapshot(employeeId, date);
+        return snapshot.color;
+    };
+
+    CalendarController.prototype.invalidateRiskCacheForEmployee = function invalidateRiskCacheForEmployee(employeeId) {
+        if (!this.riskCache || !Number.isFinite(employeeId)) {
+            return;
+        }
+        const prefix = `${employeeId}:`;
+        for (const key of Array.from(this.riskCache.keys())) {
+            if (key.startsWith(prefix)) {
+                this.riskCache.delete(key);
+            }
+        }
+    };
+
+    // Cache a template of day cells so each row can clone it without rebuilding all nodes.
+    CalendarController.prototype.ensureCellTemplate = function ensureCellTemplate(rangeDays) {
+        if (!Array.isArray(rangeDays) || !rangeDays.length) {
+            this.cellTemplate = null;
+            this.cellTemplateKey = '';
+            return null;
+        }
+
+        const first = serialiseDate(rangeDays[0].date);
+        const last = serialiseDate(rangeDays[rangeDays.length - 1].date);
+        const key = `${first}:${last}:${rangeDays.length}`;
+
+        if (this.cellTemplate && this.cellTemplateKey === key) {
+            return this.cellTemplate;
+        }
+
+        const template = document.createElement('template');
+        let markup = '';
+
+        for (let index = 0; index < rangeDays.length; index += 1) {
+            const day = rangeDays[index];
+            const classes = ['calendar-cell'];
+            if (day.isWeekend) {
+                classes.push('calendar-cell--weekend');
+            }
+            if (day.isMonthStart) {
+                classes.push('calendar-cell--month-start');
+            }
+            if (day.isWeekStart) {
+                classes.push('calendar-cell--week-start');
+            }
+            markup += `<div class="${classes.join(' ')}" data-calendar-date="${serialiseDate(day.date)}" data-day-index="${index}" role="presentation"></div>`;
+        }
+
+        template.innerHTML = markup;
+        this.cellTemplate = template;
+        this.cellTemplateKey = key;
+        return this.cellTemplate;
     };
 
     CalendarController.prototype.buildRow = function buildRow(employee, width, budget, rangeDays) {
@@ -1863,6 +3882,16 @@
             return null;
         }
         employeeItem.appendChild(profileLink);
+
+        const alertIndex = this.state.alertIndex instanceof Map ? this.state.alertIndex : null;
+        const activeAlert = alertIndex && alertIndex.get(employee.id);
+        if (activeAlert) {
+            const alertBadge = this.createAlertIcon(activeAlert);
+            if (alertBadge) {
+                employeeItem.classList.add('calendar-employee-item--alert');
+                employeeItem.appendChild(alertBadge);
+            }
+        }
 
         if (!employee.active) {
             employeeItem.classList.add('calendar-employee-item--inactive');
@@ -1887,6 +3916,7 @@
         cellLayer.className = 'calendar-cell-layer';
         cellLayer.style.width = `${width}px`;
         cellLayer.style.height = `${ROW_HEIGHT}px`;
+        cellLayer.dataset.employeeId = String(employee.id);
         if (!consumeDomBudget(budget)) {
             return null;
         }
@@ -1894,30 +3924,31 @@
 
         const days = Array.isArray(rangeDays) && rangeDays.length ? rangeDays : calculateRangeDays(this.range);
         if (days.length) {
-            if (!consumeDomBudget(budget, days.length)) {
-                return null;
+            const template = this.ensureCellTemplate(days);
+            if (template) {
+                const fragment = template.content.cloneNode(true);
+                cellLayer.appendChild(fragment);
+                const cells = cellLayer.querySelectorAll('.calendar-cell');
+                cells.forEach((cell, index) => {
+                    const day = days[index];
+                    const risk = this.getRiskSnapshot(employee.id, day.date);
+                    cell.dataset.employeeId = String(employee.id);
+                    cell.dataset.calendarDate = serialiseDate(day.date);
+                    cell.dataset.dayIndex = String(index);
+                    cell.dataset.employeeName = employee.name;
+                    cell.dataset.riskDaysUsed = String(risk.daysUsed);
+                    cell.dataset.riskLevel = risk.level;
+                    cell.dataset.riskColor = risk.color;
+                    cell.style.setProperty('--calendar-cell-risk', risk.color);
+                    const tintAlpha = risk.level === 'critical' ? 0.32 : risk.level === 'caution' ? 0.22 : 0.12;
+                    const tint = hexToRgba(risk.color, tintAlpha);
+                    cell.style.background = `linear-gradient(180deg, ${tint} 0%, rgba(255, 255, 255, 0) 100%)`;
+                    cell.classList.add('calendar-cell--risk');
+                    if (!cell.hasAttribute('aria-label')) {
+                        cell.setAttribute('aria-label', `Risk usage ${risk.daysUsed} of ${RISK_THRESHOLDS.limit} days`);
+                    }
+                });
             }
-            const cellFragment = document.createDocumentFragment();
-            for (let index = 0; index < days.length; index += 1) {
-                const day = days[index];
-                const cell = document.createElement('div');
-                cell.className = 'calendar-cell';
-                cell.style.width = `${DAY_WIDTH}px`;
-                cell.style.flex = `0 0 ${DAY_WIDTH}px`;
-                cell.dataset.calendarDate = serialiseDate(day.date);
-                cell.dataset.dayIndex = String(index);
-                cell.dataset.employeeId = String(employee.id);
-                cell.setAttribute('role', 'presentation');
-                cell.id = `calendar-cell-${employee.id}-${index}`;
-                if (day.isWeekend) {
-                    cell.classList.add('calendar-cell--weekend');
-                }
-                if (day.isMonthStart) {
-                    cell.classList.add('calendar-cell--month-start');
-                }
-                cellFragment.appendChild(cell);
-            }
-            cellLayer.appendChild(cellFragment);
         }
 
         const tripLayer = document.createElement('div');
@@ -1928,9 +3959,14 @@
             return null;
         }
         timelineRow.appendChild(tripLayer);
+        
+        // Register trip layer for drag-and-drop
+        if (this.dragManager) {
+            this.dragManager.registerRow(tripLayer);
+        }
 
         const trips = this.state.tripGroups.get(employee.id) || [];
-        console.log('Building row for employee', employee.name, 'with', trips.length, 'trips');
+        debugLog('Building row for employee', employee.name, 'with', trips.length, 'trips');
         let hasVisibleTrips = false;
         let truncated = false;
 
@@ -1947,33 +3983,59 @@
             const status = this.state.tripStatus.get(trip.id) || { status: 'safe', daysUsed: trip.travelDays };
             const statusKey = typeof status.status === 'string' ? status.status : 'safe';
             const statusLabel = normaliseStatusLabel(statusKey);
-            const statusColor = COLORS[statusKey] || COLORS.safe;
+            const riskSnapshot = this.getRiskSnapshot(employee.id, placement.clampedEnd || trip.end);
+            const statusColor = riskSnapshot.color || COLORS[statusKey] || COLORS.safe;
             tripBlock.className = `calendar-trip calendar-trip--${statusKey}`;
             tripBlock.classList.add('trip-bar', `trip-bar--${statusKey}`);
             tripBlock.style.left = `${positionLeft}px`;
             tripBlock.style.width = `${widthPx}px`;
             tripBlock.style.top = '8px';
             tripBlock.style.height = `${ROW_HEIGHT - 16}px`;
-            tripBlock.style.backgroundColor = statusColor;
-            tripBlock.textContent = trip.country || 'Trip';
+            const tripTintAlpha = riskSnapshot.level === 'critical' ? 0.42 : riskSnapshot.level === 'caution' ? 0.34 : 0.26;
+            const tripTint = hexToRgba(statusColor, tripTintAlpha);
+            tripBlock.style.background = `linear-gradient(135deg, ${tripTint} 0%, ${statusColor} 100%)`;
+            tripBlock.textContent = '';
+            this.decorateTripNode(tripBlock, trip);
 
             tripBlock.setAttribute('data-trip-id', String(trip.id));
             tripBlock.setAttribute('data-employee', employee.name);
+            tripBlock.setAttribute('data-employee-id', String(employee.id));
             tripBlock.setAttribute('data-country', trip.country || 'Unknown');
             tripBlock.setAttribute('data-start', serialiseDate(trip.start));
             tripBlock.setAttribute('data-end', serialiseDate(trip.end));
             tripBlock.setAttribute('data-job-ref', trip.jobRef || '');
             tripBlock.setAttribute('data-days-used', Number.isFinite(status.daysUsed) ? String(status.daysUsed) : '');
+            tripBlock.setAttribute('data-risk-days-used', String(riskSnapshot.daysUsed));
+            tripBlock.setAttribute('data-risk-level', riskSnapshot.level);
             tripBlock.setAttribute('data-compliance', statusKey);
             tripBlock.setAttribute('data-status-label', statusLabel);
+            let projectedRemaining = '';
+            if (Number.isFinite(status.daysUsed)) {
+                projectedRemaining = RISK_THRESHOLDS.limit - status.daysUsed;
+            } else if (Number.isFinite(riskSnapshot.daysUsed)) {
+                projectedRemaining = RISK_THRESHOLDS.limit - riskSnapshot.daysUsed;
+            }
+            if (projectedRemaining !== '') {
+                tripBlock.setAttribute('data-days-remaining', String(projectedRemaining));
+                if (trip.start > this.today) {
+                    tripBlock.setAttribute('data-forecast-remaining', String(projectedRemaining));
+                } else {
+                    tripBlock.removeAttribute('data-forecast-remaining');
+                }
+            } else {
+                tripBlock.removeAttribute('data-days-remaining');
+                tripBlock.removeAttribute('data-forecast-remaining');
+            }
             tripBlock.setAttribute('tabindex', '0');
             tripBlock.setAttribute('role', 'button');
+            tripBlock.style.setProperty('--calendar-trip-color', statusColor);
 
             const ariaParts = [
                 trip.country ? `${trip.country} trip` : 'Trip',
                 `for ${employee.name}`,
                 formatDateRangeDisplay(trip.start, trip.end),
-                statusLabel
+                statusLabel,
+                `Usage ${riskSnapshot.daysUsed} of ${RISK_THRESHOLDS.limit} days`
             ].filter(Boolean);
             tripBlock.setAttribute('aria-label', ariaParts.join('. '));
 
@@ -2033,7 +4095,38 @@
         });
     };
 
+    CalendarController.prototype.decorateTripNode = function decorateTripNode(node, trip) {
+        if (!node) {
+            return;
+        }
+        const ensureHandle = (modifier) => {
+            let handle = node.querySelector(`.calendar-trip-handle--${modifier}`);
+            if (!handle) {
+                handle = document.createElement('span');
+                handle.className = `calendar-trip-handle calendar-trip-handle--${modifier}`;
+                handle.dataset.resize = modifier === 'end' ? 'end' : 'start';
+                handle.setAttribute('aria-hidden', 'true');
+                handle.setAttribute('draggable', 'false');
+                node.appendChild(handle);
+            }
+            return handle;
+        };
+        let label = node.querySelector('.calendar-trip-label');
+        if (!label) {
+            node.textContent = '';
+            label = document.createElement('span');
+            label.className = 'calendar-trip-label';
+            node.appendChild(label);
+        }
+        if (trip) {
+            label.textContent = trip.country || 'Trip';
+        }
+        ensureHandle('start');
+        ensureHandle('end');
+    };
+
     CalendarController.prototype.handleTripDrop = async function handleTripDrop(details) {
+        this.closeContextMenu();
         if (!details || !Number.isFinite(details.tripId)) {
             if (details && typeof details.revert === 'function') {
                 details.revert();
@@ -2067,6 +4160,23 @@
             return;
         }
 
+        const rangeStart = this.range && this.range.start instanceof Date ? startOfDay(this.range.start) : null;
+        const rangeEnd = this.range && this.range.end instanceof Date ? startOfDay(this.range.end) : null;
+        if (rangeStart && nextStart < rangeStart) {
+            if (typeof revert === 'function') {
+                revert();
+            }
+            this.showToast('Trips cannot start before the visible range ❌');
+            return;
+        }
+        if (rangeEnd && nextEnd > rangeEnd) {
+            if (typeof revert === 'function') {
+                revert();
+            }
+            this.showToast('Trips cannot extend beyond the visible range ❌');
+            return;
+        }
+
         const unchanged = trip.start.getTime() === nextStart.getTime() && trip.end.getTime() === nextEnd.getTime();
         const targetElement = element || this.elements.grid.querySelector(`.calendar-trip[data-trip-id="${tripId}"]`);
 
@@ -2090,7 +4200,7 @@
         }
 
         try {
-            const updatedTrip = await this.patchTripDates(tripId, nextStart, nextEnd);
+            const updatedTrip = await this.updateTripDates(tripId, nextStart, nextEnd);
             this.integrateTripUpdate(updatedTrip);
             const statusIndex = this.recalculateEmployeeStatuses(updatedTrip.employeeId);
             this.applyStatusUpdatesToEmployee(updatedTrip.employeeId, statusIndex);
@@ -2101,7 +4211,7 @@
 
             this.showToast('Trip updated successfully ✅');
         } catch (error) {
-            console.error('Drag-and-drop update failed', error);
+            console.error('[3.9-update-trip] Drag-and-drop update failed', error);
             if (typeof revert === 'function') {
                 revert();
             }
@@ -2118,7 +4228,7 @@
         }
     };
 
-    CalendarController.prototype.patchTripDates = async function patchTripDates(tripId, startDate, endDate) {
+    CalendarController.prototype.updateTripDates = async function updateTripDates(tripId, startDate, endDate) {
         if (!Number.isFinite(tripId)) {
             throw new Error('Invalid trip identifier.');
         }
@@ -2136,45 +4246,143 @@
         }
 
         const payload = {
+            trip_id: tripId,
             start_date: serialiseDate(startDate),
             end_date: serialiseDate(endDate)
         };
 
-        const response = await fetch(`/api/trips/${tripId}`, {
-            method: 'PATCH',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            let message = `Trip update failed (${response.status})`;
+        const syncApi = typeof window !== 'undefined' ? window.CalendarSync && window.CalendarSync.api : null;
+        let result;
+        if (syncApi && typeof syncApi.updateTrip === 'function') {
+            result = await syncApi.updateTrip({ ...payload });
+        } else {
+            let response;
             try {
-                const errorPayload = await response.json();
-                if (errorPayload && typeof errorPayload.error === 'string') {
-                    message = errorPayload.error;
-                }
-            } catch (parseError) {
-                // Ignore JSON parse errors and retain fallback message.
+                response = await fetch('/api/update_trip', {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+            } catch (networkError) {
+                throw networkError;
             }
-            throw new Error(message);
+            if (!response.ok) {
+                if (response.status === 404) {
+                    response = await fetch('/api/update_trip_dates', {
+                        method: 'POST',
+                        headers: {
+                            Accept: 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                }
+                if (!response.ok) {
+                    let message = `Trip update failed (${response.status})`;
+                    try {
+                        const errorPayload = await response.json();
+                        if (errorPayload && typeof errorPayload.error === 'string') {
+                            message = errorPayload.error;
+                        }
+                    } catch (parseError) {
+                        // Ignore JSON parse errors and retain fallback message.
+                    }
+                    throw new Error(message);
+                }
+            }
+            result = await response.json();
         }
-
-        const result = await response.json();
         const normalised = normaliseTrip(result);
         if (!normalised) {
             throw new Error('Unexpected payload received from server.');
         }
+        console.info('[3.9-update-trip] Trip %s rescheduled to %s → %s', tripId, payload.start_date, payload.end_date);
 
         return normalised;
+    };
+
+    CalendarController.prototype.handleDragPreview = function handleDragPreview(details) {
+        if (!details || !details.element) {
+            return;
+        }
+        const element = details.element;
+        const nextStart = details.nextStart instanceof Date ? details.nextStart : null;
+        const nextEnd = details.nextEnd instanceof Date ? details.nextEnd : nextStart;
+        if (!nextStart || !nextEnd) {
+            return;
+        }
+        this.closeContextMenu();
+        if (!element.dataset.dragOriginalStart) {
+            element.dataset.dragOriginalStart = element.getAttribute('data-start') || '';
+        }
+        if (!element.dataset.dragOriginalEnd) {
+            element.dataset.dragOriginalEnd = element.getAttribute('data-end') || '';
+        }
+        if (!element.dataset.dragOriginalAria) {
+            element.dataset.dragOriginalAria = element.getAttribute('aria-label') || '';
+        }
+        const startIso = serialiseDate(nextStart);
+        const endIso = serialiseDate(nextEnd);
+        const previewLabel = formatDateRangeDisplay(nextStart, nextEnd);
+        element.dataset.previewStart = startIso;
+        element.dataset.previewEnd = endIso;
+        element.dataset.previewLabel = previewLabel;
+        element.setAttribute('data-preview-label', previewLabel);
+        element.setAttribute('data-start', startIso);
+        element.setAttribute('data-end', endIso);
+        const statusLabel = element.getAttribute('data-status-label') || '';
+        const employee = element.getAttribute('data-employee') || 'Unknown employee';
+        const country = element.getAttribute('data-country') || 'Trip';
+        const ariaLabelParts = [
+            country ? `${country} trip` : 'Trip',
+            `for ${employee}`,
+            previewLabel,
+            statusLabel
+        ].filter(Boolean);
+        element.setAttribute('aria-label', ariaLabelParts.join('. '));
+    };
+
+    CalendarController.prototype.handleDragPreviewEnd = function handleDragPreviewEnd(details) {
+        if (!details || !details.element) {
+            return;
+        }
+        const element = details.element;
+        const originalStart = element.dataset.dragOriginalStart || (details.originalStart instanceof Date ? serialiseDate(details.originalStart) : null);
+        const originalEnd = element.dataset.dragOriginalEnd || (details.originalEnd instanceof Date ? serialiseDate(details.originalEnd) : null);
+        const originalAria = element.dataset.dragOriginalAria || null;
+
+        if (originalStart !== null) {
+            element.setAttribute('data-start', originalStart);
+        } else {
+            element.removeAttribute('data-start');
+        }
+        if (originalEnd !== null) {
+            element.setAttribute('data-end', originalEnd);
+        } else {
+            element.removeAttribute('data-end');
+        }
+        if (originalAria !== null) {
+            element.setAttribute('aria-label', originalAria);
+        }
+
+        delete element.dataset.previewStart;
+        delete element.dataset.previewEnd;
+        delete element.dataset.previewLabel;
+        delete element.dataset.dragOriginalStart;
+        delete element.dataset.dragOriginalEnd;
+        delete element.dataset.dragOriginalAria;
+        element.removeAttribute('data-preview-label');
     };
 
     CalendarController.prototype.integrateTripUpdate = function integrateTripUpdate(updatedTrip) {
         if (!updatedTrip) {
             return;
         }
+
+        this.invalidateRiskCacheForEmployee(updatedTrip.employeeId);
 
         this.state.tripIndex.set(updatedTrip.id, updatedTrip);
 
@@ -2229,6 +4437,8 @@
             return;
         }
 
+        this.invalidateRiskCacheForEmployee(employeeId);
+
         for (const [tripId, status] of statusIndex.entries()) {
             const trip = this.state.tripIndex.get(tripId);
             if (!trip) {
@@ -2249,11 +4459,14 @@
         const placement = calculateTripPlacement(this.range, trip);
         const statusKey = status && typeof status.status === 'string' ? status.status : 'safe';
         const statusLabel = normaliseStatusLabel(statusKey);
-        const statusColor = COLORS[statusKey] || COLORS.safe;
+        const riskSnapshot = this.getRiskSnapshot(trip.employeeId, placement.clampedEnd || trip.end);
+        const statusColor = riskSnapshot.color || COLORS[statusKey] || COLORS.safe;
 
         node.style.left = `${placement.offsetDays * DAY_WIDTH}px`;
         node.style.width = `${Math.max(placement.durationDays * DAY_WIDTH, DAY_WIDTH / 2)}px`;
-        node.style.backgroundColor = statusColor;
+        const tripTintAlpha = riskSnapshot.level === 'critical' ? 0.42 : riskSnapshot.level === 'caution' ? 0.34 : 0.26;
+        const tripTint = hexToRgba(statusColor, tripTintAlpha);
+        node.style.background = `linear-gradient(135deg, ${tripTint} 0%, ${statusColor} 100%)`;
 
         node.classList.remove('calendar-trip--safe', 'calendar-trip--warning', 'calendar-trip--critical');
         node.classList.remove('trip-bar--safe', 'trip-bar--warning', 'trip-bar--critical');
@@ -2267,6 +4480,13 @@
         node.dataset.statusLabel = statusLabel;
         node.dataset.employee = trip.employeeName || node.dataset.employee || '';
         node.dataset.country = trip.country || node.dataset.country || '';
+        node.dataset.jobRef = trip.jobRef || '';
+        node.dataset.employeeId = Number.isFinite(trip.employeeId) ? String(trip.employeeId) : node.dataset.employeeId || '';
+        node.dataset.riskDaysUsed = String(riskSnapshot.daysUsed);
+        node.dataset.riskLevel = riskSnapshot.level;
+        node.dataset.riskColor = statusColor;
+        node.style.setProperty('--calendar-trip-color', statusColor);
+        this.decorateTripNode(node, trip);
 
         node.classList.remove('calendar-trip--overflow-start', 'trip-bar--overflow-start');
         node.classList.remove('calendar-trip--overflow-end', 'trip-bar--overflow-end');
@@ -2287,7 +4507,8 @@
             trip.country ? `${trip.country} trip` : 'Trip',
             trip.employeeName ? `for ${trip.employeeName}` : null,
             formatDateRangeDisplay(trip.start, trip.end),
-            statusLabel
+            statusLabel,
+            `Usage ${riskSnapshot.daysUsed} of ${RISK_THRESHOLDS.limit} days`
         ].filter(Boolean);
         node.setAttribute('aria-label', ariaParts.join('. '));
         node.setAttribute('aria-grabbed', 'false');
@@ -2352,9 +4573,13 @@
     };
 
     CalendarController.prototype.init = function init() {
-        console.log('Calendar initializing...');
+        debugLog('Calendar initializing...');
         this.setupEventListeners();
         this.populateFutureWeeksSelect();
+        this.updateViewToggleUI();
+        if (this.elements.forecastPanel) {
+            this.renderForecastLoading('Loading forecast…');
+        }
         this.loadData().catch((error) => {
             console.error('Initial calendar load failed', error);
         });
@@ -2449,3 +4674,224 @@
         }
     }
 })(typeof window !== 'undefined' ? window : globalThis);
+    CalendarController.prototype.handleTripPointerDown = function handleTripPointerDown(event) {
+        const handle = event.target.closest('.calendar-trip-handle');
+        if (!handle || (typeof event.button === 'number' && event.button !== 0)) {
+            return;
+        }
+        const tripNode = handle.closest('.calendar-trip');
+        if (!tripNode) {
+            return;
+        }
+        const tripId = Number.parseInt(tripNode.dataset.tripId || '', 10);
+        if (!Number.isFinite(tripId)) {
+            return;
+        }
+        const trip = this.state.tripIndex.get(tripId);
+        if (!trip) {
+            return;
+        }
+        if (tripNode.dataset.dragInteraction === 'disabled' || trip.locked) {
+            return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        const edge = handle.dataset.resize === 'end' ? 'end' : 'start';
+        this.beginTripResize({
+            trip,
+            edge,
+            element: tripNode,
+            pointerId: event.pointerId,
+            clientX: event.clientX,
+            captureTarget: handle
+        });
+    };
+
+    CalendarController.prototype.beginTripResize = function beginTripResize(options = {}) {
+        if (!options.trip || !options.element) {
+            return;
+        }
+        this.teardownResizeListeners();
+        const rangeStart = this.range && this.range.start instanceof Date ? startOfDay(this.range.start) : null;
+        const rangeEnd = this.range && this.range.end instanceof Date ? startOfDay(this.range.end) : null;
+        const baseStart = startOfDay(options.trip.start);
+        const baseEnd = startOfDay(options.trip.end || options.trip.start);
+        const computedStyle = typeof window !== 'undefined' ? window.getComputedStyle(options.element) : null;
+        const originalLeft = Number.parseFloat(options.element.style.left || (computedStyle && computedStyle.left) || '0') || 0;
+        const computedWidth = Number.parseFloat(options.element.style.width || (computedStyle && computedStyle.width) || '0');
+        const originalWidth = Number.isFinite(computedWidth) && computedWidth > 0
+            ? computedWidth
+            : Math.max((diffInDaysInclusive(baseStart, baseEnd) + 1) * DAY_WIDTH, DAY_WIDTH);
+        this.resizeSession = {
+            tripId: options.trip.id,
+            employeeId: options.trip.employeeId,
+            edge: options.edge === 'end' ? 'end' : 'start',
+            pointerId: options.pointerId,
+            startClientX: options.clientX,
+            baseStart,
+            baseEnd,
+            rangeStart,
+            rangeEnd,
+            originalLeft,
+            originalWidth,
+            element: options.element,
+            previewStart: null,
+            previewEnd: null,
+            captureTarget: options.captureTarget || null,
+            lastDelta: null
+        };
+        if (typeof window !== 'undefined') {
+            window.addEventListener('pointermove', this.handleTripResizeMove, { passive: false });
+            window.addEventListener('pointerup', this.handleTripResizeEnd, { passive: false });
+            window.addEventListener('pointercancel', this.handleTripResizeEnd, { passive: false });
+        }
+        if (this.resizeSession.captureTarget && typeof this.resizeSession.captureTarget.setPointerCapture === 'function') {
+            try {
+                this.resizeSession.captureTarget.setPointerCapture(this.resizeSession.pointerId);
+            } catch {
+                // ignore
+            }
+        }
+        options.element.classList.add('calendar-trip--resizing');
+    };
+
+    CalendarController.prototype.calculateResizeTarget = function calculateResizeTarget(session, deltaDays) {
+        if (!session) {
+            return null;
+        }
+        if (session.edge === 'start') {
+            let proposedStart = addDays(session.baseStart, deltaDays);
+            if (!proposedStart) {
+                return null;
+            }
+            if (session.rangeStart && proposedStart < session.rangeStart) {
+                proposedStart = session.rangeStart;
+            }
+            if (proposedStart > session.baseEnd) {
+                proposedStart = session.baseEnd;
+            }
+            return { start: proposedStart, end: session.baseEnd };
+        }
+        let proposedEnd = addDays(session.baseEnd, deltaDays);
+        if (!proposedEnd) {
+            return null;
+        }
+        if (session.rangeEnd && proposedEnd > session.rangeEnd) {
+            proposedEnd = session.rangeEnd;
+        }
+        if (proposedEnd < session.baseStart) {
+            proposedEnd = session.baseStart;
+        }
+        return { start: session.baseStart, end: proposedEnd };
+    };
+
+    CalendarController.prototype.applyResizePreview = function applyResizePreview(session) {
+        if (!session || !session.element) {
+            return;
+        }
+        const targetStart = session.previewStart || session.baseStart;
+        const targetEnd = session.previewEnd || session.baseEnd;
+        const durationDays = Math.max(1, diffInDaysInclusive(targetStart, targetEnd) + 1);
+        const widthPx = durationDays * DAY_WIDTH;
+        session.element.style.width = `${widthPx}px`;
+        if (session.edge === 'start') {
+            const offsetDays = diffInDaysInclusive(session.baseStart, targetStart);
+            const nextLeft = session.originalLeft + (offsetDays * DAY_WIDTH);
+            session.element.style.left = `${Math.max(0, nextLeft)}px`;
+        } else {
+            session.element.style.left = `${Math.max(0, session.originalLeft)}px`;
+        }
+        session.element.classList.add('calendar-trip--resizing');
+    };
+
+    CalendarController.prototype.handleTripResizeMove = function handleTripResizeMove(event) {
+        const session = this.resizeSession;
+        if (!session || event.pointerId !== session.pointerId) {
+            return;
+        }
+        event.preventDefault();
+        const deltaPx = event.clientX - session.startClientX;
+        const deltaDays = Math.round(deltaPx / DAY_WIDTH);
+        if (deltaDays === session.lastDelta) {
+            return;
+        }
+        const nextDates = this.calculateResizeTarget(session, deltaDays);
+        if (!nextDates) {
+            return;
+        }
+        session.lastDelta = deltaDays;
+        session.previewStart = nextDates.start;
+        session.previewEnd = nextDates.end;
+        this.applyResizePreview(session);
+    };
+
+    CalendarController.prototype.handleTripResizeEnd = function handleTripResizeEnd(event) {
+        const session = this.resizeSession;
+        if (!session) {
+            return;
+        }
+        if (event.type !== 'pointercancel' && event.pointerId !== session.pointerId) {
+            return;
+        }
+        event.preventDefault();
+        this.teardownResizeListeners();
+        if (session.captureTarget && typeof session.captureTarget.releasePointerCapture === 'function') {
+            try {
+                session.captureTarget.releasePointerCapture(session.pointerId);
+            } catch {
+                // ignore
+            }
+        }
+        const nextStart = session.previewStart || session.baseStart;
+        const nextEnd = session.previewEnd || session.baseEnd;
+        session.element.classList.remove('calendar-trip--resizing');
+        if (nextStart.getTime() === session.baseStart.getTime() && nextEnd.getTime() === session.baseEnd.getTime()) {
+            this.resetResizePreview(session);
+            this.resizeSession = null;
+            return;
+        }
+        this.commitTripResize(session, nextStart, nextEnd);
+    };
+
+    CalendarController.prototype.resetResizePreview = function resetResizePreview(session) {
+        if (!session || !session.element) {
+            return;
+        }
+        session.element.style.left = `${Math.max(0, session.originalLeft)}px`;
+        session.element.style.width = `${session.originalWidth}px`;
+    };
+
+    CalendarController.prototype.teardownResizeListeners = function teardownResizeListeners() {
+        if (typeof window === 'undefined') {
+            return;
+        }
+        window.removeEventListener('pointermove', this.handleTripResizeMove);
+        window.removeEventListener('pointerup', this.handleTripResizeEnd);
+        window.removeEventListener('pointercancel', this.handleTripResizeEnd);
+    };
+
+    CalendarController.prototype.commitTripResize = async function commitTripResize(session, nextStart, nextEnd) {
+        const element = session.element;
+        if (element) {
+            element.classList.add('calendar-trip--updating');
+        }
+        try {
+            const updatedTrip = await this.updateTripDates(session.tripId, nextStart, nextEnd);
+            this.integrateTripUpdate(updatedTrip);
+            const statusIndex = this.recalculateEmployeeStatuses(updatedTrip.employeeId);
+            this.applyStatusUpdatesToEmployee(updatedTrip.employeeId, statusIndex);
+            if (this.isDetailOpen && this.activeTripId === updatedTrip.id) {
+                this.openTripDetail(updatedTrip.id);
+            }
+            this.showToast('Trip updated successfully ✅');
+        } catch (error) {
+            console.error('Trip resize failed', error);
+            this.showToast('Unable to update trip. Changes reverted ❌');
+            this.resetResizePreview(session);
+        } finally {
+            if (element) {
+                element.classList.remove('calendar-trip--updating');
+            }
+            this.resizeSession = null;
+        }
+    };

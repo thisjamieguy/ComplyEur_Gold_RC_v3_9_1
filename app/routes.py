@@ -124,60 +124,102 @@ MAX_ATTEMPTS = 5
 ATTEMPT_WINDOW_SECONDS = 300  # 5 minutes
 
 def login_required(f):
+    """
+    Authentication decorator supporting both legacy (logged_in) and new (user_id) session systems.
+    Prioritizes new auth system (user_id) when present to avoid authentication loops.
+    """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         # Temporary developer bypass to speed up manual QA when needed
         try:
             if os.getenv('EUTRACKER_BYPASS_LOGIN') == '1':
+                # Set both legacy and new auth system flags
                 session['logged_in'] = True
+                session['user_id'] = 1  # Set user_id for new auth system
+                session['username'] = 'admin'
                 session['last_activity'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+                # Force session to be permanent so it persists
+                session.permanent = True
+                # Initialize SessionManager timestamps to prevent expiration checks
+                try:
+                    from app.modules.auth import SessionManager
+                    SessionManager.rotate_session_id()  # This sets issued_at and last_seen
+                    SessionManager.touch_session()  # Update last_seen
+                except (ImportError, AttributeError):
+                    # If SessionManager not available, continue without it
+                    pass
                 return f(*args, **kwargs)
         except Exception:
             pass
-        if not session.get('logged_in'):
-            # Check if this is an AJAX request
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
-                return jsonify({'error': 'Authentication required', 'redirect': url_for('main.login')}), 401
-            return redirect(url_for('main.login'))
         
-        # Check session timeout (compare in UTC to avoid timezone skew)
-        if 'last_activity' in session:
+        # PRIORITY 1: New auth system (user_id) - handle first to avoid conflicts
+        if session.get('user_id'):
             try:
-                last_activity_str = session['last_activity']
-                # Parse to naive UTC
-                if isinstance(last_activity_str, str):
-                    if 'Z' in last_activity_str:
-                        last_activity_str = last_activity_str.replace('Z', '')
-                    if '+' in last_activity_str:
-                        last_activity_str = last_activity_str.split('+')[0]
-                    if 'T' in last_activity_str:
-                        last_activity = datetime.strptime(last_activity_str, '%Y-%m-%dT%H:%M:%S')
-                    else:
-                        last_activity = datetime.fromisoformat(last_activity_str)
-                else:
-                    last_activity = datetime.utcnow()
-
-                # Ensure both datetimes are naive
-                if getattr(last_activity, 'tzinfo', None):
-                    last_activity = last_activity.replace(tzinfo=None)
-
-                if datetime.utcnow() - last_activity > timedelta(minutes=30):
-                    session.clear()
-                    # Check if this is an AJAX request
+                from app.modules.auth import SessionManager
+                # SessionManager.is_expired() will auto-initialize missing timestamps if needed
+                if SessionManager.is_expired():
+                    SessionManager.clear_session()
                     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
-                        return jsonify({'error': 'Session expired', 'redirect': url_for('main.login')}), 401
-                    return redirect(url_for('main.login'))
-            except (ValueError, TypeError, AttributeError):
-                # If datetime parsing fails, clear session
+                        return jsonify({'error': 'Session expired', 'redirect': url_for('auth.login')}), 401
+                    return redirect(url_for('auth.login'))
+                SessionManager.touch_session()
+                session.permanent = True  # Ensure session persists
+                return f(*args, **kwargs)
+            except ImportError:
+                # If SessionManager not available, fall back to old system
+                logger.warning("SessionManager not available, falling back to legacy auth")
+                pass
+            except Exception as e:
+                logger.error(f"Error in SessionManager: {e}")
+                # Clear session on error and redirect to login
                 session.clear()
-                # Check if this is an AJAX request
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
-                    return jsonify({'error': 'Session invalid', 'redirect': url_for('main.login')}), 401
-                return redirect(url_for('main.login'))
+                    return jsonify({'error': 'Session error', 'redirect': url_for('auth.login')}), 401
+                return redirect(url_for('auth.login'))
         
-        # Update last activity
-        session['last_activity'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
-        return f(*args, **kwargs)
+        # PRIORITY 2: Legacy auth system (logged_in) - only if user_id not present
+        if session.get('logged_in'):
+            # Check session timeout for old system - compare in UTC to avoid timezone skew
+            if 'last_activity' in session:
+                try:
+                    last_activity_str = session['last_activity']
+                    # Parse to naive UTC
+                    if isinstance(last_activity_str, str):
+                        if 'Z' in last_activity_str:
+                            last_activity_str = last_activity_str.replace('Z', '')
+                        if '+' in last_activity_str:
+                            last_activity_str = last_activity_str.split('+')[0]
+                        if 'T' in last_activity_str:
+                            last_activity = datetime.strptime(last_activity_str, '%Y-%m-%dT%H:%M:%S')
+                        else:
+                            last_activity = datetime.fromisoformat(last_activity_str)
+                    else:
+                        last_activity = datetime.utcnow()
+
+                    # Ensure both datetimes are naive
+                    if getattr(last_activity, 'tzinfo', None):
+                        last_activity = last_activity.replace(tzinfo=None)
+
+                    if datetime.utcnow() - last_activity > timedelta(minutes=30):
+                        session.clear()
+                        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
+                            return jsonify({'error': 'Session expired', 'redirect': url_for('auth.login')}), 401
+                        return redirect(url_for('auth.login'))
+                except (ValueError, TypeError, AttributeError):
+                    # If datetime parsing fails, clear session
+                    session.clear()
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
+                        return jsonify({'error': 'Session invalid', 'redirect': url_for('auth.login')}), 401
+                    return redirect(url_for('auth.login'))
+            
+            # Update last activity for legacy system
+            session['last_activity'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+            return f(*args, **kwargs)
+        
+        # No valid session found - require login
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
+            return jsonify({'error': 'Authentication required', 'redirect': url_for('auth.login')}), 401
+        return redirect(url_for('auth.login'))
     return decorated_function
 
 def get_db():
@@ -217,6 +259,87 @@ def index():
 def landing():
     return render_template('landing.html')
 
+@main_bp.route('/sitemap.xml')
+def sitemap():
+    """Generate sitemap.xml for SEO"""
+    from flask import make_response
+    from datetime import datetime
+    
+    base_url = request.url_root.rstrip('/')
+    urls = [
+        {
+            'loc': f'{base_url}{url_for("main.landing")}',
+            'changefreq': 'monthly',
+            'priority': '1.0',
+            'lastmod': datetime.now().strftime('%Y-%m-%d')
+        },
+        {
+            'loc': f'{base_url}{url_for("main.home")}',
+            'changefreq': 'daily',
+            'priority': '0.9',
+            'lastmod': datetime.now().strftime('%Y-%m-%d')
+        },
+        {
+            'loc': f'{base_url}{url_for("main.dashboard")}',
+            'changefreq': 'daily',
+            'priority': '0.9',
+            'lastmod': datetime.now().strftime('%Y-%m-%d')
+        },
+        {
+            'loc': f'{base_url}{url_for("main.privacy_policy")}',
+            'changefreq': 'monthly',
+            'priority': '0.5',
+            'lastmod': datetime.now().strftime('%Y-%m-%d')
+        },
+        {
+            'loc': f'{base_url}{url_for("main.cookie_policy")}',
+            'changefreq': 'monthly',
+            'priority': '0.5',
+            'lastmod': datetime.now().strftime('%Y-%m-%d')
+        },
+        {
+            'loc': f'{base_url}{url_for("main.entry_requirements")}',
+            'changefreq': 'weekly',
+            'priority': '0.8',
+            'lastmod': datetime.now().strftime('%Y-%m-%d')
+        },
+    ]
+    
+    sitemap_xml = '''<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+'''
+    for url in urls:
+        sitemap_xml += f'''  <url>
+    <loc>{url['loc']}</loc>
+    <changefreq>{url['changefreq']}</changefreq>
+    <priority>{url['priority']}</priority>
+    <lastmod>{url['lastmod']}</lastmod>
+  </url>
+'''
+    sitemap_xml += '</urlset>'
+    
+    response = make_response(sitemap_xml)
+    response.headers['Content-Type'] = 'application/xml'
+    return response
+
+@main_bp.route('/robots.txt')
+def robots():
+    """Generate robots.txt for SEO"""
+    from flask import make_response
+    
+    robots_txt = f'''User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /static/build/
+
+Sitemap: {request.url_root.rstrip('/')}/sitemap.xml
+'''
+    
+    response = make_response(robots_txt)
+    response.headers['Content-Type'] = 'text/plain'
+    return response
+
 @main_bp.route('/healthz')
 def healthz():
     return jsonify({'status': 'ok'}), 200
@@ -242,6 +365,20 @@ def privacy():
                          session_timeout_minutes=CONFIG.get('SESSION_IDLE_TIMEOUT_MINUTES', 30),
                          max_login_attempts=MAX_ATTEMPTS,
                          rate_limit_window=ATTEMPT_WINDOW_SECONDS // 60)
+
+@main_bp.route('/privacy-policy')
+def privacy_policy():
+    """Alias for /privacy route for consistency"""
+    from flask import redirect, url_for
+    return redirect(url_for('main.privacy'))
+
+@main_bp.route('/cookie-policy')
+def cookie_policy():
+    """Cookie policy page explaining cookie usage"""
+    from flask import current_app
+    CONFIG = current_app.config['CONFIG']
+    return render_template('cookie_policy.html',
+                         current_date=datetime.now().strftime('%Y-%m-%d'))
 
 @main_bp.route('/test-summary', methods=['GET'])
 # @login_required  # Temporarily disabled for testing
@@ -324,37 +461,38 @@ def test_summary():
                          trips=trips_data,
                          totals=totals)
 
+# Calendar temporarily sandboxed in /calendar_dev
+# Minimal stub route for testing compatibility
 @main_bp.route('/calendar')
 @login_required
 def calendar():
-    """Serve the React frontend calendar"""
-    return render_template('calendar.html')
-
+    """Stub route - calendar is sandboxed in /calendar_dev"""
+    return '<html><body><h1>Calendar is sandboxed</h1><p>See /calendar_dev for development version.</p></body></html>', 200
 
 @main_bp.route('/calendar_view')
 @login_required
 def calendar_view():
-    """Main calendar page with React app"""
-    return render_template('calendar.html')
+    """Stub route - calendar is sandboxed in /calendar_dev"""
+    return redirect(url_for('main.calendar'))
 
-@main_bp.route('/employee/<int:employee_id>/calendar')
-@login_required
-def employee_calendar(employee_id):
-    """Employee-specific calendar view"""
-    from flask import current_app
-    
-    # Verify employee exists
-    conn = get_db()
-    c = conn.cursor()
-    c.execute('SELECT id, name FROM employees WHERE id = ?', (employee_id,))
-    employee = c.fetchone()
-    conn.close()
-    
-    if not employee:
-        flash('Employee not found', 'error')
-        return redirect(url_for('main.dashboard'))
-    
-    return render_template('calendar.html', employee_id=employee_id, employee_name=employee['name'])
+# @main_bp.route('/employee/<int:employee_id>/calendar')
+# @login_required
+# def employee_calendar(employee_id):
+#     """Employee-specific calendar view"""
+#     from flask import current_app
+#
+#     # Verify employee exists
+#     conn = get_db()
+#     c = conn.cursor()
+#     c.execute('SELECT id, name FROM employees WHERE id = ?', (employee_id,))
+#     employee = c.fetchone()
+#     conn.close()
+#
+#     if not employee:
+#         flash('Employee not found', 'error')
+#         return redirect(url_for('main.dashboard'))
+#
+#     return render_template('calendar.html', employee_id=employee_id, employee_name=employee['name'])
 
 @main_bp.route('/api/test')
 def api_test():
@@ -455,8 +593,9 @@ def refresh_news():
             'message': f'Error starting news refresh: {str(e)}'
         }), 500
 
-@main_bp.route('/login', methods=['GET', 'POST'])
-def login():
+# Login route moved to auth_bp - this route disabled to avoid conflicts
+# @main_bp.route('/login', methods=['GET', 'POST'])
+def login_old():
     if request.method == 'POST':
         from flask import current_app
         CONFIG = current_app.config['CONFIG']
@@ -591,7 +730,7 @@ def setup():
     
     # Check if admin already exists
     if Admin.exists():
-        return redirect(url_for('main.login'))
+        return redirect(url_for('auth.login'))
     
     if request.method == 'POST':
         password = request.form.get('password', '')
@@ -612,7 +751,7 @@ def logout():
     CONFIG = current_app.config['CONFIG']
     session.pop('logged_in', None)
     write_audit(CONFIG['AUDIT_LOG_PATH'], 'logout', 'admin', {})
-    return redirect(url_for('main.login'))
+    return redirect(url_for('auth.login'))
 
 @main_bp.route('/profile')
 @login_required
@@ -720,10 +859,41 @@ def dashboard():
     from flask import current_app
     CONFIG = current_app.config['CONFIG']
     
+    # OPTIMIZATION (Phase 2): Response caching for dashboard
+    cache = current_app.config.get('CACHE')
+    sort_by = request.args.get('sort', 'first_name')
+    cache_key = None
+    
+    # Generate cache key based on sort parameter and data version
+    # Cache key includes sort_by to ensure different sorts are cached separately
+    # OPTIMIZATION V2: Single query instead of 2 queries for cache key generation
+    if cache:
+        # Get a data version indicator (e.g., max trip/employee update timestamp)
+        try:
+            conn_temp = get_db()
+            c_temp = conn_temp.cursor()
+            # Get max timestamp from both tables in a single query
+            c_temp.execute('''
+                SELECT MAX(ts) as max_ts FROM (
+                    SELECT MAX(created_at) as ts FROM trips
+                    UNION ALL
+                    SELECT MAX(created_at) as ts FROM employees
+                )
+            ''')
+            result = c_temp.fetchone()
+            max_timestamp = result[0] if result and result[0] else 'default'
+            cache_key = f'dashboard:{sort_by}:{max_timestamp}'
+            
+            # Try to get cached response
+            cached_response = cache.get(cache_key)
+            if cached_response:
+                logger.debug("Dashboard response served from cache")
+                return cached_response
+        except Exception as e:
+            logger.warning(f"Cache check failed: {e}")
+            cache = None  # Fall back to no caching
+    
     try:
-        # Get sort parameter from query string
-        sort_by = request.args.get('sort', 'first_name')
-        
         conn = get_db()
         c = conn.cursor()
         
@@ -749,10 +919,105 @@ def dashboard():
         future_alerts_yellow = 0
         future_alerts_green = 0
 
+        # OPTIMIZATION: Batch fetch all trips for all employees in a single query
+        # This eliminates N+1 query problem (was 4-6 queries per employee, now 1 query total)
+        if employees:
+            employee_ids = [emp['id'] for emp in employees]
+            placeholders = ','.join('?' * len(employee_ids))
+            
+            # Single query to get all trips for all employees
+            c.execute(f'''
+                SELECT 
+                    employee_id,
+                    entry_date,
+                    exit_date,
+                    country,
+                    is_private,
+                    id as trip_id
+                FROM trips
+                WHERE employee_id IN ({placeholders})
+                ORDER BY employee_id, entry_date DESC
+            ''', employee_ids)
+            all_trips_raw = c.fetchall()
+            
+            # Group trips by employee_id in Python (much faster than multiple DB queries)
+            trips_by_employee = {}
+            trip_counts_by_employee = {}
+            for trip in all_trips_raw:
+                emp_id = trip['employee_id']
+                if emp_id not in trips_by_employee:
+                    trips_by_employee[emp_id] = []
+                    trip_counts_by_employee[emp_id] = 0
+                trips_by_employee[emp_id].append({
+                    'entry_date': trip['entry_date'],
+                    'exit_date': trip['exit_date'],
+                    'country': trip['country'],
+                    'is_private': trip['is_private'],
+                    'trip_id': trip['trip_id']
+                })
+                trip_counts_by_employee[emp_id] += 1
+            
+            # Get next trips and recent trips in batch queries
+            today_str = today.strftime('%Y-%m-%d')
+            
+            # Batch query for next upcoming trips
+            # Use a simpler approach: fetch all future trips and filter in Python
+            c.execute(f'''
+                SELECT 
+                    employee_id,
+                    country,
+                    entry_date,
+                    is_private
+                FROM trips
+                WHERE entry_date > ? 
+                  AND employee_id IN ({placeholders})
+                ORDER BY employee_id, entry_date ASC
+            ''', [today_str] + employee_ids)
+            future_trips_raw = c.fetchall()
+            
+            # Group by employee and take first (earliest) trip per employee
+            next_trips_by_employee = {}
+            for trip in future_trips_raw:
+                emp_id = trip['employee_id']
+                if emp_id not in next_trips_by_employee:
+                    next_trips_by_employee[emp_id] = dict(trip)
+            
+            # Batch query for recent trips (top 5 per employee)
+            # Note: SQLite doesn't support window functions easily, so we'll handle this in Python
+            # for better performance, we'll fetch recent trips and filter in Python
+            c.execute(f'''
+                SELECT 
+                    employee_id,
+                    country,
+                    entry_date,
+                    exit_date,
+                    is_private
+                FROM trips
+                WHERE employee_id IN ({placeholders})
+                ORDER BY employee_id, exit_date DESC
+            ''', employee_ids)
+            all_recent_trips_raw = c.fetchall()
+            
+            # Group recent trips by employee (top 5 per employee)
+            recent_trips_by_employee = {}
+            for trip in all_recent_trips_raw:
+                emp_id = trip['employee_id']
+                if emp_id not in recent_trips_by_employee:
+                    recent_trips_by_employee[emp_id] = []
+                if len(recent_trips_by_employee[emp_id]) < 5:
+                    recent_trips_by_employee[emp_id].append(dict(trip))
+        else:
+            trips_by_employee = {}
+            trip_counts_by_employee = {}
+            next_trips_by_employee = {}
+            recent_trips_by_employee = {}
+
+        # Process each employee with pre-fetched data
         for emp in employees:
-            # Get all trips for this employee
-            c.execute('SELECT entry_date, exit_date, country, is_private FROM trips WHERE employee_id = ?', (emp['id'],))
-            trips = [{'entry_date': t['entry_date'], 'exit_date': t['exit_date'], 'country': t['country'], 'is_private': t['is_private']} for t in c.fetchall()]
+            emp_id = emp['id']
+            
+            # Get trips for this employee (already fetched in batch)
+            trips = trips_by_employee.get(emp_id, [])
             
             # Calculate presence days and usage using new rolling90 module
             presence = presence_days(trips)
@@ -769,22 +1034,19 @@ def dashboard():
             if days_remaining < 0:
                 days_until_compliant_val, compliance_date = days_until_compliant(presence, today)
 
-            # Get total trip count
-            c.execute('SELECT COUNT(*) FROM trips WHERE employee_id = ?', (emp['id'],))
-            trip_count = c.fetchone()[0]
+            # Get total trip count (already calculated from batch query)
+            trip_count = trip_counts_by_employee.get(emp_id, 0)
 
-            # Get next upcoming trip
-            c.execute('SELECT country, entry_date, is_private FROM trips WHERE employee_id = ? AND entry_date > ? ORDER BY entry_date ASC LIMIT 1',
-                     (emp['id'], today.strftime('%Y-%m-%d')))
-            next_trip_row = c.fetchone()
-            next_trip = redact_private_trip_data(dict(next_trip_row)) if next_trip_row else None
+            # Get next upcoming trip (already fetched in batch)
+            next_trip_row = next_trips_by_employee.get(emp_id)
+            next_trip = redact_private_trip_data(next_trip_row) if next_trip_row else None
 
-            # Get recent trips for the card view
-            c.execute('SELECT country, entry_date, exit_date, is_private FROM trips WHERE employee_id = ? ORDER BY exit_date DESC LIMIT 5', (emp['id'],))
-            recent_trips = [redact_private_trip_data(dict(trip)) for trip in c.fetchall()]
+            # Get recent trips (already fetched in batch)
+            recent_trips_raw = recent_trips_by_employee.get(emp_id, [])
+            recent_trips = [redact_private_trip_data(dict(trip)) for trip in recent_trips_raw]
             
             # Calculate future job forecasts for this employee
-            forecasts = get_all_future_jobs_for_employee(emp['id'], trips, warning_threshold)
+            forecasts = get_all_future_jobs_for_employee(emp_id, trips, warning_threshold)
             for forecast in forecasts:
                 if forecast['risk_level'] == 'red':
                     future_alerts_red += 1
@@ -793,6 +1055,14 @@ def dashboard():
                 else:
                     future_alerts_green += 1
             
+            forecast_reference = forecasts[0] if forecasts else None
+            if forecast_reference:
+                projected_remaining = forecast_reference.get('days_remaining_after_job', days_remaining)
+                projected_risk = forecast_reference.get('risk_level', risk_level)
+            else:
+                projected_remaining = days_remaining
+                projected_risk = risk_level
+            
             # Create employee data object
             emp_data = {
                 'id': emp['id'],
@@ -800,6 +1070,9 @@ def dashboard():
                 'days_used': days_used,
                 'days_remaining': days_remaining,
                 'risk_level': risk_level,
+                'forecasted_days_remaining': projected_remaining,
+                'forecast_risk_level': projected_risk,
+                'forecast_reference': forecast_reference,
                 'safe_entry_date': safe_entry,
                 'trip_count': trip_count,
                 'next_trip': next_trip,
@@ -822,12 +1095,22 @@ def dashboard():
             'green': future_alerts_green
         }
         
-        return render_template('dashboard.html', 
+        response = render_template('dashboard.html', 
                              employees=employee_data, 
                              at_risk_employees=at_risk_employees,
                              future_alerts_summary=future_alerts_summary,
                              sort_by=sort_by,
                              risk_thresholds=risk_thresholds)
+        
+        # OPTIMIZATION (Phase 2): Cache the response for 60 seconds
+        if cache:
+            try:
+                cache.set(cache_key, response, timeout=60)
+                logger.debug("Dashboard response cached")
+            except Exception as e:
+                logger.warning(f"Failed to cache dashboard response: {e}")
+        
+        return response
     
     except Exception as e:
         logger.error(f"Dashboard error: {e}")
@@ -839,9 +1122,7 @@ def dashboard():
                              future_alerts_summary={'red': 0, 'yellow': 0, 'green': 0},
                              sort_by='first_name',
                              risk_thresholds={'green': 30, 'amber': 10})
-    finally:
-        if 'conn' in locals():
-            conn.close()
+    # Connection managed by Flask teardown handler in models.py
 
 @main_bp.route('/employee/<int:employee_id>')
 @login_required
@@ -855,20 +1136,30 @@ def employee_detail(employee_id):
         c = conn.cursor()
         
         # Get employee details
-        c.execute('SELECT * FROM employees WHERE id = ?', (employee_id,))
+        # OPTIMIZATION V2: Select specific columns instead of SELECT *
+        # Note: created_at may not exist in all database schemas
+        try:
+            c.execute('SELECT id, name, created_at FROM employees WHERE id = ?', (employee_id,))
+        except sqlite3.OperationalError:
+            # Fallback if created_at column doesn't exist
+            c.execute('SELECT id, name FROM employees WHERE id = ?', (employee_id,))
         employee = c.fetchone()
         if not employee:
             return "Employee not found", 404
         
         # Get all trips for this employee
-        c.execute('SELECT * FROM trips WHERE employee_id = ? ORDER BY entry_date ASC', (employee_id,))
+        # OPTIMIZATION V2: Select specific columns instead of SELECT *
+        c.execute('SELECT id, employee_id, entry_date, exit_date, country, purpose, job_ref, ghosted, travel_days, is_private FROM trips WHERE employee_id = ? ORDER BY entry_date ASC', (employee_id,))
         rows = c.fetchall()
+        # Debug: Log trip count for troubleshooting
+        logger.debug(f"Employee {employee_id}: Found {len(rows)} trips in database")
 
         # Build trip dicts and compute durations/statuses
         from datetime import date as _date
         today = _date.today()
         trips_list = []
         simple_trips = []  # for rolling90
+        trip_date_meta = {}
         for row in rows:
             entry_str = row['entry_date']
             exit_str = row['exit_date']
@@ -879,6 +1170,10 @@ def employee_detail(employee_id):
             except Exception:
                 entry_dt, exit_dt = today, today
             duration = (exit_dt - entry_dt).days + 1
+            trip_date_meta[row['id']] = {
+                'entry': entry_dt,
+                'exit': exit_dt
+            }
             status = 'completed'
             if entry_dt > today:
                 status = 'future'
@@ -917,12 +1212,35 @@ def employee_detail(employee_id):
         compliant_date = None
         if days_remaining < 0:
             days_until_safe, compliant_date = days_until_compliant(presence, ref_date)
-        
-        # Annotate per-trip display fields depending on current remaining days
-        for t in trips_list:
-            t['days_remaining_after'] = days_remaining
-            t['risk_level_after'] = get_risk_level(days_remaining, risk_thresholds)
 
+        # Calculate per-trip compliance snapshots so job context rows reflect accurate rolling totals.
+        limit = 90
+        trip_metrics = {}
+        for trip_id, meta in trip_date_meta.items():
+            baseline = meta.get('exit') or meta.get('entry') or today
+            ref_point = baseline + timedelta(days=1)
+            remaining_after_trip = calculate_days_remaining(presence, ref_point)
+            trip_metrics[trip_id] = {
+                'days_remaining_after': remaining_after_trip,
+                'days_used_to_date': limit - remaining_after_trip,
+                'risk_level_after': get_risk_level(remaining_after_trip, risk_thresholds)
+            }
+
+        # Annotate per-trip display fields with the computed metrics, falling back to current snapshot.
+        for t in trips_list:
+            metrics = trip_metrics.get(t['id'])
+            if metrics:
+                t['days_remaining_after'] = metrics['days_remaining_after']
+                t['risk_level_after'] = metrics['risk_level_after']
+                t['days_used_to_date'] = metrics['days_used_to_date']
+            else:
+                t['days_remaining_after'] = days_remaining
+                t['risk_level_after'] = risk_level
+                t['days_used_to_date'] = days_used
+
+        # Debug: Log trip count being passed to template
+        logger.debug(f"Employee {employee_id}: Passing {len(trips_list)} trips to template")
+        
         return render_template(
             'employee_detail.html',
             employee=employee,
@@ -938,7 +1256,7 @@ def employee_detail(employee_id):
         logger.error(f"Employee detail error for employee {employee_id}: {e}")
         logger.error(traceback.format_exc())
         flash('An error occurred while loading employee details. Please try again.', 'error')
-        return redirect(url_for('main_bp.dashboard'))
+        return redirect(url_for('main.dashboard'))
     finally:
         if 'conn' in locals():
             conn.close()
@@ -1017,6 +1335,13 @@ def add_trip():
         trip_id = c.lastrowid
         conn.commit()
         
+        # OPTIMIZATION (Phase 2): Invalidate dashboard cache after trip addition
+        try:
+            from .utils.cache_invalidation import invalidate_dashboard_cache
+            invalidate_dashboard_cache()
+        except Exception as e:
+            logger.warning(f"Failed to invalidate cache after trip addition: {e}")
+        
         audit_action = 'private_trip_added' if is_private else 'trip_added'
         write_audit(CONFIG['AUDIT_LOG_PATH'], audit_action, 'admin', {
             'trip_id': trip_id,
@@ -1062,7 +1387,8 @@ def delete_trip(trip_id):
     
     try:
         # Get trip details before deletion for audit
-        c.execute('SELECT * FROM trips WHERE id = ?', (trip_id,))
+        # OPTIMIZATION V2: Select specific columns instead of SELECT *
+        c.execute('SELECT id, employee_id, entry_date, exit_date, country FROM trips WHERE id = ?', (trip_id,))
         trip = c.fetchone()
         
         if not trip:
@@ -1070,6 +1396,13 @@ def delete_trip(trip_id):
         
         c.execute('DELETE FROM trips WHERE id = ?', (trip_id,))
         conn.commit()
+        
+        # OPTIMIZATION (Phase 2): Invalidate dashboard cache after trip deletion
+        try:
+            from .utils.cache_invalidation import invalidate_dashboard_cache
+            invalidate_dashboard_cache()
+        except Exception as e:
+            logger.warning(f"Failed to invalidate cache after trip deletion: {e}")
         
         write_audit(CONFIG['AUDIT_LOG_PATH'], 'trip_deleted', 'admin', {
             'trip_id': trip_id,
@@ -1273,11 +1606,20 @@ def import_excel():
                     
             except Exception as e:
                 logger.error(f"Error processing Excel file: {e}")
+                import traceback
+                error_trace = traceback.format_exc()
+                logger.error(f"Excel import traceback: {error_trace}")
                 write_audit(CONFIG['AUDIT_LOG_PATH'], 'excel_import_error', 'admin', {
-                    'filename': file.filename,
+                    'filename': file.filename if file else 'unknown',
                     'error': str(e)
                 })
-                flash(f'Error processing file: {str(e)}')
+                flash(f'Error processing file: {str(e)}. Please check the file format and try again.')
+                # Clean up uploaded file on error
+                try:
+                    if 'file_path' in locals() and os.path.exists(file_path):
+                        os.remove(file_path)
+                except Exception as cleanup_error:
+                    logger.warning(f"Failed to cleanup uploaded file: {cleanup_error}")
                 return render_template('import_excel.html')
         else:
             flash('Invalid file type. Please upload an Excel file (.xlsx or .xls)')
@@ -1300,32 +1642,52 @@ def future_job_alerts():
     sort_by = request.args.get('sort', 'risk')     # risk | date | employee | days
 
     # Collect forecasts across all employees
+    # OPTIMIZATION V2: Batch fetch all trips instead of N queries (one per employee)
     conn = get_db()
     c = conn.cursor()
     c.execute('SELECT id, name FROM employees ORDER BY name')
     employees = c.fetchall()
 
     all_forecasts = []
-    for emp in employees:
-        # Get all trips for this employee
-        c.execute('SELECT entry_date, exit_date, country FROM trips WHERE employee_id = ?', (emp['id'],))
-        trips = [
-            {
-                'entry_date': t['entry_date'],
-                'exit_date': t['exit_date'],
-                'country': t['country']
-            }
-            for t in c.fetchall()
-        ]
-
-        # Calculate future job forecasts for this employee
-        forecasts = get_all_future_jobs_for_employee(emp['id'], trips, warning_threshold)
-        for f in forecasts:
-            # Enrich with employee metadata for the template
-            f['employee_name'] = emp['name']
-            all_forecasts.append(f)
-
-    conn.close()
+    
+    if employees:
+        # Batch fetch all trips for all employees in a single query
+        employee_ids = [emp['id'] for emp in employees]
+        placeholders = ','.join('?' * len(employee_ids))
+        
+        c.execute(f'''
+            SELECT employee_id, entry_date, exit_date, country
+            FROM trips
+            WHERE employee_id IN ({placeholders})
+            ORDER BY employee_id, entry_date ASC
+        ''', employee_ids)
+        
+        all_trips_raw = c.fetchall()
+        
+        # Group trips by employee_id in Python (much faster than multiple DB queries)
+        trips_by_employee = {}
+        for trip in all_trips_raw:
+            emp_id = trip['employee_id']
+            if emp_id not in trips_by_employee:
+                trips_by_employee[emp_id] = []
+            trips_by_employee[emp_id].append({
+                'entry_date': trip['entry_date'],
+                'exit_date': trip['exit_date'],
+                'country': trip['country']
+            })
+        
+        # Process forecasts for each employee
+        for emp in employees:
+            trips = trips_by_employee.get(emp['id'], [])
+            
+            # Calculate future job forecasts for this employee
+            forecasts = get_all_future_jobs_for_employee(emp['id'], trips, warning_threshold)
+            for f in forecasts:
+                # Enrich with employee metadata for the template
+                f['employee_name'] = emp['name']
+                all_forecasts.append(f)
+    
+    # Connection managed by Flask teardown handler
 
     # Counts before filtering
     red_count = sum(1 for f in all_forecasts if f['risk_level'] == 'red')

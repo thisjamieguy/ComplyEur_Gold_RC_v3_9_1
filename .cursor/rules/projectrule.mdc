@@ -1,0 +1,50 @@
+---
+alwaysApply: true
+---
+# 🇪🇺 Project Rules — ComplyEur (EU 90/180 Employee Travel Tracker)
+# Local-only HR compliance web app — built with privacy & simplicity in mind
+
+project:
+  name: ComplyEur
+  description: >
+    ComplyEur is a secure, local-only web app that helps UK companies
+    track employee travel days within the Schengen Area to comply with
+    the EU 90/180 rule.
+  tech_stack:
+    - Backend: Python (Flask)
+    - Database: SQLite (local)
+    - Frontend: HTML, CSS, JavaScript
+    - Testing: Playwright, Bash automation
+  data_policy:
+    - Store only essential employee data (name + travel dates + country)
+    - No tracking, analytics, or cookies beyond functional ones
+    - GDPR-compliant at all stages
+  ui_principles:
+    - Simple, clean, minimal design (Apple-style minimalism)
+    - Use tables, dropdowns, and color-coded indicators
+    - Colours: Green (safe), Orange (approaching limit), Red (exceeded)
+  structure:
+    - /backend → Flask routes, logic
+    - /frontend → Templates, static assets, JS
+    - /database → SQLite DB and migrations
+    - /tests → Playwright + automated QA scripts
+    - /scripts → Bash helpers (run_tests.sh, backup_db.sh)
+    - /reports → Output summaries (CSV/PDF)
+  build_guidelines:
+    - Each feature should be implemented in phases (e.g., 3.6.1, 3.6.2)
+    - Each phase ends with automated test scripts and summary output
+    - Keep all references to “IES” removed — ComplyEur branding only
+  coding_standards:
+    - Follow PEP8 for Python and ESLint defaults for JS
+    - Comment functions clearly with docstrings
+    - Always validate date inputs and country codes
+    - Use consistent naming: snake_case (Python), camelCase (JS)
+  security_principles:
+    - Passwords hashed (bcrypt or Argon2)
+    - Local-only authentication (no cloud auth)
+    - Role-based access planned (admin only for MVP)
+    - HTTPS when deployed via IONOS
+  compliance:
+    - 100% GDPR compliant
+    - No tracking, ads, or unnecessary cookies
+    - Privacy-first UX

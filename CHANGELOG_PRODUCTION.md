@@ -1,5 +1,5 @@
 # 📋 PRODUCTION CHANGELOG
-## EU Trip Tracker - Version 1.5.0
+## ComplyEur - Version 1.5.0
 
 ---
 
@@ -416,4 +416,3 @@ This application now meets enterprise-grade quality standards:
 
 Version 1.5.0 - Render Ready
 Date: October 20, 2025
-

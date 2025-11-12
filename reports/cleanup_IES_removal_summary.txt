@@ -1,0 +1,9 @@
+ComplyEur rebranding cleanup:
+- Searched repository for standalone "IES" references and brand phrases; none remained outside substrings in unrelated words.
+- Updated version headers to include ComplyEur branding:
+  - CHANGELOG_PRODUCTION.md
+  - backups/phase_3.4_cleanup_20251029_120414/DEPLOYMENT_SUMMARY.md
+  - backups/phase_3.4_cleanup_20251029_120414/README_PRODUCTION.md
+  - docs/CHANGELOG.md
+- No files or directories required renaming.
+- Integrity check: attempted `pytest -q` (venv) but command unavailable; further testing deferred.

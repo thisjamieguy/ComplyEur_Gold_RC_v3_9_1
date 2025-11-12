@@ -1,0 +1,320 @@
+{
+  "test_info": {
+    "start_time": "2025-11-04T22:44:31.205243",
+    "end_time": "2025-11-04T22:51:22.853426",
+    "duration_seconds": 411.64817786216736,
+    "duration_hours": 0.11434671607282426
+  },
+  "results": {
+    "start_time": "2025-11-04T22:44:31.205243",
+    "end_time": "2025-11-04T22:51:22.853426",
+    "duration_seconds": 411.64817786216736,
+    "excel_import_tests": {
+      "runs": 33,
+      "successes": 33,
+      "failures": 0,
+      "processing_times": [
+        0.3464391231536865,
+        0.7671289443969727,
+        1.5203921794891357,
+        0.36733102798461914,
+        0.9659829139709473,
+        1.8868882656097412,
+        0.5826349258422852,
+        0.9220840930938721,
+        1.7132809162139893,
+        0.3883349895477295,
+        0.9215779304504395,
+        1.758051872253418,
+        0.38550424575805664,
+        0.9519531726837158,
+        1.7794890403747559,
+        0.38399410247802734,
+        0.9246578216552734,
+        1.5885679721832275,
+        0.3576018810272217,
+        0.7882421016693115,
+        1.5432002544403076,
+        0.38030099868774414,
+        0.8861322402954102,
+        1.76786208152771,
+        0.4103260040283203,
+        0.9375638961791992,
+        1.7375388145446777,
+        0.41089892387390137,
+        0.9662899971008301,
+        1.715514898300171,
+        0.33896803855895996,
+        0.9052672386169434,
+        1.6625289916992188
+      ],
+      "employee_counts": [
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500,
+        100,
+        250,
+        500
+      ]
+    },
+    "backend_stability": {
+      "recalculations": 6380,
+      "drift_detections": 0,
+      "memory_leaks": [],
+      "deadlocks": 0
+    },
+    "frontend_sync": {
+      "interactions": 0,
+      "synchronization_errors": 10,
+      "lag_events": []
+    },
+    "export_validation": {
+      "exports": 20,
+      "csv_diffs": 0,
+      "pdf_diffs": 0,
+      "export_times": [
+        0.001773834228515625,
+        0.01758265495300293,
+        0.001987934112548828,
+        0.016494274139404297,
+        0.0025360584259033203,
+        0.020867109298706055,
+        0.0016100406646728516,
+        0.015211820602416992,
+        0.001987934112548828,
+        0.018849611282348633,
+        0.001837015151977539,
+        0.017673969268798828,
+        0.003564119338989258,
+        0.015470027923583984,
+        0.005491018295288086,
+        0.015111923217773438,
+        0.002814054489135742,
+        0.015870094299316406,
+        0.002089977264404297,
+        0.017600059509277344
+      ]
+    },
+    "system_metrics": [
+      {
+        "timestamp": "2025-11-04T22:44:34.397647",
+        "elapsed_seconds": 3.192412853240967,
+        "cpu_percent": 0.1,
+        "memory_mb": 101.71875,
+        "memory_percent": 0.6208419799804688,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:45:14.612075",
+        "elapsed_seconds": 43.40684199333191,
+        "cpu_percent": 0.0,
+        "memory_mb": 105.734375,
+        "memory_percent": 0.6453514099121094,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:45:54.789140",
+        "elapsed_seconds": 83.58391094207764,
+        "cpu_percent": 0.0,
+        "memory_mb": 109.046875,
+        "memory_percent": 0.6655693054199219,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:46:34.881037",
+        "elapsed_seconds": 123.67580485343933,
+        "cpu_percent": 0.0,
+        "memory_mb": 109.078125,
+        "memory_percent": 0.6657600402832031,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:47:15.029067",
+        "elapsed_seconds": 163.82383584976196,
+        "cpu_percent": 0.0,
+        "memory_mb": 108.078125,
+        "memory_percent": 0.6596565246582031,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:47:54.901318",
+        "elapsed_seconds": 203.6960849761963,
+        "cpu_percent": 0.0,
+        "memory_mb": 109.125,
+        "memory_percent": 0.666046142578125,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:48:34.419392",
+        "elapsed_seconds": 243.2141580581665,
+        "cpu_percent": 0.0,
+        "memory_mb": 110.90625,
+        "memory_percent": 0.6769180297851562,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:49:14.305681",
+        "elapsed_seconds": 283.1004500389099,
+        "cpu_percent": 0.1,
+        "memory_mb": 111.203125,
+        "memory_percent": 0.6787300109863281,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:49:54.304225",
+        "elapsed_seconds": 323.0989918708801,
+        "cpu_percent": 0.0,
+        "memory_mb": 111.984375,
+        "memory_percent": 0.6834983825683594,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:50:34.290019",
+        "elapsed_seconds": 363.0847887992859,
+        "cpu_percent": 0.0,
+        "memory_mb": 111.25,
+        "memory_percent": 0.67901611328125,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:51:05.612849",
+        "elapsed_seconds": 394.4076249599457,
+        "cpu_percent": 0.1,
+        "memory_mb": 111.203125,
+        "memory_percent": 0.6787300109863281,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:51:14.226821",
+        "elapsed_seconds": 403.021586894989,
+        "cpu_percent": 0.1,
+        "memory_mb": 111.765625,
+        "memory_percent": 0.6821632385253906,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      },
+      {
+        "timestamp": "2025-11-04T22:51:22.853645",
+        "elapsed_seconds": 411.6484088897705,
+        "cpu_percent": 0.2,
+        "memory_mb": 111.765625,
+        "memory_percent": 0.6821632385253906,
+        "io_read_mb": 0.0,
+        "io_write_mb": 0.0
+      }
+    ],
+    "errors": [
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Playwright UI login failed: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 350, in _perform_playwright_login\n    page.wait_for_url(re.compile(r'.*/(dashboard|home)(/)?$'), timeout=30000)\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 521, in test_frontend_synchronization\n    session = self._open_playwright_session()\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 329, in _open_playwright_session\n    self._perform_playwright_login(page)\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 353, in _perform_playwright_login\n    raise RuntimeError(f'Playwright UI login failed: {exc}')\nRuntimeError: Playwright UI login failed: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:45:05.630502"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Playwright UI login failed: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 350, in _perform_playwright_login\n    page.wait_for_url(re.compile(r'.*/(dashboard|home)(/)?$'), timeout=30000)\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 521, in test_frontend_synchronization\n    session = self._open_playwright_session()\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 329, in _open_playwright_session\n    self._perform_playwright_login(page)\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 353, in _perform_playwright_login\n    raise RuntimeError(f'Playwright UI login failed: {exc}')\nRuntimeError: Playwright UI login failed: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:45:45.786429"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Playwright UI login failed: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 350, in _perform_playwright_login\n    page.wait_for_url(re.compile(r'.*/(dashboard|home)(/)?$'), timeout=30000)\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 521, in test_frontend_synchronization\n    session = self._open_playwright_session()\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 329, in _open_playwright_session\n    self._perform_playwright_login(page)\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 353, in _perform_playwright_login\n    raise RuntimeError(f'Playwright UI login failed: {exc}')\nRuntimeError: Playwright UI login failed: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:46:26.010671"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Playwright UI login failed: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 350, in _perform_playwright_login\n    page.wait_for_url(re.compile(r'.*/(dashboard|home)(/)?$'), timeout=30000)\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 521, in test_frontend_synchronization\n    session = self._open_playwright_session()\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 329, in _open_playwright_session\n    self._perform_playwright_login(page)\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 353, in _perform_playwright_login\n    raise RuntimeError(f'Playwright UI login failed: {exc}')\nRuntimeError: Playwright UI login failed: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:47:06.117676"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Playwright UI login failed: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 350, in _perform_playwright_login\n    page.wait_for_url(re.compile(r'.*/(dashboard|home)(/)?$'), timeout=30000)\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 521, in test_frontend_synchronization\n    session = self._open_playwright_session()\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 329, in _open_playwright_session\n    self._perform_playwright_login(page)\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 353, in _perform_playwright_login\n    raise RuntimeError(f'Playwright UI login failed: {exc}')\nRuntimeError: Playwright UI login failed: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:47:46.217181"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Playwright UI login failed: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 350, in _perform_playwright_login\n    page.wait_for_url(re.compile(r'.*/(dashboard|home)(/)?$'), timeout=30000)\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 521, in test_frontend_synchronization\n    session = self._open_playwright_session()\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 329, in _open_playwright_session\n    self._perform_playwright_login(page)\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 353, in _perform_playwright_login\n    raise RuntimeError(f'Playwright UI login failed: {exc}')\nRuntimeError: Playwright UI login failed: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:48:25.978332"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Playwright UI login failed: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 350, in _perform_playwright_login\n    return\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 521, in test_frontend_synchronization\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 329, in _open_playwright_session\n    self._perform_playwright_login(page)\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 353, in _perform_playwright_login\n    page.fill('input[name=\"username\"]', self.admin_username)\nRuntimeError: Playwright UI login failed: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:49:05.509853"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Playwright UI login failed: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 350, in _perform_playwright_login\n    if re.search(r'/(dashboard|home)(/)?$', page.url):\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 521, in test_frontend_synchronization\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 329, in _open_playwright_session\n    if '/dashboard' not in page.url:\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 353, in _perform_playwright_login\n    if page.locator('input[name=\"username\"]').count() > 0:\nRuntimeError: Playwright UI login failed: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:49:45.455389"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Playwright UI login failed: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 350, in _perform_playwright_login\n    if re.search(r'/(dashboard|home)(/)?$', page.url):\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 521, in test_frontend_synchronization\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 329, in _open_playwright_session\n    if '/dashboard' not in page.url:\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 353, in _perform_playwright_login\n    if page.locator('input[name=\"username\"]').count() > 0:\nRuntimeError: Playwright UI login failed: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:50:25.438365"
+      },
+      {
+        "test": "frontend_sync_initialization",
+        "error": "Playwright UI login failed: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 350, in _perform_playwright_login\n    if re.search(r'/(dashboard|home)(/)?$', page.url):\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/sync_api/_generated.py\", line 9162, in wait_for_url\n    self._sync(\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_page.py\", line 584, in wait_for_url\n    return await self._main_frame.wait_for_url(**locals_to_params(locals()))\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 266, in wait_for_url\n    pass\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_event_context_manager.py\", line 33, in __aexit__\n    await self._future\n  File \"/Users/jameswalsh/Library/Python/3.9/lib/python/site-packages/playwright/_impl/_frame.py\", line 239, in continuation\n    event = await waiter.result()\nplaywright._impl._errors.TimeoutError: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 521, in test_frontend_synchronization\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 329, in _open_playwright_session\n    if '/dashboard' not in page.url:\n  File \"/Users/jameswalsh/Desktop/Dev/Web Projects/ComplyEur/ComplyEur v1.0.0/tests/qa_elite/phase_3_10_endurance_stress.py\", line 353, in _perform_playwright_login\n    if page.locator('input[name=\"username\"]').count() > 0:\nRuntimeError: Playwright UI login failed: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"re.compile('.*/(dashboard|home)(/)?$')\" until 'load'\n============================================================\n",
+        "timestamp": "2025-11-04T22:51:05.463115"
+      }
+    ]
+  },
+  "system_summary": {
+    "duration_seconds": 411.6484088897705,
+    "cpu_avg": 0.04615384615384616,
+    "cpu_max": 0.2,
+    "cpu_min": 0.0,
+    "memory_avg_mb": 109.45072115384616,
+    "memory_max_mb": 111.984375,
+    "memory_min_mb": 101.71875,
+    "memory_growth_mb": 10.046875,
+    "total_io_read_mb": 0.0,
+    "total_io_write_mb": 0.0
+  },
+  "drift_log": []
+}

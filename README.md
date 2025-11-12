@@ -1,6 +1,9 @@
-# EU 90/180 Employee Travel Tracker v1.6.4
+# ComplyEur - EU 90/180 Employee Travel Tracker
 
-A Flask web application for tracking employee travel to EU/Schengen countries and ensuring compliance with the 90/180-day rule.
+**Version**: 3.9.1 (Gold Release Candidate)  
+**Last Updated**: 2025-11-12
+
+A secure, local-only Flask web application for tracking employee travel to EU/Schengen countries and ensuring compliance with the 90/180-day rule. Built with privacy and GDPR compliance as core principles.
 
 ## Features
 
@@ -36,6 +39,7 @@ A Flask web application for tracking employee travel to EU/Schengen countries an
    ```bash
    cp .env.example .env
    # Edit .env with your configuration
+   # IMPORTANT: Generate a secure SECRET_KEY (see INSTALL.md)
    ```
 
 4. **Run the application**
@@ -283,6 +287,15 @@ This command generates fresh workbooks in `tests/sample_files/`, resets the isol
 - `tests/excel_security.spec.js` – GDPR/privacy and DSAR coverage
 
 Use `reports/excel_import_report.md` as the manual sign-off template when documenting runs.
+
+## Documentation
+
+- **[INSTALL.md](INSTALL.md)** - Step-by-step installation guide
+- **[TESTING.md](TESTING.md)** - Comprehensive testing documentation
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and changes
+- **[GDPR_NOTICE.md](GDPR_NOTICE.md)** - GDPR compliance notice
+- **[logic_explained.md](logic_explained.md)** - Plain-English explanation of 90/180-day rule
+- **[docs/](docs/)** - Additional documentation
 
 ## License
 

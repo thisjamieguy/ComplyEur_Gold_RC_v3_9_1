@@ -831,8 +831,11 @@
                 <img
                     id="modalHeaderImage"
                     src="{{ url_for('static', filename='images/cityscapes/default.webp') }}"
-                    alt=""
+                    alt="European cityscape"
                     class="country-image"
+                    loading="lazy"
+                    width="800"
+                    height="400"
                     onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/cityscapes/default.webp') }}';"
                 />
                 <div class="country-overlay"></div>

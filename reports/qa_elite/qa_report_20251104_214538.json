@@ -1,0 +1,121 @@
+{
+  "iterations": 10,
+  "total_duration_seconds": 6.142599,
+  "start_time": "2025-11-04T21:45:32.364022",
+  "end_time": "2025-11-04T21:45:38.506621",
+  "total_discrepancies": 0,
+  "zero_defects_achieved": true,
+  "iteration_results": [
+    {
+      "iteration": 1,
+      "start_time": "2025-11-04T21:45:33.065150",
+      "duration_seconds": 0.7010858058929443,
+      "result": {
+        "tests_run": 4,
+        "tests_passed": 1,
+        "tests_failed": 3,
+        "discrepancies": []
+      }
+    },
+    {
+      "iteration": 2,
+      "start_time": "2025-11-04T21:45:33.657608",
+      "duration_seconds": 0.5924229621887207,
+      "result": {
+        "tests_run": 4,
+        "tests_passed": 1,
+        "tests_failed": 3,
+        "discrepancies": []
+      }
+    },
+    {
+      "iteration": 3,
+      "start_time": "2025-11-04T21:45:34.270880",
+      "duration_seconds": 0.6132400035858154,
+      "result": {
+        "tests_run": 4,
+        "tests_passed": 1,
+        "tests_failed": 3,
+        "discrepancies": []
+      }
+    },
+    {
+      "iteration": 4,
+      "start_time": "2025-11-04T21:45:34.865888",
+      "duration_seconds": 0.5949699878692627,
+      "result": {
+        "tests_run": 4,
+        "tests_passed": 1,
+        "tests_failed": 3,
+        "discrepancies": []
+      }
+    },
+    {
+      "iteration": 5,
+      "start_time": "2025-11-04T21:45:35.469551",
+      "duration_seconds": 0.6036341190338135,
+      "result": {
+        "tests_run": 4,
+        "tests_passed": 1,
+        "tests_failed": 3,
+        "discrepancies": []
+      }
+    },
+    {
+      "iteration": 6,
+      "start_time": "2025-11-04T21:45:36.062230",
+      "duration_seconds": 0.5926477909088135,
+      "result": {
+        "tests_run": 4,
+        "tests_passed": 1,
+        "tests_failed": 3,
+        "discrepancies": []
+      }
+    },
+    {
+      "iteration": 7,
+      "start_time": "2025-11-04T21:45:36.671627",
+      "duration_seconds": 0.6093661785125732,
+      "result": {
+        "tests_run": 4,
+        "tests_passed": 1,
+        "tests_failed": 3,
+        "discrepancies": []
+      }
+    },
+    {
+      "iteration": 8,
+      "start_time": "2025-11-04T21:45:37.277629",
+      "duration_seconds": 0.6059701442718506,
+      "result": {
+        "tests_run": 4,
+        "tests_passed": 1,
+        "tests_failed": 3,
+        "discrepancies": []
+      }
+    },
+    {
+      "iteration": 9,
+      "start_time": "2025-11-04T21:45:37.888558",
+      "duration_seconds": 0.6108880043029785,
+      "result": {
+        "tests_run": 4,
+        "tests_passed": 1,
+        "tests_failed": 3,
+        "discrepancies": []
+      }
+    },
+    {
+      "iteration": 10,
+      "start_time": "2025-11-04T21:45:38.506595",
+      "duration_seconds": 0.6180038452148438,
+      "result": {
+        "tests_run": 4,
+        "tests_passed": 1,
+        "tests_failed": 3,
+        "discrepancies": []
+      }
+    }
+  ],
+  "all_discrepancies": []
+}

@@ -8,7 +8,8 @@
 {% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar.css') }}?v=1.7.7">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar.css') }}?v=1.8.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/timeline.css') }}?v=1.0.0">
 {% endblock %}
 
 {% block content %}
@@ -21,88 +22,184 @@
          data-warning-threshold="{{ config['CONFIG'].get('FUTURE_JOB_WARNING_THRESHOLD', 80) }}"
          data-focus-employee="{{ employee_id if employee_id is defined else '' }}"
          data-focus-employee-name="{{ employee_name if employee_name is defined else '' }}">
-        <header class="calendar-toolbar">
-            <div class="calendar-toolbar-left">
-                <button type="button" class="calendar-btn" data-action="prev" aria-label="Show previous month range">
-                    <span aria-hidden="true">←</span>
-                </button>
-                <button type="button" class="calendar-btn calendar-btn--primary" data-action="today">
-                    Today
-                </button>
-                <button type="button" class="calendar-btn" data-action="next" aria-label="Show next month range">
-                    <span aria-hidden="true">→</span>
-                </button>
-                <h1 class="calendar-title">
-                    <span id="calendar-range-label">Loading range…</span>
-                    {% if employee_name is defined %}
-                    <small class="calendar-focus-label">Focused on {{ employee_name }}</small>
-                    {% endif %}
-                </h1>
-            </div>
-            <div class="calendar-toolbar-right">
-                <div class="calendar-toolbar-actions">
-                    <label for="calendar-future-weeks" class="calendar-toolbar-label">Future view:</label>
-                    <select id="calendar-future-weeks" class="calendar-select">
-                        <option value="4">4 weeks</option>
-                        <option value="5">5 weeks</option>
-                        <option value="6" selected>6 weeks</option>
-                        <option value="7">7 weeks</option>
-                        <option value="8">8 weeks</option>
-                        <option value="9">9 weeks</option>
-                        <option value="10">10 weeks</option>
-                    </select>
-                    <div class="calendar-toolbar-buttons" role="group" aria-label="Trip actions">
-                        <button type="button" class="calendar-btn calendar-btn--accent" data-action="add-trip">
-                            Add Trip
+        <div class="calendar-shell-inner">
+            <div class="calendar-view-stack" data-active-view="calendar">
+                <section class="calendar-view-layer is-active" data-view-layer="calendar" aria-label="Calendar view">
+                    <div class="calendar-main-column">
+                <header class="calendar-toolbar">
+                    <div class="calendar-toolbar-left">
+                        <button type="button" class="calendar-btn" data-action="prev" aria-label="Show previous month range">
+                            <span aria-hidden="true">←</span>
                         </button>
-                        <button type="button" class="calendar-btn calendar-btn--secondary" data-action="edit-trip-global" disabled aria-disabled="true">
-                            Edit Trip
+                        <button type="button" class="calendar-btn calendar-btn--primary" data-action="today">
+                            Today
                         </button>
+                        <button type="button" class="calendar-btn" data-action="next" aria-label="Show next month range">
+                            <span aria-hidden="true">→</span>
+                        </button>
+                        <h1 class="calendar-title">
+                            <span id="calendar-range-label">Loading range…</span>
+                            {% if employee_name is defined %}
+                            <small class="calendar-focus-label">Focused on {{ employee_name }}</small>
+                            {% endif %}
+                        </h1>
                     </div>
-                </div>
-                <div class="calendar-search">
-                    <label for="calendar-search-input" class="visually-hidden">Filter employees</label>
-                    <input id="calendar-search-input" type="search" placeholder="Filter employees…" autocomplete="off">
-                    <button type="button" class="calendar-search-clear" aria-label="Clear search">×</button>
-                </div>
-            </div>
-        </header>
+                    <div class="calendar-toolbar-right">
+                        <div class="calendar-view-toggle" role="group" aria-label="Calendar display mode">
+                            <button type="button" class="calendar-view-toggle__button is-active" data-view-target="calendar" aria-pressed="true">
+                                Calendar
+                            </button>
+                            <button type="button" class="calendar-view-toggle__button" data-view-target="timeline" aria-pressed="false">
+                                Timeline
+                            </button>
+                        </div>
+                        <div class="calendar-toolbar-actions">
+                            <label for="calendar-future-weeks" class="calendar-toolbar-label">Future view:</label>
+                            <select id="calendar-future-weeks" class="calendar-select">
+                                <option value="4">4 weeks</option>
+                                <option value="5">5 weeks</option>
+                                <option value="6" selected>6 weeks</option>
+                                <option value="7">7 weeks</option>
+                                <option value="8">8 weeks</option>
+                                <option value="9">9 weeks</option>
+                                <option value="10">10 weeks</option>
+                            </select>
+                            <div class="calendar-toolbar-buttons" role="group" aria-label="Trip actions">
+                                <button type="button" class="calendar-btn calendar-btn--accent" data-action="add-trip">
+                                    Add Trip
+                                </button>
+                                <button type="button" class="calendar-btn calendar-btn--secondary" data-action="edit-trip-global" disabled aria-disabled="true">
+                                    Edit Trip
+                                </button>
+                            </div>
+                        </div>
+                        <div class="calendar-toolbar-utilities">
+                            <button type="button" class="calendar-btn calendar-btn--ghost calendar-fullscreen-toggle" data-action="toggle-fullscreen" aria-label="Enter full screen" aria-pressed="false">
+                                <span class="calendar-icon" aria-hidden="true"></span>
+                                <span class="calendar-btn-label">Full Screen</span>
+                            </button>
+                            <div class="calendar-search">
+                                <label for="calendar-search-input" class="visually-hidden">Filter employees</label>
+                                <input id="calendar-search-input" type="search" placeholder="Filter employees…" autocomplete="off">
+                                <button type="button" class="calendar-search-clear" aria-label="Clear search">×</button>
+                            </div>
+                        </div>
+                    </div>
+                </header>
 
-        <section class="calendar-legend" aria-label="Calendar legend">
-            <div class="calendar-legend-item">
-                <span class="calendar-legend-swatch calendar-legend-swatch--safe"></span>
-                <span>Compliant &lt; 60 days</span>
-            </div>
-            <div class="calendar-legend-item">
-                <span class="calendar-legend-swatch calendar-legend-swatch--warning"></span>
-                <span>Approaching limit 60–89 days</span>
-            </div>
-            <div class="calendar-legend-item">
-                <span class="calendar-legend-swatch calendar-legend-swatch--critical"></span>
-                <span>Exceeded ≥ 90 days</span>
+                <section class="calendar-legend" aria-label="Calendar legend">
+                    <div class="calendar-legend-item">
+                        <span class="calendar-legend-swatch calendar-legend-swatch--safe"></span>
+                        <span>Compliant &lt; 60 days</span>
+                    </div>
+                    <div class="calendar-legend-item">
+                        <span class="calendar-legend-swatch calendar-legend-swatch--warning"></span>
+                        <span>Approaching limit 60–89 days</span>
+                    </div>
+                    <div class="calendar-legend-item">
+                        <span class="calendar-legend-swatch calendar-legend-swatch--critical"></span>
+                        <span>Exceeded ≥ 90 days</span>
+                    </div>
+                </section>
+
+                <section class="calendar-main" aria-live="polite">
+                    <div class="calendar-header-row">
+                        <div class="calendar-employee-header">
+                            <span>Employees</span>
+                        </div>
+                        <div class="calendar-timeline-header">
+                            <div class="calendar-month-row" id="calendar-month-row"></div>
+                            <div class="calendar-day-row" id="calendar-day-row"></div>
+                            <div class="calendar-today-marker" id="calendar-today-marker" aria-hidden="true"></div>
+                        </div>
+                    </div>
+                    <div class="calendar-body">
+                        <div class="calendar-employee-list" id="calendar-employee-list" role="listbox" aria-label="Employees"></div>
+                        <div class="calendar-timeline">
+                            <div class="calendar-timeline-inner" id="calendar-timeline">
+                                <!-- Phase 3.6.1: Drag-and-drop handles mount inside the grid rows here. -->
+                                <div class="calendar-grid" id="calendar-grid"></div>
+                                <div class="calendar-today-marker calendar-today-marker--body" id="calendar-today-marker-body" aria-hidden="true"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
         </section>
+        <section class="calendar-view-layer" data-view-layer="timeline" aria-label="Timeline view" aria-hidden="true">
+            {% include 'timeline.html' %}
+        </section>
+        </div>
 
-        <section class="calendar-main" aria-live="polite">
-            <div class="calendar-header-row">
-                <div class="calendar-employee-header">
-                    <span>Employees</span>
-                </div>
-                <div class="calendar-timeline-header">
-                    <div class="calendar-month-row" id="calendar-month-row"></div>
-                    <div class="calendar-day-row" id="calendar-day-row"></div>
-                    <div class="calendar-today-marker" id="calendar-today-marker" aria-hidden="true"></div>
-                </div>
-            </div>
-            <div class="calendar-body">
-                <div class="calendar-employee-list" id="calendar-employee-list" role="listbox" aria-label="Employees"></div>
-                <div class="calendar-timeline">
-                    <div class="calendar-timeline-inner" id="calendar-timeline">
-                        <!-- Phase 3.6.1: Drag-and-drop handles mount inside the grid rows here. -->
-                        <div class="calendar-grid" id="calendar-grid"></div>
-                        <div class="calendar-today-marker calendar-today-marker--body" id="calendar-today-marker-body" aria-hidden="true"></div>
+            <aside class="calendar-alerts-panel" id="calendar-alerts-panel" aria-labelledby="calendar-alerts-title">
+                <header class="calendar-alerts-header">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <h2 id="calendar-alerts-title" style="margin: 0;">Alerts</h2>
+                        <button type="button" class="calendar-alerts-toggle" id="calendar-alerts-toggle" aria-label="Hide alerts panel" title="Hide alerts panel" style="background: none; border: none; cursor: pointer; padding: 4px; font-size: 18px; color: #64748b; transition: color 0.2s; line-height: 1;">×</button>
+                    </div>
+                    <div class="calendar-alerts-filters" role="tablist" aria-label="Alert filters">
+                        <button type="button" class="calendar-alerts-filter is-active" data-alert-filter="all" aria-pressed="true">
+                            All <span class="calendar-alerts-filter-count" aria-hidden="true"></span>
+                        </button>
+                        <button type="button" class="calendar-alerts-filter" data-alert-filter="warning" aria-pressed="false">
+                            Warnings <span class="calendar-alerts-filter-count" aria-hidden="true"></span>
+                        </button>
+                        <button type="button" class="calendar-alerts-filter" data-alert-filter="critical" aria-pressed="false">
+                            Critical <span class="calendar-alerts-filter-count" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </header>
+                <div class="calendar-alerts-body" role="region" aria-live="polite">
+                    <ul class="calendar-alerts-list" id="calendar-alerts-list"></ul>
+                    <div class="calendar-alerts-empty" id="calendar-alerts-empty">
+                        <p>All clear — no active compliance alerts.</p>
                     </div>
                 </div>
+            </aside>
+        </div>
+
+        <section class="forecast-panel" id="calendar-forecast-panel" data-forecast-state="open" aria-labelledby="forecast-panel-title">
+            <button type="button" class="forecast-panel__toggle" data-forecast-action="toggle" aria-expanded="true">
+                <span class="forecast-panel__toggle-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Collapse mini forecast panel</span>
+            </button>
+            <div class="forecast-panel__content">
+                <header class="forecast-panel__header">
+                    <div class="forecast-panel__header-text">
+                        <p id="forecast-panel-title" class="forecast-panel__title">Mini Forecast</p>
+                        <p class="forecast-panel__subtitle" data-forecast-employee>Loading…</p>
+                    </div>
+                    <span class="forecast-panel__badge forecast-panel__badge--safe" data-forecast-status>Safe</span>
+                </header>
+                <dl class="forecast-panel__metrics">
+                    <div class="forecast-panel__metric">
+                        <dt class="forecast-panel__metric-label">Used days</dt>
+                        <dd class="forecast-panel__metric-value" data-forecast-used>—</dd>
+                    </div>
+                    <div class="forecast-panel__metric">
+                        <dt class="forecast-panel__metric-label">Upcoming days</dt>
+                        <dd class="forecast-panel__metric-value" data-forecast-upcoming>—</dd>
+                    </div>
+                    <div class="forecast-panel__metric">
+                        <dt class="forecast-panel__metric-label">Projected total</dt>
+                        <dd class="forecast-panel__metric-value" data-forecast-total>—</dd>
+                    </div>
+                </dl>
+                <div class="forecast-panel__progress">
+                    <div class="forecast-panel__progress-bar" data-forecast-progress></div>
+                    <span class="forecast-panel__progress-caption" data-forecast-caption>Within 90-day limit</span>
+                </div>
+                <div class="forecast-panel__actions">
+                    <button type="button" class="forecast-panel__refresh" data-forecast-action="refresh">Refresh</button>
+                </div>
+                <div class="forecast-panel__upcoming-wrapper" data-forecast-upcoming-wrapper hidden>
+                    <h3 class="forecast-panel__upcoming-title">Upcoming trips</h3>
+                    <ul class="forecast-panel__upcoming" data-forecast-upcoming-list></ul>
+                </div>
+                <footer class="forecast-panel__footer">
+                    <time class="forecast-panel__timestamp" data-forecast-updated datetime="">Updated moments ago</time>
+                    <span class="forecast-panel__note">Updates automatically when trips change</span>
+                </footer>
             </div>
         </section>
 
@@ -144,6 +241,10 @@
                             <span class="calendar-detail-meta-label">Rolling 180-day usage</span>
                             <span class="calendar-detail-meta-value" id="calendar-detail-usage">—</span>
                         </div>
+                        <div>
+                            <span class="calendar-detail-meta-label">Forecasted days remaining</span>
+                            <span class="calendar-detail-meta-value" id="calendar-detail-remaining">—</span>
+                        </div>
                     </div>
                     <div class="calendar-detail-notes" id="calendar-detail-notes" hidden>
                         <h3>Notes</h3>
@@ -167,58 +268,7 @@
             </div>
         </div>
 
-        <div class="calendar-form-overlay" id="calendar-form-overlay" role="dialog" aria-modal="true" hidden>
-            <div class="calendar-form" role="document" aria-labelledby="calendar-form-title" tabindex="-1">
-                <header class="calendar-form-header">
-                    <div class="calendar-form-titles">
-                        <h2 class="calendar-form-title" id="calendar-form-title">Add trip</h2>
-                        <p class="calendar-form-subtitle" id="calendar-form-subtitle">Create a new travel record</p>
-                    </div>
-                    <button type="button" class="calendar-form-close" data-action="close-form" aria-label="Close form">
-                        ×
-                    </button>
-                </header>
-                <form id="calendar-form" class="calendar-form-body" novalidate>
-                    <div class="calendar-form-grid">
-                        <label class="calendar-form-field">
-                            <span>Employee</span>
-                            <select id="calendar-form-employee" name="employee_id" required></select>
-                        </label>
-                        <label class="calendar-form-field">
-                            <span>Country</span>
-                            <input id="calendar-form-country" name="country" type="text" maxlength="80" required>
-                        </label>
-                        <label class="calendar-form-field">
-                            <span>Entry date</span>
-                            <input id="calendar-form-start" name="start_date" type="date" required>
-                        </label>
-                        <label class="calendar-form-field">
-                            <span>Exit date</span>
-                            <input id="calendar-form-end" name="end_date" type="date" required>
-                        </label>
-                        <label class="calendar-form-field">
-                            <span>Job reference <small>(optional)</small></span>
-                            <input id="calendar-form-jobref" name="job_ref" type="text" maxlength="120" autocomplete="off">
-                        </label>
-                        <label class="calendar-form-field calendar-form-field--wide">
-                            <span>Purpose / notes <small>(optional)</small></span>
-                            <textarea id="calendar-form-purpose" name="purpose" rows="3" maxlength="500"></textarea>
-                        </label>
-                    </div>
-                    <div class="calendar-form-footer">
-                        <div class="calendar-form-feedback" id="calendar-form-feedback" aria-live="polite" hidden></div>
-                        <div class="calendar-form-actions">
-                            <button type="button" class="calendar-btn calendar-btn--ghost" data-action="close-form">
-                                Cancel
-                            </button>
-                            <button type="submit" class="calendar-btn calendar-btn--primary" data-action="submit-form">
-                                Save Trip
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
+        {% include 'components/edit_trip_modal.html' %}
 
         <div class="calendar-loading" id="calendar-loading" hidden>
             <svg viewBox="0 0 50 50" class="calendar-spinner" aria-hidden="true">
@@ -243,6 +293,24 @@
         </div>
 
         <div class="calendar-toast" id="calendar-toast" role="status" aria-live="polite" aria-hidden="true"></div>
+        <div class="calendar-context-menu" id="calendar-context-menu" role="menu" aria-hidden="true" hidden tabindex="-1">
+            <button type="button" class="calendar-context-menu__item" data-menu-action="edit" role="menuitem">
+                <span class="calendar-context-menu__icon calendar-context-menu__icon--edit" aria-hidden="true"></span>
+                Edit Trip
+            </button>
+            <button type="button" class="calendar-context-menu__item calendar-context-menu__item--danger" data-menu-action="delete" role="menuitem">
+                <span class="calendar-context-menu__icon calendar-context-menu__icon--delete" aria-hidden="true"></span>
+                Delete Trip
+            </button>
+            <button type="button" class="calendar-context-menu__item" data-menu-action="duplicate" role="menuitem">
+                <span class="calendar-context-menu__icon calendar-context-menu__icon--duplicate" aria-hidden="true"></span>
+                Duplicate Trip
+            </button>
+            <button type="button" class="calendar-context-menu__item" data-menu-action="details" role="menuitem">
+                <span class="calendar-context-menu__icon calendar-context-menu__icon--summary" aria-hidden="true"></span>
+                View Details
+            </button>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -274,19 +342,11 @@
             <div style="display:flex;flex-direction:column;align-items:center;gap:16px">
               <img src="/static/images/me_construction.png" alt="Walshy in a hard hat" style="width:120px;height:120px;object-fit:cover;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,0.15);background:#fff"/>
               <div style="width:100%;white-space:pre-wrap;line-height:1.5">
-Hello Friend,
+Welcome to ComplyEur Calendar
 
-Thank you for choosing my app as a possible solution to your EES headache,
+Visualise employee travel across the Schengen area. Track compliance with the 90-day rule and plan future trips effectively.
 
-I hope you enjoy the app and feel free to look arounf around and let me know if you find anything that looks wierd or buggy.
-
-This calander wil be a masterpice IMO when finished, however, right now tho its not finished. but it will be soon. 
-
-Your friend 
-
-
-
-Walshy
+This feature is in active development. Thank you for your patience.
               </div>
               <label style="display:flex;align-items:center;gap:8px;margin-top:8px">
                 <input id="dontShowSplash" type="checkbox"/>
@@ -318,6 +378,8 @@ Walshy
       setTimeout(()=>overlay.querySelector('#closeSplashBtn')?.focus(),0);
     })();
     </script>
-    <script src="{{ url_for('static', filename='js/dragManager.js') }}?v=1.7.8"></script>
-    <script src="{{ url_for('static', filename='js/calendar.js') }}?v=1.7.8"></script>
+    <script defer src="{{ url_for('static', filename='js/dragManager.js') }}?v=1.7.8"></script>
+    <script defer src="{{ url_for('static', filename='js/calendar.js') }}?v=1.8.0"></script>
+    <script defer src="{{ url_for('static', filename='js/calendar_sync.js') }}?v=3.9.0"></script>
+    <script defer src="{{ url_for('static', filename='js/timeline.js') }}?v=1.0.0"></script>
 {% endblock %}

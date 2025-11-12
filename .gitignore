@@ -104,3 +104,5 @@ data/eu_tracker.db
 # Cleanup artifacts
 app_backup.py
 original_app.py
+tests/auth/state.json
+node_modules/

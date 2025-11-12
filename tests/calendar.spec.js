@@ -101,12 +101,107 @@ function createMockCalendarApi() {
     return inclusiveDayCount(startIso, endIso);
   }
 
+  function isoToUtcDate(iso) {
+    return new Date(`${iso}T00:00:00Z`);
+  }
+
+  function buildPresenceSet(tripsForEmployee) {
+    const set = new Set();
+    tripsForEmployee.forEach((trip) => {
+      const startIso = trip.entry_date || trip.start_date;
+      const endIso = trip.exit_date || trip.end_date || startIso;
+      if (!startIso || !endIso) return;
+      const start = isoToUtcDate(startIso);
+      const end = isoToUtcDate(endIso);
+      const cursor = new Date(start);
+      while (cursor <= end) {
+        set.add(cursor.toISOString().split('T')[0]);
+        cursor.setUTCDate(cursor.getUTCDate() + 1);
+      }
+    });
+    return set;
+  }
+
+  function countUsedDays(presenceSet, todayUtc) {
+    const windowStart = new Date(todayUtc);
+    windowStart.setUTCDate(windowStart.getUTCDate() - 180);
+    const windowEnd = new Date(todayUtc);
+    windowEnd.setUTCDate(windowEnd.getUTCDate() - 1);
+    let count = 0;
+    presenceSet.forEach((iso) => {
+      const day = isoToUtcDate(iso);
+      if (day > windowStart && day <= windowEnd) {
+        count += 1;
+      }
+    });
+    return count;
+  }
+
+  function computeUpcoming(tripsForEmployee, todayUtc) {
+    let days = 0;
+    const upcoming = [];
+    tripsForEmployee.forEach((trip) => {
+      const startIso = trip.entry_date || trip.start_date;
+      const endIso = trip.exit_date || trip.end_date || startIso;
+      if (!startIso || !endIso) return;
+      const start = isoToUtcDate(startIso);
+      const end = isoToUtcDate(endIso);
+      if (end < todayUtc) {
+        return;
+      }
+      const futureStart = start > todayUtc ? start : todayUtc;
+      const futureDuration = Math.max(0, Math.round((end - futureStart) / 86_400_000) + 1);
+      if (futureDuration <= 0) {
+        return;
+      }
+      days += futureDuration;
+      upcoming.push({
+        id: trip.id,
+        country: trip.country,
+        start_date: startIso,
+        end_date: endIso,
+        duration_days: inclusiveDayCount(startIso, endIso),
+      });
+    });
+    return { days, upcoming };
+  }
+
   return {
     getPayload() {
       return {
         generated_at: new Date().toISOString(),
         employees: employees.map((employee) => ({ ...employee })),
         trips: clonePayloadTrips(),
+      };
+    },
+    getForecast(employeeId) {
+      const todayIso = isoFromOffset(0);
+      const todayUtc = isoToUtcDate(todayIso);
+      const tripsForEmployee = currentTrips.filter((trip) => trip.employee_id === employeeId);
+      const presenceSet = buildPresenceSet(tripsForEmployee);
+      const usedDays = countUsedDays(presenceSet, todayUtc);
+      const { days: upcomingDays, upcoming } = computeUpcoming(tripsForEmployee, todayUtc);
+      const projectedTotal = usedDays + upcomingDays;
+      let riskLevel = 'safe';
+      if (projectedTotal >= 90) {
+        riskLevel = 'danger';
+      } else if (projectedTotal >= 60) {
+        riskLevel = 'warning';
+      }
+      const employee = employees.find((item) => item.id === employeeId) || {
+        id: employeeId,
+        name: `Employee ${employeeId}`,
+      };
+      return {
+        employee: { id: employee.id, name: employee.name },
+        used_days: usedDays,
+        upcoming_days: upcomingDays,
+        projected_total: projectedTotal,
+        risk_level: riskLevel,
+        window_start: isoFromOffset(-179),
+        window_end: todayIso,
+        upcoming_trips: upcoming,
+        generated_at: new Date().toISOString(),
       };
     },
     addTrip(payload = {}) {
@@ -215,6 +310,39 @@ async function bootstrapCalendar(page, options = {}) {
       }
 
       await route.continue();
+    });
+
+    await page.route('**/api/forecast/**', async (route) => {
+      const request = route.request();
+      if (!api) {
+        await route.continue();
+        return;
+      }
+      const url = new URL(request.url());
+      const match = url.pathname.match(/\/forecast\/(\d+)/);
+      const employeeId = match ? Number(match[1]) : null;
+      if (!Number.isFinite(employeeId)) {
+        await route.fulfill({
+          status: 400,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: 'Invalid employee id' }),
+        });
+        return;
+      }
+      const forecast = api.getForecast(employeeId);
+      if (!forecast) {
+        await route.fulfill({
+          status: 404,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: 'Employee not found' }),
+        });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(forecast),
+      });
     });
   }
 
@@ -447,6 +575,22 @@ test('Calendar view passes axe-core WCAG AA audit', async ({ page }) => {
   });
 });
 
+test('Timeline view toggle mirrors calendar data', async ({ page }) => {
+  await bootstrapCalendar(page);
+  const calendarTripCount = await page.locator('.calendar-trip').count();
+  const safeTrips = await page.locator('.calendar-trip--safe').count();
+  const warningTrips = await page.locator('.calendar-trip--warning').count();
+  const criticalTrips = await page.locator('.calendar-trip--critical').count();
+
+  await page.click('.calendar-view-toggle__button[data-view-target="timeline"]');
+  const timelineLayer = page.locator('.calendar-view-layer[data-view-layer="timeline"]');
+  await expect(timelineLayer).toHaveAttribute('aria-hidden', 'false');
+  await expect(page.locator('.timeline-trip')).toHaveCount(calendarTripCount);
+  await expect(page.locator('.timeline-trip--safe')).toHaveCount(safeTrips);
+  await expect(page.locator('.timeline-trip--warning')).toHaveCount(warningTrips);
+  await expect(page.locator('.timeline-trip--critical')).toHaveCount(criticalTrips);
+});
+
 // QA-08: Drag updates trip dates
 test('Trip drag updates start and end dates', async ({ page }) => {
   await bootstrapCalendar(page);
@@ -502,4 +646,38 @@ test('Dragged trip retains compliance class and datasets', async ({ page }) => {
 
   await expect(trip).toHaveAttribute('data-compliance', initialCompliance);
   await expect(trip).toHaveClass(new RegExp(`calendar-trip--${initialCompliance}`));
+});
+
+test('Mini forecast panel updates after trip changes', async ({ page }) => {
+  await bootstrapCalendar(page);
+
+  const usedMetric = page.locator('[data-forecast-used]');
+  const upcomingMetric = page.locator('[data-forecast-upcoming]');
+  const totalMetric = page.locator('[data-forecast-total]');
+
+  await expect(usedMetric).toHaveText(/7 days/i);
+  await expect(upcomingMetric).toHaveText(/0 days/i);
+
+  await page.click('button[data-action="add-trip"]');
+  await expect(page.locator('#calendar-form-overlay')).toBeVisible();
+
+  await page.locator('#calendar-form-employee').selectOption('101');
+  const futureStart = isoFromOffset(10);
+  const futureEnd = isoFromOffset(14);
+  await page.fill('#calendar-form-country', 'Germany');
+  await page.fill('#calendar-form-start', futureStart);
+  await page.fill('#calendar-form-end', futureEnd);
+  await page.click('button[data-action="submit-form"]');
+
+  await expect(page.locator('#calendar-form-overlay')).toBeHidden();
+  await expect(page.locator('#calendar-toast')).toContainText('Trip added successfully');
+  await waitForToastToHide(page);
+
+  const detailClose = page.locator('button[data-action="close-detail"]');
+  if (await detailClose.isVisible()) {
+    await detailClose.click();
+  }
+
+  await expect(upcomingMetric).toHaveText(/5 days/i, { timeout: 5000 });
+  await expect(totalMetric).toHaveText(/12 \/ 90 days/i, { timeout: 5000 });
 });

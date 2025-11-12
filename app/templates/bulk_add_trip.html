@@ -319,6 +319,24 @@ document.addEventListener('DOMContentLoaded', function() {
         entryDate.addEventListener('change', validateDateRange);
         exitDate.addEventListener('change', validateDateRange);
     }
+    
+    // Check for success parameter on page load
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'bulk_trip_added') {
+        const count = urlParams.get('count') || '1';
+        if (typeof showSuccess === 'function') {
+            showSuccess(`Trip added successfully to ${count} employee${count !== '1' ? 's' : ''}`);
+        } else if (typeof NotificationSystem !== 'undefined') {
+            new NotificationSystem().showSuccess(`Trip added successfully to ${count} employee${count !== '1' ? 's' : ''}`);
+        }
+        const ariaLive = document.getElementById('aria-live-status');
+        if (ariaLive) {
+            ariaLive.textContent = `Trip added successfully to ${count} employee${count !== '1' ? 's' : ''}`;
+        }
+        // Clean URL
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+    }
 });
 </script>
 {% endblock %}

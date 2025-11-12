@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Cookie Policy - ComplyEur{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1 class="content-title">Cookie Policy</h1>
+    <p class="content-subtitle">How we use cookies in ComplyEur</p>
+    <div class="card" style="margin-top: 12px;">
+        <div class="text-muted" style="font-size: 13px;">
+            <strong>Last Updated:</strong> {{ current_date }}<br>
+            This Cookie Policy explains how ComplyEur uses cookies and similar technologies.
+        </div>
+    </div>
+</div>
+
+<div class="content-body">
+    <!-- Overview -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">1. Overview</h2>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">
+                ComplyEur is designed with privacy in mind. We use only <strong>essential cookies</strong> 
+                that are necessary for the secure operation of the application. We do not use tracking cookies, 
+                advertising cookies, or any third-party analytics cookies.
+            </p>
+        </div>
+    </div>
+
+    <!-- What Cookies We Use -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">2. What Cookies We Use</h2>
+        </div>
+        <div class="card-body">
+            <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 12px; color: #1e1e1e;">Essential Cookies</h3>
+            <p class="text-muted" style="margin-bottom: 16px;">
+                These cookies are strictly necessary for the application to function securely:
+            </p>
+            
+            <div style="background: #f9fafb; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 8px; color: #1e1e1e;">Session Cookie</h4>
+                <ul style="margin: 0; padding-left: 20px; color: #4b5563;">
+                    <li><strong>Purpose:</strong> Maintains your login session securely</li>
+                    <li><strong>Duration:</strong> Session-based (expires when you close your browser or after inactivity)</li>
+                    <li><strong>Type:</strong> HTTP-only, Secure (HTTPS only), SameSite=Lax</li>
+                    <li><strong>Contains:</strong> Session identifier only (no personal data)</li>
+                </ul>
+            </div>
+            
+            <div style="background: #f9fafb; padding: 16px; border-radius: 8px;">
+                <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 8px; color: #1e1e1e;">Cookie Consent Cookie</h4>
+                <ul style="margin: 0; padding-left: 20px; color: #4b5563;">
+                    <li><strong>Purpose:</strong> Remembers your cookie consent preference</li>
+                    <li><strong>Duration:</strong> 90 days</li>
+                    <li><strong>Type:</strong> Secure (HTTPS only), SameSite=Strict</li>
+                    <li><strong>Contains:</strong> Simple consent flag ("true")</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- What We Don't Use -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">3. What We Don't Use</h2>
+        </div>
+        <div class="card-body">
+            <p class="text-muted" style="margin-bottom: 12px;">
+                ComplyEur does <strong>not</strong> use:
+            </p>
+            <ul style="color: #4b5563; padding-left: 20px;">
+                <li>Tracking cookies</li>
+                <li>Advertising cookies</li>
+                <li>Analytics cookies (Google Analytics, etc.)</li>
+                <li>Third-party cookies</li>
+                <li>Social media cookies</li>
+                <li>Marketing cookies</li>
+            </ul>
+            <p class="text-muted" style="margin-top: 16px;">
+                We do not share cookie data with any third parties, and we do not use cookies 
+                to build profiles of your browsing behavior.
+            </p>
+        </div>
+    </div>
+
+    <!-- Managing Cookies -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">4. Managing Cookies</h2>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">
+                Since we only use essential cookies, you cannot disable them without affecting 
+                the functionality of the application. However, you can:
+            </p>
+            <ul style="color: #4b5563; padding-left: 20px; margin-top: 12px;">
+                <li>Clear your browser cookies to remove stored consent preferences</li>
+                <li>Use your browser's privacy settings to block cookies (note: this will prevent you from logging in)</li>
+                <li>Contact your system administrator if you have questions about cookie usage</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- GDPR Compliance -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">5. GDPR Compliance</h2>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">
+                Our cookie usage is fully compliant with the General Data Protection Regulation (GDPR) 
+                because:
+            </p>
+            <ul style="color: #4b5563; padding-left: 20px; margin-top: 12px;">
+                <li>We only use essential cookies (no consent required under GDPR)</li>
+                <li>We provide transparent information about cookie usage</li>
+                <li>We do not track users or build profiles</li>
+                <li>We do not share cookie data with third parties</li>
+                <li>All cookies are secure and used only for legitimate purposes</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Contact -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">6. Questions?</h2>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">
+                If you have questions about our cookie usage, please contact your system administrator 
+                or refer to our <a href="{{ url_for('main.privacy') }}">Privacy Policy</a> for more information 
+                about data processing.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

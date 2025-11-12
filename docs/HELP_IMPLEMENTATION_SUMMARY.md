@@ -76,7 +76,7 @@ All files stored locally:
 
 ### 7. ✅ Design Consistency
 - **Font**: Helvetica Neue (system font stack) - matches dashboard
-- **Colors**: IES brand palette
+- **Colors**: ComplyEur brand palette
   - Primary Blue: `#4C739F`
   - Blue Dark: `#5B6C8F`
   - Blue Light: `#A9C4E0`
@@ -285,7 +285,7 @@ Edit CSS custom properties in `help.html` style block or add to `global.css`
 | Simple language & icons | ✅ | 12 SVG icons, clear text |
 | Intro.js tutorial | ✅ | 8 steps, localStorage tracking |
 | No CDN dependencies | ✅ | 100% local files |
-| Matches dashboard design | ✅ | Helvetica Neue, IES colors |
+| Matches dashboard design | ✅ | Helvetica Neue, ComplyEur colors |
 | Responsive design | ✅ | Desktop + mobile optimized |
 | Content in config file | ✅ | help_content.json |
 | Easy to update | ✅ | JSON structure |

@@ -2,7 +2,7 @@
 
 ## ✅ Task Completed
 
-Successfully created a temporary **Test Overview** page for the IES EU 90/180 Tracker app.
+Successfully created a temporary **Test Overview** page for the ComplyEur EU 90/180 Tracker app.
 
 **Date:** October 9, 2025  
 **Purpose:** Verify Excel import and 90/180-day calculation accuracy  

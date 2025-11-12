@@ -1,0 +1,26 @@
+# Bandit configuration for SAST scanning
+
+# Exclude paths
+exclude_dirs = [
+    "venv",
+    ".venv",
+    "node_modules",
+    ".git",
+    "__pycache__",
+    "*.pyc",
+    ".pytest_cache",
+    "tests/",  # Test code may have intentional security patterns
+]
+
+# Skip specific test IDs (false positives)
+skips = [
+    "B101",  # assert_used (OK in tests)
+    "B601",  # shell_injection_subprocess (tests only)
+]
+
+# Confidence levels to include (1=low, 2=medium, 3=high)
+confidence = ["medium", "high"]
+
+# Severity levels to include (1=low, 2=medium, 3=high)
+severity = ["medium", "high"]
+

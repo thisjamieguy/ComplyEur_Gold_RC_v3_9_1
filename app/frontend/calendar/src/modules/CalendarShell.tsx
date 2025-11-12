@@ -377,7 +377,8 @@ export const CalendarShell: React.FC = () => {
     <DndProvider backend={TouchBackend} options={{ enableMouseEvents: true }}>
       <div className="flex h-full w-full flex-col" data-calendar-shell>
         <Toaster position="bottom-right" />
-        <WelcomeSplash
+        {/* TEMPORARILY DISABLED - Welcome screen */}
+        {/* <WelcomeSplash
           open={showWelcome}
           onClose={(doNotShow) => {
             if (doNotShow) {
@@ -385,7 +386,7 @@ export const CalendarShell: React.FC = () => {
             }
             setShowWelcome(false);
           }}
-        />
+        /> */}
         
         <Toolbar
           onPrev={() => setAnchorDate(prev => addWeeks(prev, -1))}

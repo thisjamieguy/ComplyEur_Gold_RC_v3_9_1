@@ -1,0 +1,1268 @@
+{
+  "tech_stack": [
+    "Python",
+    "Flask",
+    "SQLite",
+    "React",
+    "TypeScript",
+    "HTML",
+    "CSS",
+    "JavaScript"
+  ],
+  "features": [
+    {
+      "name": "Login API",
+      "description": "User authentication endpoint for admin login with rate limiting and CAPTCHA support",
+      "files": ["app/routes_auth.py"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/login": {
+            "get": {
+              "summary": "Display login page",
+              "responses": {
+                "200": {
+                  "description": "Login page HTML"
+                }
+              }
+            },
+            "post": {
+              "summary": "Authenticate user",
+              "requestBody": {
+                "content": {
+                  "application/x-www-form-urlencoded": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "username": {"type": "string"},
+                        "password": {"type": "string"}
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {"description": "Redirect to dashboard on success"},
+                "401": {"description": "Invalid credentials"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Logout API",
+      "description": "User logout endpoint that clears session",
+      "files": ["app/routes_auth.py"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/logout": {
+            "post": {
+              "summary": "Logout user",
+              "responses": {
+                "200": {"description": "User logged out successfully"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Dashboard API",
+      "description": "Main dashboard page displaying employee compliance overview",
+      "files": ["app/routes.py"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/dashboard": {
+            "get": {
+              "summary": "Display main dashboard",
+              "responses": {
+                "200": {"description": "Dashboard page HTML"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Employee Management API",
+      "description": "CRUD operations for employee records",
+      "files": ["app/routes.py"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/employee/{employee_id}": {
+            "get": {
+              "summary": "Get employee details",
+              "parameters": [
+                {
+                  "name": "employee_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {"type": "integer"}
+                }
+              ],
+              "responses": {
+                "200": {"description": "Employee detail page"},
+                "404": {"description": "Employee not found"}
+              }
+            }
+          },
+          "/add_employee": {
+            "post": {
+              "summary": "Add new employee",
+              "requestBody": {
+                "content": {
+                  "application/x-www-form-urlencoded": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "name": {"type": "string"}
+                      },
+                      "required": ["name"]
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {"description": "Employee added successfully"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Trip Management API",
+      "description": "CRUD operations for employee travel trips",
+      "files": ["app/routes.py", "app/routes_calendar.py"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/add_trip": {
+            "post": {
+              "summary": "Add new trip",
+              "requestBody": {
+                "content": {
+                  "application/x-www-form-urlencoded": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "employee_id": {"type": "integer"},
+                        "country": {"type": "string"},
+                        "entry_date": {"type": "string", "format": "date"},
+                        "exit_date": {"type": "string", "format": "date"},
+                        "purpose": {"type": "string"}
+                      },
+                      "required": ["employee_id", "country", "entry_date", "exit_date"]
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {"description": "Trip added successfully"}
+              }
+            }
+          },
+          "/delete_trip/{trip_id}": {
+            "post": {
+              "summary": "Delete trip",
+              "parameters": [
+                {
+                  "name": "trip_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {"type": "integer"}
+                }
+              ],
+              "responses": {
+                "200": {"description": "Trip deleted successfully"},
+                "404": {"description": "Trip not found"}
+              }
+            }
+          },
+          "/edit_trip/{trip_id}": {
+            "post": {
+              "summary": "Edit existing trip",
+              "parameters": [
+                {
+                  "name": "trip_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {"type": "integer"}
+                }
+              ],
+              "requestBody": {
+                "content": {
+                  "application/x-www-form-urlencoded": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "country": {"type": "string"},
+                        "entry_date": {"type": "string", "format": "date"},
+                        "exit_date": {"type": "string", "format": "date"}
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {"description": "Trip updated successfully"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Calendar API",
+      "description": "RESTful API for calendar view operations including trips CRUD",
+      "files": ["app/routes_calendar.py"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/api/employees": {
+            "get": {
+              "summary": "List all employees",
+              "responses": {
+                "200": {
+                  "description": "List of employees",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {"type": "integer"},
+                            "name": {"type": "string"},
+                            "active": {"type": "boolean"}
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/trips": {
+            "get": {
+              "summary": "Get trips with optional date filtering",
+              "parameters": [
+                {
+                  "name": "start",
+                  "in": "query",
+                  "schema": {"type": "string", "format": "date"}
+                },
+                {
+                  "name": "end",
+                  "in": "query",
+                  "schema": {"type": "string", "format": "date"}
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Trips and employees data",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "employees": {"type": "array"},
+                          "trips": {"type": "array"},
+                          "alerts": {"type": "array"}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "post": {
+              "summary": "Create new trip",
+              "requestBody": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "employee_id": {"type": "integer"},
+                        "country": {"type": "string"},
+                        "start_date": {"type": "string", "format": "date"},
+                        "end_date": {"type": "string", "format": "date"}
+                      },
+                      "required": ["employee_id", "country", "start_date", "end_date"]
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "201": {"description": "Trip created successfully"},
+                "400": {"description": "Validation error"}
+              }
+            }
+          },
+          "/api/trips/{trip_id}": {
+            "get": {
+              "summary": "Get trip by ID",
+              "parameters": [
+                {
+                  "name": "trip_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {"type": "integer"}
+                }
+              ],
+              "responses": {
+                "200": {"description": "Trip details"},
+                "404": {"description": "Trip not found"}
+              }
+            },
+            "patch": {
+              "summary": "Update trip",
+              "parameters": [
+                {
+                  "name": "trip_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {"type": "integer"}
+                }
+              ],
+              "requestBody": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "employee_id": {"type": "integer"},
+                        "country": {"type": "string"},
+                        "start_date": {"type": "string", "format": "date"},
+                        "end_date": {"type": "string", "format": "date"}
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {"description": "Trip updated successfully"},
+                "404": {"description": "Trip not found"}
+              }
+            },
+            "delete": {
+              "summary": "Delete trip",
+              "parameters": [
+                {
+                  "name": "trip_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {"type": "integer"}
+                }
+              ],
+              "responses": {
+                "200": {"description": "Trip deleted successfully"},
+                "404": {"description": "Trip not found"}
+              }
+            }
+          },
+          "/api/trips/{trip_id}/duplicate": {
+            "post": {
+              "summary": "Duplicate an existing trip",
+              "parameters": [
+                {
+                  "name": "trip_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {"type": "integer"}
+                }
+              ],
+              "responses": {
+                "201": {"description": "Trip duplicated successfully"}
+              }
+            }
+          },
+          "/api/forecast/{employee_id}": {
+            "get": {
+              "summary": "Get compliance forecast for employee",
+              "parameters": [
+                {
+                  "name": "employee_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {"type": "integer"}
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Forecast data with risk levels",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "used_days": {"type": "integer"},
+                          "upcoming_days": {"type": "integer"},
+                          "projected_total": {"type": "integer"},
+                          "risk_level": {"type": "string"}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/alerts": {
+            "get": {
+              "summary": "Get active compliance alerts",
+              "parameters": [
+                {
+                  "name": "risk",
+                  "in": "query",
+                  "schema": {"type": "string"}
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "List of active alerts",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "alerts": {"type": "array"}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/alerts/{alert_id}/resolve": {
+            "post": {
+              "summary": "Resolve an alert",
+              "parameters": [
+                {
+                  "name": "alert_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {"type": "integer"}
+                }
+              ],
+              "responses": {
+                "200": {"description": "Alert resolved"},
+                "404": {"description": "Alert not found"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Health Check API",
+      "description": "Health monitoring endpoints for service status",
+      "files": ["app/routes_health.py", "app/routes.py"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/health": {
+            "get": {
+              "summary": "Health check endpoint",
+              "responses": {
+                "200": {
+                  "description": "Service is healthy",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "status": {"type": "string"},
+                          "timestamp": {"type": "string"},
+                          "service": {"type": "string"}
+                        }
+                      }
+                    }
+                  }
+                },
+                "503": {"description": "Service is unhealthy"}
+              }
+            }
+          },
+          "/health/ready": {
+            "get": {
+              "summary": "Readiness probe",
+              "responses": {
+                "200": {"description": "Service is ready"},
+                "503": {"description": "Service is not ready"}
+              }
+            }
+          },
+          "/health/live": {
+            "get": {
+              "summary": "Liveness probe",
+              "responses": {
+                "200": {"description": "Service is alive"}
+              }
+            }
+          },
+          "/healthz": {
+            "get": {
+              "summary": "Simple health check",
+              "responses": {
+                "200": {"description": "OK"}
+              }
+            }
+          },
+          "/api/version": {
+            "get": {
+              "summary": "Get application version",
+              "responses": {
+                "200": {
+                  "description": "Version information",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "version": {"type": "string"}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Export API",
+      "description": "Export employee and trip data in various formats",
+      "files": ["app/routes.py"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/export/trips/csv": {
+            "get": {
+              "summary": "Export all trips as CSV",
+              "responses": {
+                "200": {
+                  "description": "CSV file download",
+                  "content": {
+                    "text/csv": {}
+                  }
+                }
+              }
+            }
+          },
+          "/export/employee/{id}/pdf": {
+            "get": {
+              "summary": "Export employee report as PDF",
+              "parameters": [
+                {
+                  "name": "id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {"type": "integer"}
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "PDF file download",
+                  "content": {
+                    "application/pdf": {}
+                  }
+                }
+              }
+            }
+          },
+          "/export/all/pdf": {
+            "get": {
+              "summary": "Export all employees report as PDF",
+              "responses": {
+                "200": {
+                  "description": "PDF file download",
+                  "content": {
+                    "application/pdf": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Admin DSAR API",
+      "description": "GDPR Data Subject Access Request endpoints for data management",
+      "files": ["app/routes.py"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/admin/privacy-tools": {
+            "get": {
+              "summary": "Display privacy tools interface",
+              "responses": {
+                "200": {"description": "Privacy tools page"}
+              }
+            }
+          },
+          "/admin/dsar/export/{employee_id}": {
+            "get": {
+              "summary": "Export employee data as DSAR ZIP",
+              "parameters": [
+                {
+                  "name": "employee_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {"type": "integer"}
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "ZIP file with employee data",
+                  "content": {
+                    "application/zip": {}
+                  }
+                }
+              }
+            }
+          },
+          "/admin/dsar/delete/{employee_id}": {
+            "post": {
+              "summary": "Delete employee data (GDPR right to erasure)",
+              "parameters": [
+                {
+                  "name": "employee_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {"type": "integer"}
+                }
+              ],
+              "responses": {
+                "200": {"description": "Employee data deleted"}
+              }
+            }
+          },
+          "/admin/dsar/rectify/{employee_id}": {
+            "post": {
+              "summary": "Update employee name (GDPR right to rectification)",
+              "parameters": [
+                {
+                  "name": "employee_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {"type": "integer"}
+                }
+              ],
+              "requestBody": {
+                "content": {
+                  "application/x-www-form-urlencoded": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "name": {"type": "string"}
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {"description": "Employee name updated"}
+              }
+            }
+          },
+          "/admin/dsar/anonymize/{employee_id}": {
+            "post": {
+              "summary": "Anonymize employee data",
+              "parameters": [
+                {
+                  "name": "employee_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {"type": "integer"}
+                }
+              ],
+              "responses": {
+                "200": {"description": "Employee anonymized"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Admin Retention API",
+      "description": "Data retention management endpoints",
+      "files": ["app/routes.py"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/api/retention/preview": {
+            "get": {
+              "summary": "Preview trips that would be purged",
+              "responses": {
+                "200": {
+                  "description": "List of expired trips",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "expired_trips": {"type": "array"}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/admin/retention/expired": {
+            "get": {
+              "summary": "List expired trips",
+              "responses": {
+                "200": {"description": "Expired trips page"}
+              }
+            }
+          },
+          "/admin/retention/purge": {
+            "post": {
+              "summary": "Purge expired trips",
+              "responses": {
+                "200": {"description": "Expired trips purged"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Admin Settings API",
+      "description": "Application settings management",
+      "files": ["app/routes.py"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/admin_settings": {
+            "get": {
+              "summary": "Display settings page",
+              "responses": {
+                "200": {"description": "Settings page"}
+              }
+            },
+            "post": {
+              "summary": "Update settings",
+              "requestBody": {
+                "content": {
+                  "application/x-www-form-urlencoded": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "retention_months": {"type": "integer"},
+                        "session_timeout_minutes": {"type": "integer"}
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {"description": "Settings updated"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Search API",
+      "description": "Employee search functionality",
+      "files": ["app/routes.py"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/api/employees/search": {
+            "get": {
+              "summary": "Search employees by name",
+              "parameters": [
+                {
+                  "name": "q",
+                  "in": "query",
+                  "schema": {"type": "string"}
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Matching employees",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {"type": "integer"},
+                            "name": {"type": "string"}
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Entry Requirements API",
+      "description": "EU entry requirements data endpoint",
+      "files": ["app/routes.py"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/api/entry-requirements": {
+            "get": {
+              "summary": "Get EU entry requirements data",
+              "responses": {
+                "200": {
+                  "description": "Entry requirements JSON",
+                  "content": {
+                    "application/json": {}
+                  }
+                }
+              }
+            }
+          },
+          "/api/entry-requirements/reload": {
+            "post": {
+              "summary": "Reload entry requirements data",
+              "responses": {
+                "200": {"description": "Data reloaded"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Audit Trail API",
+      "description": "Audit logging and trail endpoints",
+      "files": ["app/routes_audit.py"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/admin/audit-trail": {
+            "get": {
+              "summary": "Display audit trail dashboard",
+              "responses": {
+                "200": {"description": "Audit trail page"}
+              }
+            }
+          },
+          "/api/audit-trail": {
+            "get": {
+              "summary": "Get audit trail entries",
+              "parameters": [
+                {
+                  "name": "limit",
+                  "in": "query",
+                  "schema": {"type": "integer"}
+                },
+                {
+                  "name": "offset",
+                  "in": "query",
+                  "schema": {"type": "integer"}
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Audit trail entries",
+                  "content": {
+                    "application/json": {}
+                  }
+                }
+              }
+            }
+          },
+          "/api/audit-trail/stats": {
+            "get": {
+              "summary": "Get audit trail statistics",
+              "responses": {
+                "200": {
+                  "description": "Audit statistics",
+                  "content": {
+                    "application/json": {}
+                  }
+                }
+              }
+            }
+          },
+          "/api/log-integrity/check": {
+            "post": {
+              "summary": "Check log integrity",
+              "responses": {
+                "200": {"description": "Integrity check results"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Calendar View API",
+      "description": "Calendar page rendering endpoints",
+      "files": ["app/routes.py"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/calendar": {
+            "get": {
+              "summary": "Display calendar view",
+              "responses": {
+                "200": {"description": "Calendar page"}
+              }
+            }
+          },
+          "/calendar_view": {
+            "get": {
+              "summary": "Alternative calendar view",
+              "responses": {
+                "200": {"description": "Calendar page"}
+              }
+            }
+          },
+          "/employee/{employee_id}/calendar": {
+            "get": {
+              "summary": "Employee-specific calendar view",
+              "parameters": [
+                {
+                  "name": "employee_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {"type": "integer"}
+                }
+              ],
+              "responses": {
+                "200": {"description": "Employee calendar page"}
+              }
+            }
+          },
+          "/global_calendar": {
+            "get": {
+              "summary": "Global calendar view for all employees",
+              "responses": {
+                "200": {"description": "Global calendar page"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Password Management API",
+      "description": "Password change and reset endpoints",
+      "files": ["app/routes.py", "app/routes_auth.py"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/change_password": {
+            "post": {
+              "summary": "Change admin password",
+              "requestBody": {
+                "content": {
+                  "application/x-www-form-urlencoded": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "current_password": {"type": "string"},
+                        "new_password": {"type": "string"},
+                        "confirm_password": {"type": "string"}
+                      },
+                      "required": ["current_password", "new_password", "confirm_password"]
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {"description": "Password changed successfully"},
+                "400": {"description": "Validation error"}
+              }
+            }
+          },
+          "/reset_admin_password": {
+            "get": {
+              "summary": "Display password reset page",
+              "responses": {
+                "200": {"description": "Reset password page"}
+              }
+            },
+            "post": {
+              "summary": "Reset admin password",
+              "requestBody": {
+                "content": {
+                  "application/x-www-form-urlencoded": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "new_password": {"type": "string"},
+                        "confirm_password": {"type": "string"}
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {"description": "Password reset successfully"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Excel Import API",
+      "description": "Bulk import trips from Excel files",
+      "files": ["app/routes.py"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/import_excel": {
+            "get": {
+              "summary": "Display Excel import page",
+              "responses": {
+                "200": {"description": "Import page"}
+              }
+            },
+            "post": {
+              "summary": "Upload and import Excel file",
+              "requestBody": {
+                "content": {
+                  "multipart/form-data": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "file": {
+                          "type": "string",
+                          "format": "binary"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {"description": "Import preview or completed"},
+                "400": {"description": "Invalid file format"}
+              }
+            }
+          },
+          "/import_preview": {
+            "get": {
+              "summary": "Preview import data",
+              "responses": {
+                "200": {"description": "Import preview page"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Future Job Alerts API",
+      "description": "Compliance alerts for future job assignments",
+      "files": ["app/routes.py"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/future_job_alerts": {
+            "get": {
+              "summary": "Display future job alerts",
+              "responses": {
+                "200": {"description": "Alerts page"}
+              }
+            }
+          },
+          "/export_future_alerts": {
+            "get": {
+              "summary": "Export future alerts",
+              "responses": {
+                "200": {
+                  "description": "CSV file download",
+                  "content": {
+                    "text/csv": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "What-If Scenario API",
+      "description": "Calculate compliance scenarios for hypothetical trips",
+      "files": ["app/routes.py"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/what_if_scenario": {
+            "get": {
+              "summary": "Display what-if scenario calculator",
+              "responses": {
+                "200": {"description": "Scenario calculator page"}
+              }
+            }
+          },
+          "/api/calculate_scenario": {
+            "post": {
+              "summary": "Calculate scenario compliance",
+              "requestBody": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "employee_id": {"type": "integer"},
+                        "start_date": {"type": "string", "format": "date"},
+                        "end_date": {"type": "string", "format": "date"},
+                        "country": {"type": "string"}
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {
+                  "description": "Scenario calculation results",
+                  "content": {
+                    "application/json": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Two-Factor Authentication API",
+      "description": "TOTP 2FA setup and verification",
+      "files": ["app/routes_auth.py"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/setup-2fa": {
+            "get": {
+              "summary": "Display 2FA setup page",
+              "responses": {
+                "200": {"description": "2FA setup page with QR code"}
+              }
+            },
+            "post": {
+              "summary": "Generate 2FA secret",
+              "responses": {
+                "200": {"description": "2FA secret generated"}
+              }
+            }
+          },
+          "/login/totp": {
+            "get": {
+              "summary": "Display TOTP verification page",
+              "responses": {
+                "200": {"description": "TOTP verification page"}
+              }
+            },
+            "post": {
+              "summary": "Verify TOTP code",
+              "requestBody": {
+                "content": {
+                  "application/x-www-form-urlencoded": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "token": {"type": "string"}
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {"description": "TOTP verified, login successful"},
+                "401": {"description": "Invalid TOTP code"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "OAuth API",
+      "description": "OAuth 2.0 authentication with Google and Microsoft",
+      "files": ["app/routes_auth.py"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/oauth/login/{provider}": {
+            "get": {
+              "summary": "Initiate OAuth login",
+              "parameters": [
+                {
+                  "name": "provider",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "string",
+                    "enum": ["google", "microsoft"]
+                  }
+                }
+              ],
+              "responses": {
+                "302": {"description": "Redirect to OAuth provider"},
+                "400": {"description": "Invalid provider"}
+              }
+            }
+          },
+          "/oauth/callback/{provider}": {
+            "get": {
+              "summary": "Handle OAuth callback",
+              "parameters": [
+                {
+                  "name": "provider",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "string",
+                    "enum": ["google", "microsoft"]
+                  }
+                },
+                {
+                  "name": "code",
+                  "in": "query",
+                  "required": true,
+                  "schema": {"type": "string"}
+                },
+                {
+                  "name": "state",
+                  "in": "query",
+                  "required": true,
+                  "schema": {"type": "string"}
+                }
+              ],
+              "responses": {
+                "302": {"description": "Redirect to dashboard on success"},
+                "401": {"description": "OAuth authentication failed"}
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
+

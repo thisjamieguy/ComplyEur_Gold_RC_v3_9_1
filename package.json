@@ -26,7 +26,23 @@
   "homepage": "https://github.com/thisjamieguy/eu-trip-tracker#readme",
   "devDependencies": {
     "@playwright/test": "^1.56.1",
+    "@types/node": "^24.10.0",
     "axe-playwright": "^2.2.2",
-    "playwright": "^1.56.1"
+    "dotenv": "^17.2.3",
+    "playwright": "^1.56.1",
+    "tsx": "^4.20.6"
+  },
+  "dependencies": {
+    "axe-core": "^4.11.0",
+    "axe-html-reporter": "^2.2.11",
+    "fsevents": "^2.3.2",
+    "junit-report-builder": "^5.1.1",
+    "lodash": "^4.17.21",
+    "make-dir": "^3.1.0",
+    "mustache": "^4.2.0",
+    "picocolors": "^1.1.1",
+    "playwright-core": "^1.56.1",
+    "semver": "^6.3.1",
+    "xmlbuilder": "^15.1.1"
   }
 }

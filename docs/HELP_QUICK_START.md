@@ -92,7 +92,7 @@ The tutorial auto-starts only once for new users. To test this:
 
 ## 🎨 Visual Checks
 
-### Colors (IES Brand Palette)
+### Colors (ComplyEur Brand Palette)
 - ✅ Primary Blue: `#4C739F` (buttons, links)
 - ✅ Blue Dark: `#5B6C8F` (hover states)
 - ✅ Grey: `#858D9A` (secondary text)

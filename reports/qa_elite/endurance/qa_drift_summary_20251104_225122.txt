@@ -1,0 +1,8 @@
+================================================================================
+FLOATING-POINT DRIFT SUMMARY
+================================================================================
+
+Tolerance: 1e-07
+Total Drift Detections: 0
+
+✅ No drift detected - all calculations remained stable.

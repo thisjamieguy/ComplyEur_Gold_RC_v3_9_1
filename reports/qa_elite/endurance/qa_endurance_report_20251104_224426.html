@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Phase 3.10 Endurance Test Report - ComplyEur</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        h1 { color: #2c5282; }
+        .metric { background: #f7fafc; padding: 15px; margin: 10px 0; border-radius: 4px; }
+        .success { color: green; }
+        .warning { color: orange; }
+        .error { color: red; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #2c5282; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌙 Phase 3.10: Elite QA Endurance & Stress Test Report</h1>
+        <p><strong>ComplyEur</strong> - EU 90/180 Employee Travel Tracker</p>
+        
+        <div class="metric">
+            <h2>Test Summary</h2>
+            <p><strong>Start Time:</strong> 2025-11-04T22:37:17.157768</p>
+            <p><strong>End Time:</strong> 2025-11-04T22:44:26.266627</p>
+            <p><strong>Duration:</strong> 0.12 hours</p>
+        </div>
+        
+        <div class="metric">
+            <h2>Excel Import Load Testing</h2>
+            <p><strong>Total Runs:</strong> 69</p>
+            <p><strong>Successes:</strong> <span class="success">69</span></p>
+            <p><strong>Failures:</strong> <span class="error">0</span></p>
+            <p><strong>Avg Processing Time:</strong> 0.95s</p>
+        </div>
+        
+        <div class="metric">
+            <h2>Backend Stability</h2>
+            <p><strong>Recalculations:</strong> 13340</p>
+            <p><strong>Drift Detections:</strong> <span class="success">0</span></p>
+            <p><strong>Deadlocks:</strong> <span class="success">0</span></p>
+        </div>
+        
+        <div class="metric">
+            <h2>Frontend Synchronization</h2>
+            <p><strong>Interactions:</strong> 0</p>
+            <p><strong>Synchronization Errors:</strong> <span class="error">22</span></p>
+            <p><strong>Lag Events (>50ms):</strong> 0</p>
+        </div>
+        
+        <div class="metric">
+            <h2>Export Validation</h2>
+            <p><strong>Total Exports:</strong> 44</p>
+            <p><strong>CSV Diffs:</strong> <span class="success">0</span></p>
+            <p><strong>PDF Diffs:</strong> <span class="success">0</span></p>
+        </div>
+        
+        <div class="metric">
+            <h2>System Metrics Summary</h2>
+            
+        <table>
+            <tr><th>Metric</th><th>Value</th></tr>
+            <tr><td>CPU Average</td><td>0.03%</td></tr>
+            <tr><td>CPU Max</td><td>0.20%</td></tr>
+            <tr><td>Memory Average</td><td>110.71 MB</td></tr>
+            <tr><td>Memory Max</td><td>114.28 MB</td></tr>
+            <tr><td>Memory Growth</td><td>10.56 MB</td></tr>
+            <tr><td>Total I/O Read</td><td>0.00 MB</td></tr>
+            <tr><td>Total I/O Write</td><td>0.00 MB</td></tr>
+        </table>
+        
+        </div>
+        
+        <div class="metric">
+            <h2>Errors & Issues</h2>
+            <p><strong>Total Errors:</strong> <span class="error">22</span></p>
+            
+        <table>
+            <tr><th>Test</th><th>Error</th><th>Timestamp</th></tr>
+            <tr><td>frontend_sync_initialization</td><td>Timeout 10000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "http://127.0.0.1:5001/dashboard" until 'load'
+============================================================</td><td>2025-11-04T22:37:32.045899</td></tr><tr><td>frontend_sync_initialization</td><td>Timeout 10000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "http://127.0.0.1:5001/dashboard" until 'load'
+============================================================</td><td>2025-11-04T22:37:51.042784</td></tr><tr><td>frontend_sync_initialization</td><td>Timeout 10000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "http://127.0.0.1:5001/dashboard" until 'load'
+============================================================</td><td>2025-11-04T22:38:10.123628</td></tr><tr><td>frontend_sync_initialization</td><td>Timeout 10000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "http://127.0.0.1:5001/dashboard" until 'load'
+============================================================</td><td>2025-11-04T22:38:29.246186</td></tr><tr><td>frontend_sync_initialization</td><td>Timeout 10000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "http://127.0.0.1:5001/dashboard" until 'load'
+============================================================</td><td>2025-11-04T22:38:48.432480</td></tr><tr><td>frontend_sync_initialization</td><td>Timeout 10000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "http://127.0.0.1:5001/dashboard" until 'load'
+============================================================</td><td>2025-11-04T22:39:07.630095</td></tr><tr><td>frontend_sync_initialization</td><td>Timeout 10000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "http://127.0.0.1:5001/dashboard" until 'load'
+============================================================</td><td>2025-11-04T22:39:26.882776</td></tr><tr><td>frontend_sync_initialization</td><td>Timeout 10000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "http://127.0.0.1:5001/dashboard" until 'load'
+============================================================</td><td>2025-11-04T22:39:46.305249</td></tr><tr><td>frontend_sync_initialization</td><td>Timeout 10000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "http://127.0.0.1:5001/dashboard" until 'load'
+============================================================</td><td>2025-11-04T22:40:05.379409</td></tr><tr><td>frontend_sync_initialization</td><td>Timeout 10000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "http://127.0.0.1:5001/dashboard" until 'load'
+============================================================</td><td>2025-11-04T22:40:24.530037</td></tr><tr><td>frontend_sync_initialization</td><td>Timeout 10000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "http://127.0.0.1:5001/dashboard" until 'load'
+============================================================</td><td>2025-11-04T22:40:43.758590</td></tr><tr><td>frontend_sync_initialization</td><td>Timeout 10000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "http://127.0.0.1:5001/dashboard" until 'load'
+============================================================</td><td>2025-11-04T22:41:02.977714</td></tr><tr><td>frontend_sync_initialization</td><td>Timeout 10000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "http://127.0.0.1:5001/dashboard" until 'load'
+============================================================</td><td>2025-11-04T22:41:22.276144</td></tr><tr><td>frontend_sync_initialization</td><td>Timeout 10000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "http://127.0.0.1:5001/dashboard" until 'load'
+============================================================</td><td>2025-11-04T22:41:41.439648</td></tr><tr><td>frontend_sync_initialization</td><td>Timeout 10000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "http://127.0.0.1:5001/dashboard" until 'load'
+============================================================</td><td>2025-11-04T22:42:00.617003</td></tr><tr><td>frontend_sync_initialization</td><td>Timeout 10000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "http://127.0.0.1:5001/dashboard" until 'load'
+============================================================</td><td>2025-11-04T22:42:19.841308</td></tr><tr><td>frontend_sync_initialization</td><td>Timeout 10000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "http://127.0.0.1:5001/dashboard" until 'load'
+============================================================</td><td>2025-11-04T22:42:39.096012</td></tr><tr><td>frontend_sync_initialization</td><td>Timeout 10000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "http://127.0.0.1:5001/dashboard" until 'load'
+============================================================</td><td>2025-11-04T22:42:58.055212</td></tr><tr><td>frontend_sync_initialization</td><td>Timeout 10000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "http://127.0.0.1:5001/dashboard" until 'load'
+============================================================</td><td>2025-11-04T22:43:17.328240</td></tr><tr><td>frontend_sync_initialization</td><td>Timeout 10000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "http://127.0.0.1:5001/dashboard" until 'load'
+============================================================</td><td>2025-11-04T22:43:36.644829</td></tr>
+        </table>
+        <p><em>Showing first 20 errors. Total: 22</em></p>
+        
+        </div>
+    </div>
+</body>
+</html>

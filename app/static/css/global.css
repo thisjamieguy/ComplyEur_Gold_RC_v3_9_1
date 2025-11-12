@@ -1,8 +1,8 @@
 :root {
     --font-base: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     --font-color: #1e1e1e;
-    /* IES brand palette */
-    --color-grey: #858D9A;           /* IES primary grey */
+    /* ComplyEur brand palette */
+    --color-grey: #858D9A;           /* ComplyEur primary grey */
     --color-blue-primary: #4C739F;   /* main action blue */
     --color-blue-dark: #5B6C8F;      /* hover/active blue */
     --color-blue-light: #A9C4E0;     /* light hover/secondary */
@@ -85,7 +85,7 @@ html, body, button, input, select, textarea, table, th, td {
     font-family: var(--font-base);
 }
 
-/* IES brand colors applied globally */
+/* ComplyEur brand colors applied globally */
 h1, h2, h3, h4, h5, h6 {
     color: var(--color-grey);
 }

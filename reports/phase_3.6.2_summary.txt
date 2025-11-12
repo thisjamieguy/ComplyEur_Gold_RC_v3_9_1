@@ -1,0 +1,422 @@
+==========================================================
+ PHASE 3.6.2 — Automated Calendar Validation Report
+ Generated: 2025-11-03 07:33:20
+==========================================================
+
+
+Running 5 tests using 1 worker
+
+  ✓  1 tests/calendar_scroll.spec.js:103:1 › QA-SC-01 Calendar attaches minimal scroll listeners (2.9s)
+  ✘  2 tests/calendar_scroll.spec.js:118:1 › QA-SC-02 Horizontal scroll keeps header aligned within 1px (3.1s)
+  ✓  3 tests/calendar_scroll.spec.js:173:1 › QA-SC-03 Vertical scroll stays synchronised (2.9s)
+  ✘  4 tests/calendar_scroll.spec.js:196:1 › QA-SC-04 Large dataset preserves alignment and responsiveness (3.4s)
+  -  5 tests/calendar_scroll.spec.js:229:3 › visual validation › QA-SC-05 Timeline header visual snapshot
+
+
+  1) tests/calendar_scroll.spec.js:118:1 › QA-SC-02 Horizontal scroll keeps header aligned within 1px 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThan[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected: < [32m1.5[39m
+    Received:   [31m34.5[39m
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/tests/calendar_scroll.spec.js:170:27)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/workerMain.js:310:9)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/testInfo.js:305:11)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/workerMain.js:308:7)
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/calendar_scroll-QA-SC-02-H-2d0b2-s-header-aligned-within-1px/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/calendar_scroll-QA-SC-02-H-2d0b2-s-header-aligned-within-1px/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/calendar_scroll-QA-SC-02-H-2d0b2-s-header-aligned-within-1px/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/calendar_scroll-QA-SC-02-H-2d0b2-s-header-aligned-within-1px/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/calendar_scroll-QA-SC-02-H-2d0b2-s-header-aligned-within-1px/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests/calendar_scroll.spec.js:196:1 › QA-SC-04 Large dataset preserves alignment and responsiveness 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoStrictEqual[2m([22m[32mexpected[39m[2m) // deep equality[22m
+
+    [32m- Expected  - 1[39m
+    [31m+ Received  + 4[39m
+
+    [32m- Array [][39m
+    [31m+ Array [[39m
+    [31m+   "Missing sidebar elements: {sidebar: null, mainContent: null, toggleBtn: null}",[39m
+    [31m+   "Missing sidebar elements: {sidebar: null, mainContent: null, toggleBtn: null}",[39m
+    [31m+ ][39m
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/tests/calendar_scroll.spec.js:223:25)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/workerMain.js:310:9)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/testInfo.js:305:11)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/workerMain.js:308:7)
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/calendar_scroll-QA-SC-04-L-66657-lignment-and-responsiveness/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/calendar_scroll-QA-SC-04-L-66657-lignment-and-responsiveness/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/calendar_scroll-QA-SC-04-L-66657-lignment-and-responsiveness/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/calendar_scroll-QA-SC-04-L-66657-lignment-and-responsiveness/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/calendar_scroll-QA-SC-04-L-66657-lignment-and-responsiveness/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    tests/calendar_scroll.spec.js:118:1 › QA-SC-02 Horizontal scroll keeps header aligned within 1px 
+    tests/calendar_scroll.spec.js:196:1 › QA-SC-04 Large dataset preserves alignment and responsiveness 
+  1 skipped
+  2 passed (15.2s)
+
+
+Running 4 tests using 1 worker
+
+  ✘  1 tests/calendar_interaction.spec.js:23:1 › QA-CI-01 Resizing viewport keeps today marker aligned (3.3s)
+  ✘  2 tests/calendar_interaction.spec.js:51:1 › QA-CI-02 Future weeks selector expands range without misalignment (3.6s)
+  ✘  3 tests/calendar_interaction.spec.js:68:1 › QA-CI-03 Sequential trip selection preserves detail accuracy (31.1s)
+  -  4 tests/calendar_interaction.spec.js:116:3 › visual validation › QA-CI-04 Shell layout visual snapshot after resize
+
+
+  1) tests/calendar_interaction.spec.js:23:1 › QA-CI-01 Resizing viewport keeps today marker aligned 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThan[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected: < [32m1.5[39m
+    Received:   [31m4584[39m
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/tests/calendar_interaction.spec.js:47:47)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/workerMain.js:310:9)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/testInfo.js:305:11)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/workerMain.js:308:7)
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/calendar_interaction-QA-CI-dc42a--keeps-today-marker-aligned/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/calendar_interaction-QA-CI-dc42a--keeps-today-marker-aligned/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/calendar_interaction-QA-CI-dc42a--keeps-today-marker-aligned/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/calendar_interaction-QA-CI-dc42a--keeps-today-marker-aligned/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/calendar_interaction-QA-CI-dc42a--keeps-today-marker-aligned/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests/calendar_interaction.spec.js:51:1 › QA-CI-02 Future weeks selector expands range without misalignment 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoStrictEqual[2m([22m[32mexpected[39m[2m) // deep equality[22m
+
+    [32m- Expected  - 1[39m
+    [31m+ Received  + 5[39m
+
+    [32m- Array [][39m
+    [31m+ Array [[39m
+    [31m+   "Missing sidebar elements: {sidebar: null, mainContent: null, toggleBtn: null}",[39m
+    [31m+   "Missing sidebar elements: {sidebar: null, mainContent: null, toggleBtn: null}",[39m
+    [31m+   "Failed to load resource: the server responded with a status of 404 (NOT FOUND)",[39m
+    [31m+ ][39m
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/tests/calendar_interaction.spec.js:65:25)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/workerMain.js:310:9)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/testInfo.js:305:11)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/workerMain.js:308:7)
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/calendar_interaction-QA-CI-94e4b--range-without-misalignment/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/calendar_interaction-QA-CI-94e4b--range-without-misalignment/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/calendar_interaction-QA-CI-94e4b--range-without-misalignment/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/calendar_interaction-QA-CI-94e4b--range-without-misalignment/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/calendar_interaction-QA-CI-94e4b--range-without-misalignment/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) tests/calendar_interaction.spec.js:68:1 › QA-CI-03 Sequential trip selection preserves detail accuracy 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('.calendar-trip').first()[22m
+    [2m    - locator resolved to <div tabindex="0" role="button" data-job-ref="" draggable="true" data-country="DE" data-days-used="14" data-trip-id="10576" aria-grabbed="false" data-end="2025-10-25" data-compliance="safe" data-employee-id="6226" data-start="2025-10-12" data-drag-interaction="ready" data-employee="Anderson Ponciano" data-status-label="Compliant trip" class="calendar-trip calendar-trip--safe trip-bar trip-bar--safe" aria-label="DE trip. for Anderson Ponciano. 13-10-2025 → 26-10-2025. Compliant trip">DE</div>[22m
+    [2m  - attempting click action[22m
+    [2m    2 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not stable[22m
+    [2m    - retrying click action[22m
+    [2m    - waiting 20ms[22m
+    [2m    - waiting for element to be visible, enabled and stable[22m
+    [2m    - element is not stable[22m
+    [2m  - retrying click action[22m
+    [2m    - waiting 100ms[22m
+    [2m    - waiting for element to be visible, enabled and stable[22m
+    [2m    - element is visible, enabled and stable[22m
+    [2m    - scrolling into view if needed[22m
+    [2m    - done scrolling[22m
+    [2m    - <div>↵Hello Friend,↵↵Thank you for choosing my app as …</div> from <div role="dialog" aria-modal="true">…</div> subtree intercepts pointer events[22m
+    [2m  - retrying click action[22m
+    [2m    - waiting 100ms[22m
+    [2m    13 × waiting for element to be visible, enabled and stable[22m
+    [2m       - element is not stable[22m
+    [2m     - retrying click action[22m
+    [2m       - waiting 500ms[22m
+    [2m       - waiting for element to be visible, enabled and stable[22m
+    [2m       - element is visible, enabled and stable[22m
+    [2m       - scrolling into view if needed[22m
+    [2m       - done scrolling[22m
+    [2m       - <div>…</div> from <div role="dialog" aria-modal="true">…</div> subtree intercepts pointer events[22m
+    [2m     - retrying click action[22m
+    [2m       - waiting 500ms[22m
+    [2m       - waiting for element to be visible, enabled and stable[22m
+    [2m       - element is not stable[22m
+    [2m     - retrying click action[22m
+    [2m       - waiting 500ms[22m
+    [2m       - waiting for element to be visible, enabled and stable[22m
+    [2m       - element is visible, enabled and stable[22m
+    [2m       - scrolling into view if needed[22m
+    [2m       - done scrolling[22m
+    [2m       - <div role="dialog" aria-modal="true">…</div> intercepts pointer events[22m
+    [2m     - retrying click action[22m
+    [2m       - waiting 500ms[22m
+    [2m    - waiting for element to be visible, enabled and stable[22m
+    [2m    - element is not stable[22m
+    [2m  - retrying click action[22m
+    [2m    - waiting 500ms[22m
+
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/tests/calendar_interaction.spec.js:80:19)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/workerMain.js:310:9)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/testInfo.js:305:11)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/workerMain.js:308:7)
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/calendar_interaction-QA-CI-1e6f5-n-preserves-detail-accuracy/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/calendar_interaction-QA-CI-1e6f5-n-preserves-detail-accuracy/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/calendar_interaction-QA-CI-1e6f5-n-preserves-detail-accuracy/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/calendar_interaction-QA-CI-1e6f5-n-preserves-detail-accuracy/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/calendar_interaction-QA-CI-1e6f5-n-preserves-detail-accuracy/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3 failed
+    tests/calendar_interaction.spec.js:23:1 › QA-CI-01 Resizing viewport keeps today marker aligned 
+    tests/calendar_interaction.spec.js:51:1 › QA-CI-02 Future weeks selector expands range without misalignment 
+    tests/calendar_interaction.spec.js:68:1 › QA-CI-03 Sequential trip selection preserves detail accuracy 
+  1 skipped
+
+
+Running 9 tests using 1 worker
+
+  ✘  1 tests/calendar_drag.spec.js:66:1 › QA-08 Dragging a trip updates dates and triggers toast (8.4s)
+  ✓  2 tests/calendar_drag.spec.js:92:1 › QA-09 Color class persists and updates correctly after drag (3.8s)
+  ✘  3 tests/calendar_drag.spec.js:117:1 › QA-10 No console errors triggered while dragging trips (3.6s)
+  ✘  4 tests/calendar_drag.spec.js:130:1 › QA-11 Dragging works at desktop, tablet, and mobile widths (6.3s)
+No accessibility violations detected!
+  ✓  5 tests/calendar_drag.spec.js:146:1 › QA-12 Drag elements expose aria-grabbed and dropeffect attributes (3.4s)
+Drag operation took 266.39ms
+  ✓  6 tests/calendar_drag.spec.js:165:1 › QA-13 Drag performance under 1000ms (2.6s)
+  ✘  7 tests/calendar_drag.spec.js:178:1 › QA-14 Trip dataset remains coherent after drag (3.7s)
+  ✓  8 tests/calendar_drag.spec.js:214:1 › QA-15 Drag results render without jitter across frames (3.1s)
+  -  9 tests/calendar_drag.spec.js:256:3 › visual regression › QA-16 Post-drag layout matches visual baseline
+
+
+  1) tests/calendar_drag.spec.js:66:1 › QA-08 Dragging a trip updates dates and triggers toast ─────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator: locator('#calendar-toast')
+    Expected substring: [32m"Trip updated successfully"[39m
+    Received string:    [31m""[39m
+    Timeout: 5000ms
+
+    Call log:
+    [2m  - Expect "toContainText" with timeout 5000ms[22m
+    [2m  - waiting for locator('#calendar-toast')[22m
+    [2m    9 × locator resolved to <div role="status" aria-live="polite" aria-hidden="true" id="calendar-toast" class="calendar-toast"></div>[22m
+    [2m      - unexpected value ""[22m
+
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/tests/calendar_drag.spec.js:78:23)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/workerMain.js:310:9)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/testInfo.js:305:11)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/workerMain.js:308:7)
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/calendar_drag-QA-08-Draggi-a9fb5-es-dates-and-triggers-toast/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/calendar_drag-QA-08-Draggi-a9fb5-es-dates-and-triggers-toast/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/calendar_drag-QA-08-Draggi-a9fb5-es-dates-and-triggers-toast/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/calendar_drag-QA-08-Draggi-a9fb5-es-dates-and-triggers-toast/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/calendar_drag-QA-08-Draggi-a9fb5-es-dates-and-triggers-toast/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests/calendar_drag.spec.js:117:1 › QA-10 No console errors triggered while dragging trips ────
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoStrictEqual[2m([22m[32mexpected[39m[2m) // deep equality[22m
+
+    [32m- Expected  - 1[39m
+    [31m+ Received  + 4[39m
+
+    [32m- Array [][39m
+    [31m+ Array [[39m
+    [31m+   "Missing sidebar elements: {sidebar: null, mainContent: null, toggleBtn: null}",[39m
+    [31m+   "Missing sidebar elements: {sidebar: null, mainContent: null, toggleBtn: null}",[39m
+    [31m+ ][39m
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/tests/calendar_drag.spec.js:124:25)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/workerMain.js:310:9)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/testInfo.js:305:11)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/workerMain.js:308:7)
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/calendar_drag-QA-10-No-con-a265e-ggered-while-dragging-trips/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/calendar_drag-QA-10-No-con-a265e-ggered-while-dragging-trips/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/calendar_drag-QA-10-No-con-a265e-ggered-while-dragging-trips/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/calendar_drag-QA-10-No-con-a265e-ggered-while-dragging-trips/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/calendar_drag-QA-10-No-con-a265e-ggered-while-dragging-trips/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) tests/calendar_drag.spec.js:130:1 › QA-11 Dragging works at desktop, tablet, and mobile widths 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('.calendar-trip').first()
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('.calendar-trip').first()[22m
+
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/tests/calendar_drag.spec.js:135:58)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/workerMain.js:310:9)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/testInfo.js:305:11)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/workerMain.js:308:7)
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/calendar_drag-QA-11-Draggi-cbad5-op-tablet-and-mobile-widths/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/calendar_drag-QA-11-Draggi-cbad5-op-tablet-and-mobile-widths/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/calendar_drag-QA-11-Draggi-cbad5-op-tablet-and-mobile-widths/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/calendar_drag-QA-11-Draggi-cbad5-op-tablet-and-mobile-widths/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/calendar_drag-QA-11-Draggi-cbad5-op-tablet-and-mobile-widths/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) tests/calendar_drag.spec.js:178:1 › QA-14 Trip dataset remains coherent after drag ────────────
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m3[39m
+    Received: [31m0[39m
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/tests/calendar_drag.spec.js:195:20)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/workerMain.js:310:9)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/testInfo.js:305:11)
+        at /Users/jameswalsh/Desktop/Dev/Web Projects/EU Trip Tracker/eu-trip-tracker (v1.7-current)/node_modules/playwright/lib/worker/workerMain.js:308:7)
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/calendar_drag-QA-14-Trip-dataset-remains-coherent-after-drag/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/calendar_drag-QA-14-Trip-dataset-remains-coherent-after-drag/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/calendar_drag-QA-14-Trip-dataset-remains-coherent-after-drag/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/calendar_drag-QA-14-Trip-dataset-remains-coherent-after-drag/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/calendar_drag-QA-14-Trip-dataset-remains-coherent-after-drag/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4 failed
+    tests/calendar_drag.spec.js:66:1 › QA-08 Dragging a trip updates dates and triggers toast ──────
+    tests/calendar_drag.spec.js:117:1 › QA-10 No console errors triggered while dragging trips ─────
+    tests/calendar_drag.spec.js:130:1 › QA-11 Dragging works at desktop, tablet, and mobile widths ─
+    tests/calendar_drag.spec.js:178:1 › QA-14 Trip dataset remains coherent after drag ─────────────
+  1 skipped
+  4 passed (41.3s)
+
+==========================================================
+ Test Summary (Pass/Fail):
+node:net:1940
+    const ex = new UVExceptionWithHostPort(err, 'listen', address, port);
+               ^
+
+Error: listen EADDRINUSE: address already in use ::1:9323
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at GetAddrInfoReqWrap.callback (node:net:2206:7)
+    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:134:8) {
+  code: 'EADDRINUSE',
+  errno: -48,
+  syscall: 'listen',
+  address: '::1',
+  port: 9323
+}
+
+Node.js v24.8.0
+==========================================================
+

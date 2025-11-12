@@ -1,5 +1,5 @@
 # EU TRIP TRACKER - Production Deployment Guide
-## Version 1.2.0 - Production Ready
+## ComplyEur - Version 1.2.0 - Production Ready
 
 ---
 
@@ -435,4 +435,3 @@ All rights reserved.
 ---
 
 **🇪🇺 EU Trip Tracker v1.2.0 - Built with care for compliance and security**
-

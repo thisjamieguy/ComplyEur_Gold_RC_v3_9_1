@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Phase 3.10 Endurance Test Report - ComplyEur</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        h1 { color: #2c5282; }
+        .metric { background: #f7fafc; padding: 15px; margin: 10px 0; border-radius: 4px; }
+        .success { color: green; }
+        .warning { color: orange; }
+        .error { color: red; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #2c5282; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌙 Phase 3.10: Elite QA Endurance & Stress Test Report</h1>
+        <p><strong>ComplyEur</strong> - EU 90/180 Employee Travel Tracker</p>
+        
+        <div class="metric">
+            <h2>Test Summary</h2>
+            <p><strong>Start Time:</strong> 2025-11-04T22:44:31.205243</p>
+            <p><strong>End Time:</strong> 2025-11-04T22:51:22.853426</p>
+            <p><strong>Duration:</strong> 0.11 hours</p>
+        </div>
+        
+        <div class="metric">
+            <h2>Excel Import Load Testing</h2>
+            <p><strong>Total Runs:</strong> 33</p>
+            <p><strong>Successes:</strong> <span class="success">33</span></p>
+            <p><strong>Failures:</strong> <span class="error">0</span></p>
+            <p><strong>Avg Processing Time:</strong> 1.00s</p>
+        </div>
+        
+        <div class="metric">
+            <h2>Backend Stability</h2>
+            <p><strong>Recalculations:</strong> 6380</p>
+            <p><strong>Drift Detections:</strong> <span class="success">0</span></p>
+            <p><strong>Deadlocks:</strong> <span class="success">0</span></p>
+        </div>
+        
+        <div class="metric">
+            <h2>Frontend Synchronization</h2>
+            <p><strong>Interactions:</strong> 0</p>
+            <p><strong>Synchronization Errors:</strong> <span class="error">10</span></p>
+            <p><strong>Lag Events (>50ms):</strong> 0</p>
+        </div>
+        
+        <div class="metric">
+            <h2>Export Validation</h2>
+            <p><strong>Total Exports:</strong> 20</p>
+            <p><strong>CSV Diffs:</strong> <span class="success">0</span></p>
+            <p><strong>PDF Diffs:</strong> <span class="success">0</span></p>
+        </div>
+        
+        <div class="metric">
+            <h2>System Metrics Summary</h2>
+            
+        <table>
+            <tr><th>Metric</th><th>Value</th></tr>
+            <tr><td>CPU Average</td><td>0.05%</td></tr>
+            <tr><td>CPU Max</td><td>0.20%</td></tr>
+            <tr><td>Memory Average</td><td>109.45 MB</td></tr>
+            <tr><td>Memory Max</td><td>111.98 MB</td></tr>
+            <tr><td>Memory Growth</td><td>10.05 MB</td></tr>
+            <tr><td>Total I/O Read</td><td>0.00 MB</td></tr>
+            <tr><td>Total I/O Write</td><td>0.00 MB</td></tr>
+        </table>
+        
+        </div>
+        
+        <div class="metric">
+            <h2>Errors & Issues</h2>
+            <p><strong>Total Errors:</strong> <span class="error">10</span></p>
+            
+        <table>
+            <tr><th>Test</th><th>Error</th><th>Timestamp</th></tr>
+            <tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-04T22:45:05.630502</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-04T22:45:45.786429</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-04T22:46:26.010671</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-04T22:47:06.117676</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-04T22:47:46.217181</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-04T22:48:25.978332</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-04T22:49:05.509853</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-04T22:49:45.455389</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-04T22:50:25.438365</td></tr><tr><td>frontend_sync_initialization</td><td>Playwright UI login failed: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('.*/(dashboard|home)(/)?$')" until 'load'
+============================================================</td><td>2025-11-04T22:51:05.463115</td></tr>
+        </table>
+        <p><em>Showing first 20 errors. Total: 10</em></p>
+        
+        </div>
+    </div>
+</body>
+</html>

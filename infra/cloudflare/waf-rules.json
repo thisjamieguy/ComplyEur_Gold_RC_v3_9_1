@@ -1,0 +1,101 @@
+{
+  "waf_rules": {
+    "description": "Cloudflare WAF Rules for ComplyEur - OWASP Template",
+    "version": "1.0",
+    "rules": [
+      {
+        "name": "OWASP Core Rule Set",
+        "enabled": true,
+        "action": "block",
+        "ruleset": "OWASP",
+        "sensitivity": "high"
+      },
+      {
+        "name": "Block SQL Injection Attempts",
+        "enabled": true,
+        "action": "block",
+        "expression": "(http.request.uri.query contains \"'\" or http.request.body contains \"'\" or http.request.body contains \"--\" or http.request.body contains \"union select\")",
+        "response": {
+          "status_code": 403,
+          "content": "Request blocked by security policy"
+        }
+      },
+      {
+        "name": "Block XSS Attempts",
+        "enabled": true,
+        "action": "block",
+        "expression": "(http.request.uri.query contains \"<script\" or http.request.body contains \"<script\" or http.request.headers[\"user-agent\"] contains \"<script\")",
+        "response": {
+          "status_code": 403,
+          "content": "Request blocked by security policy"
+        }
+      },
+      {
+        "name": "Rate Limit - Login Endpoint",
+        "enabled": true,
+        "action": "challenge",
+        "expression": "(http.request.uri.path eq \"/login\" or http.request.uri.path eq \"/auth/login\")",
+        "rate_limit": {
+          "requests_per_minute": 5,
+          "action": "block"
+        }
+      },
+      {
+        "name": "Block Common Attack Patterns",
+        "enabled": true,
+        "action": "block",
+        "expression": "(http.request.uri.path contains \"../\" or http.request.uri.path contains \".env\" or http.request.uri.path contains \"wp-admin\" or http.request.uri.path contains \"phpinfo\")",
+        "response": {
+          "status_code": 403,
+          "content": "Request blocked by security policy"
+        }
+      },
+      {
+        "name": "Geolocation Blocking (Optional)",
+        "enabled": false,
+        "action": "block",
+        "expression": "(ip.geoip.country ne \"GB\" and ip.geoip.country ne \"IE\" and ip.geoip.country ne \"FR\" and ip.geoip.country ne \"DE\" and ip.geoip.country ne \"IT\" and ip.geoip.country ne \"ES\" and ip.geoip.country ne \"NL\" and ip.geoip.country ne \"BE\" and ip.geoip.country ne \"AT\" and ip.geoip.country ne \"CH\" and ip.geoip.country ne \"SE\" and ip.geoip.country ne \"NO\" and ip.geoip.country ne \"DK\" and ip.geoip.country ne \"FI\" and ip.geoip.country ne \"PL\" and ip.geoip.country ne \"CZ\" and ip.geoip.country ne \"HU\" and ip.geoip.country ne \"RO\" and ip.geoip.country ne \"BG\" and ip.geoip.country ne \"GR\" and ip.geoip.country ne \"PT\" and ip.geoip.country ne \"SK\" and ip.geoip.country ne \"SI\" and ip.geoip.country ne \"HR\" and ip.geoip.country ne \"EE\" and ip.geoip.country ne \"LV\" and ip.geoip.country ne \"LT\" and ip.geoip.country ne \"MT\" and ip.geoip.country ne \"CY\" and ip.geoip.country ne \"LU\" and ip.geoip.country ne \"IS\" and ip.geoip.country ne \"LI\")",
+        "note": "Enable this rule to block non-EU traffic (optional, disabled by default)"
+      }
+    ],
+    "rate_limiting": {
+      "login_endpoint": {
+        "path": "/login",
+        "limit": "5 requests per minute",
+        "action": "block"
+      },
+      "api_endpoints": {
+        "path": "/api/*",
+        "limit": "100 requests per minute",
+        "action": "challenge"
+      },
+      "general": {
+        "path": "/*",
+        "limit": "1000 requests per minute",
+        "action": "challenge"
+      }
+    },
+    "bot_fight_mode": {
+      "enabled": true,
+      "description": "Automatically blocks known bots"
+    },
+    "managed_challenge": {
+      "enabled": true,
+      "description": "Interactive challenge for suspicious requests"
+    }
+  },
+  "deployment": {
+    "method": "Cloudflare Dashboard",
+    "steps": [
+      "1. Log into Cloudflare Dashboard",
+      "2. Select your domain",
+      "3. Go to Security > WAF",
+      "4. Enable OWASP Core Rule Set",
+      "5. Create custom rules from this file",
+      "6. Configure rate limiting",
+      "7. Enable Bot Fight Mode",
+      "8. Test rules in 'Logs' mode before blocking"
+    ]
+  }
+}
+

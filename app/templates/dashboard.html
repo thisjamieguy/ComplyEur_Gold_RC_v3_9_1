@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}Dashboard - EU Trip Tracker{% endblock %}
+{% block meta_description %}View employee compliance status, track EU travel days, and monitor 90/180 day rule compliance for your team.{% endblock %}
 
 {% block content %}
 <div class="content-header">
@@ -11,9 +12,9 @@
 <div class="content-body">
     <!-- At Risk Alert Section -->
     {% if at_risk_employees %}
-    <div class="card" style="border: 2px solid #dc2626; background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); margin-bottom: 24px;">
-        <div class="card-header" style="background: #dc2626; color: white;">
-            <h2 class="card-title" style="color: white; display: flex; align-items: center; gap: 8px;">
+    <div class="card card-danger">
+        <div class="card-header">
+            <h2 class="card-title flex flex-align-center gap-8">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
                     <line x1="12" y1="9" x2="12" y2="13"></line>
@@ -31,26 +32,26 @@
                     </svg>
                 </button>
             </h2>
-            <p style="color: #fecaca; margin: 0; font-size: 14px;">
+            <p class="text-status-danger" style="margin: 0; font-size: 14px; opacity: 0.9;">
                 These employees have used 76+ days in the EU and have 2 weeks or less remaining
             </p>
         </div>
         <div class="card-body" style="padding: 20px;">
-            <div style="display: grid; gap: 16px;">
+            <div class="grid" style="gap: 16px;">
                 {% for emp in at_risk_employees %}
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--base-bg); border-radius: 8px; border-left: 4px solid #dc2626; box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);">
+                <div class="flex flex-align-center flex-justify-between" style="padding: 16px; background: var(--base-bg); border-radius: 8px; border-left: 4px solid var(--status-danger); box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);">
                     <div style="flex: 1;">
-                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                            <div style="width: 8px; height: 8px; background: #dc2626; border-radius: 50%;"></div>
+                        <div class="flex flex-align-center gap-12 mb-8">
+                            <div style="width: 8px; height: 8px; background: var(--status-danger); border-radius: 50%;"></div>
                             <h3 style="margin: 0; color: #1f2937; font-size: 16px; font-weight: 600;">{{ emp.name }}</h3>
                             <span class="badge badge-danger">
                                 {{ emp.days_used }}/90 days
                             </span>
                         </div>
-                        <div style="display: flex; gap: 24px; font-size: 14px; color: #6b7280;">
+                        <div class="flex gap-24" style="font-size: 14px; color: #6b7280;">
                             <div>
                                 <strong>Days Remaining:</strong> 
-                                <span style="color: #dc2626; font-weight: 600;">{{ emp.days_remaining }}</span>
+                                <span class="text-status-danger font-weight-semibold">{{ emp.days_remaining }}</span>
                             </div>
                             <div>
                                 <strong>Next Trip:</strong> 
@@ -172,12 +173,16 @@
                 </a>
             </div>
         </div>
-        <form method="POST" action="{{ url_for('main.add_employee') }}" class="form-inline" data-employee-form="true">
+        <form method="POST" action="{{ url_for('main.add_employee') }}" class="form-inline" data-employee-form="true" id="addEmployeeForm">
             <div class="form-group">
                 <label class="form-label required">Employee Name</label>
-                <input type="text" name="name" class="form-input" placeholder="Enter employee name" required minlength="2" maxlength="100">
+                <input type="text" name="name" id="employeeNameInput" class="form-input" placeholder="Enter employee name" required minlength="2" maxlength="100" aria-describedby="employee-name-error employee-name-help">
+                <div id="employee-name-error" class="invalid-feedback" role="alert"></div>
+                <div id="employee-name-help" class="form-hint">Enter the full name of the employee</div>
             </div>
-            <button type="submit" class="btn btn-primary">Add Employee</button>
+            <button type="submit" class="btn btn-primary" id="addEmployeeBtn">
+                <span class="btn-text">Add Employee</span>
+            </button>
         </form>
     </div>
 
@@ -307,7 +312,10 @@
                             Days Remaining
                             <span class="sort-arrow">↕</span>
                         </th>
-                        <th onclick="sortTable(4)" style="cursor: pointer;" data-tooltip="Click to sort by next scheduled trip">
+                        <th data-tooltip="Forecasted days remaining after the next scheduled job">
+                            Forecasted Days Remaining
+                        </th>
+                        <th onclick="sortTable(5)" style="cursor: pointer;" data-tooltip="Click to sort by next scheduled trip">
                             Next Trip 
                             <span class="sort-arrow">↕</span>
                         </th>
@@ -349,6 +357,34 @@
                             </div>
                         </td>
                         <td>
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                {% if emp.forecasted_days_remaining is not none %}
+                                    <span style="
+                                        display: inline-flex;
+                                        align-items: center;
+                                        justify-content: flex-start;
+                                        padding: 4px 10px;
+                                        border-radius: 999px;
+                                        font-weight: 600;
+                                        font-size: 13px;
+                                        color: {% if emp.forecast_risk_level == 'red' %}#991b1b{% elif emp.forecast_risk_level == 'yellow' %}#92400e{% else %}#065f46{% endif %};
+                                        background: {% if emp.forecast_risk_level == 'red' %}#fee2e2{% elif emp.forecast_risk_level == 'yellow' %}#fef3c7{% else %}#d1fae5{% endif %};
+                                    ">
+                                        {{ emp.forecasted_days_remaining }} day{% if emp.forecasted_days_remaining != 1 %}s{% endif %}
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                                {% if emp.forecast_reference %}
+                                    <small class="text-muted">
+                                        Next job: {{ emp.forecast_reference.job_start_date.strftime('%d-%m-%Y') }} →
+                                        {{ emp.forecast_reference.job_end_date.strftime('%d-%m-%Y') }}
+                                        ({{ emp.forecast_reference.job.country }})
+                                    </small>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
                             {% if emp.next_trip %}
                                 <span class="status-badge status-safe" style="font-size: 12px;">
                                     {{ emp.next_trip.country }} - {{ emp.next_trip.entry_date|format_date }}
@@ -360,7 +396,8 @@
                         <td class="text-center">
                             <div style="display: flex; gap: 8px; justify-content: center;">
                                 <a href="{{ url_for('main.employee_detail', employee_id=emp.id) }}" class="btn btn-primary btn-sm">Details</a>
-                                <a href="{{ url_for('main.employee_calendar', employee_id=emp.id) }}" class="btn btn-secondary btn-sm">📅</a>
+                                {# Calendar temporarily sandboxed in /calendar_dev #}
+                                {# <a href="{{ url_for('main.employee_calendar', employee_id=emp.id) }}" class="btn btn-secondary btn-sm">📅</a> #}
                             </div>
                         </td>
                     </tr>
@@ -418,7 +455,8 @@
                 
                 <div style="display: flex; gap: 8px;">
                     <a href="{{ url_for('main.employee_detail', employee_id=emp.id) }}" class="btn btn-primary btn-sm" style="flex: 1;">Details</a>
-                    <a href="{{ url_for('main.employee_calendar', employee_id=emp.id) }}" class="btn btn-secondary btn-sm" style="flex: 1;">📅 Calendar</a>
+                    {# Calendar temporarily sandboxed in /calendar_dev #}
+                    {# <a href="{{ url_for('main.employee_calendar', employee_id=emp.id) }}" class="btn btn-secondary btn-sm" style="flex: 1;">📅 Calendar</a> #}
                     {# Delete action disabled: route not implemented
                     <form method="POST" action="{{ url_for('main.delete_employee', employee_id=emp.id) }}" style="flex: 1;" onsubmit="return confirm('Are you sure you want to delete this employee?');">
                         <button type="submit" class="btn btn-danger btn-sm" style="width: 100%;">Delete</button>
@@ -592,7 +630,7 @@ document.addEventListener('DOMContentLoaded', function() {
             tripCount: parseInt(cells[1].textContent.trim()) || 0,
             daysUsed: parseInt(cells[2].textContent.trim().split('/')[0]) || 0,
             daysRemaining: parseInt(cells[3].textContent.trim().split(' ')[0]) || 0,
-            nextTrip: cells[4].textContent.trim(),
+            nextTrip: cells[5].textContent.trim(),
             riskLevel: getRiskLevel(parseInt(cells[3].textContent.trim().split(' ')[0]) || 0)
         };
     });
@@ -782,6 +820,53 @@ function clearFilters() {
 function changeSort() {
     const sortSelect = document.getElementById('sortSelect');
     const sortValue = sortSelect.value;
+    
+    // Handle add employee form submission
+    const addEmployeeForm = document.getElementById('addEmployeeForm');
+    if (addEmployeeForm) {
+        addEmployeeForm.addEventListener('submit', function(e) {
+            const btn = document.getElementById('addEmployeeBtn');
+            const btnText = btn.querySelector('.btn-text');
+            if (btnText) {
+                btnText.textContent = 'Adding...';
+            }
+            btn.disabled = true;
+            
+            // Show toast on success (will be triggered by page reload with success param)
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('success') === 'employee_added') {
+                if (typeof showSuccess === 'function') {
+                    showSuccess('Employee added successfully');
+                } else if (typeof NotificationSystem !== 'undefined') {
+                    new NotificationSystem().showSuccess('Employee added successfully');
+                }
+                // Update aria-live region
+                const ariaLive = document.getElementById('aria-live-status');
+                if (ariaLive) {
+                    ariaLive.textContent = 'Employee added successfully';
+                }
+            }
+        });
+    }
+    
+    // Check for success parameter on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === 'employee_added') {
+            if (typeof showSuccess === 'function') {
+                showSuccess('Employee added successfully');
+            } else if (typeof NotificationSystem !== 'undefined') {
+                new NotificationSystem().showSuccess('Employee added successfully');
+            }
+            const ariaLive = document.getElementById('aria-live-status');
+            if (ariaLive) {
+                ariaLive.textContent = 'Employee added successfully';
+            }
+            // Clean URL
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, '', newUrl);
+        }
+    });
     
     // Redirect to dashboard with new sort parameter
     const url = new URL(window.location);

@@ -2,7 +2,7 @@
 
 ## 📋 Overview
 
-The IES 90/180 EU Travel Tracker now includes a comprehensive Help & Tutorial system designed to guide users through the application's features. This system is fully GDPR-compliant with all assets stored locally (no CDN dependencies).
+The ComplyEur 90/180 EU Travel Tracker now includes a comprehensive Help & Tutorial system designed to guide users through the application's features. This system is fully GDPR-compliant with all assets stored locally (no CDN dependencies).
 
 ## ✨ Features Implemented
 
@@ -14,7 +14,7 @@ The IES 90/180 EU Travel Tracker now includes a comprehensive Help & Tutorial sy
   - Quick tips banner cards
   - Interactive tutorial launcher
   - Fully responsive design (mobile & desktop)
-  - Matches existing dashboard style (Helvetica Neue font, IES blue color scheme)
+  - Matches existing dashboard style (Helvetica Neue font, ComplyEur blue color scheme)
 
 ### 2. **Interactive Onboarding Tutorial**
 - **Technology**: Intro.js (v7.2.0) - stored locally for GDPR compliance
@@ -50,7 +50,7 @@ The IES 90/180 EU Travel Tracker now includes a comprehensive Help & Tutorial sy
    - GDPR compliant
 
 4. **`static/css/intro.min.css`** - Intro.js styles (local)
-   - Customized with IES brand colors
+   - Customized with ComplyEur brand colors
    - Matches dashboard design
 
 5. **`HELP_SYSTEM_README.md`** - This documentation

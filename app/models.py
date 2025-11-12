@@ -3,6 +3,27 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from flask import g
 
+
+def _apply_pragmas(conn: sqlite3.Connection) -> None:
+    """Apply performance-related PRAGMAs for local SQLite.
+
+    Safe for local-only ComplyEur usage; improves write performance and concurrency.
+    """
+    try:
+        # Integrity and foreign keys
+        conn.execute('PRAGMA foreign_keys = ON')
+        # WAL improves concurrent reads; normal sync balances durability and speed
+        conn.execute('PRAGMA journal_mode = WAL')
+        conn.execute('PRAGMA synchronous = NORMAL')
+        # Increase cache and prefer memory for temp objects
+        conn.execute('PRAGMA cache_size = -20000')  # ~20MB
+        conn.execute('PRAGMA temp_store = MEMORY')
+        # Enable mmap for faster I/O when supported (~128MB)
+        conn.execute('PRAGMA mmap_size = 134217728')
+    except Exception:
+        # Best-effort: ignore if any pragma is unsupported
+        pass
+
 def get_db():
     """Get database connection (shared for request context).
     Supports in-memory DB in tests using a shared cache.
@@ -26,10 +47,7 @@ def get_db():
         if persistent is None or ensure_open(persistent) is None:
             persistent = sqlite3.connect(db_path, uri=True, check_same_thread=False)
             persistent.row_factory = sqlite3.Row
-            try:
-                persistent.execute('PRAGMA foreign_keys = ON')
-            except Exception:
-                pass
+            _apply_pragmas(persistent)
             current_app.config['PERSISTENT_DB_CONN'] = persistent
         return persistent
 
@@ -38,10 +56,7 @@ def get_db():
     if conn is None:
         conn = sqlite3.connect(db_path, check_same_thread=False)
         conn.row_factory = sqlite3.Row
-        try:
-            conn.execute('PRAGMA foreign_keys = ON')
-        except Exception:
-            pass
+        _apply_pragmas(conn)
         g._db_conn = conn
     return conn
 
@@ -103,6 +118,22 @@ def init_db():
     except sqlite3.OperationalError:
         # Column already exists, ignore error
         pass
+    
+    # Create alerts table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS alerts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            employee_id INTEGER NOT NULL,
+            risk_level TEXT NOT NULL,
+            message TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            resolved INTEGER DEFAULT 0,
+            email_sent INTEGER DEFAULT 0,
+            FOREIGN KEY (employee_id) REFERENCES employees (id)
+        )
+    ''')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_alerts_employee_active ON alerts (employee_id, resolved)')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_alerts_created_at ON alerts (created_at)')
     
     # Create admin table
     c.execute('''
@@ -224,6 +255,12 @@ def init_db():
     c.execute('CREATE INDEX IF NOT EXISTS idx_trips_dates ON trips(entry_date, exit_date)')
     c.execute('CREATE INDEX IF NOT EXISTS idx_news_cache_source ON news_cache(source_id)')
     c.execute('CREATE INDEX IF NOT EXISTS idx_news_cache_fetched ON news_cache(fetched_at)')
+    
+    # Performance optimization indexes (Phase 1)
+    # Composite index for dashboard queries (employee_id + dates)
+    c.execute('CREATE INDEX IF NOT EXISTS idx_trips_employee_dates ON trips(employee_id, entry_date, exit_date)')
+    # Index for employee name sorting
+    c.execute('CREATE INDEX IF NOT EXISTS idx_employees_name ON employees(name COLLATE NOCASE)')
 
     # Ensure default admin exists (used by tests and first-run local dev)
     try:
@@ -263,9 +300,10 @@ class Employee:
         """Get all employees"""
         conn = get_db()
         c = conn.cursor()
-        c.execute('SELECT * FROM employees ORDER BY name')
+        # OPTIMIZATION: Select specific columns instead of SELECT *
+        c.execute('SELECT id, name, created_at FROM employees ORDER BY name')
         employees = [Employee(**dict(row)) for row in c.fetchall()]
-        conn.close()
+        # Connection managed by Flask teardown handler
         return employees
     
     @classmethod
@@ -273,9 +311,10 @@ class Employee:
         """Get employee by ID"""
         conn = get_db()
         c = conn.cursor()
-        c.execute('SELECT * FROM employees WHERE id = ?', (employee_id,))
+        # OPTIMIZATION: Select specific columns instead of SELECT *
+        c.execute('SELECT id, name, created_at FROM employees WHERE id = ?', (employee_id,))
         row = c.fetchone()
-        conn.close()
+        # Connection managed by Flask teardown handler
         return Employee(**dict(row)) if row else None
     
     @classmethod
@@ -358,9 +397,16 @@ class Trip:
         """Get all trips for an employee"""
         conn = get_db()
         c = conn.cursor()
-        c.execute('SELECT * FROM trips WHERE employee_id = ? ORDER BY entry_date DESC', (employee_id,))
+        # OPTIMIZATION: Select specific columns instead of SELECT *
+        c.execute('''
+            SELECT id, employee_id, country, entry_date, exit_date, purpose, 
+                   travel_days, is_private, job_ref, ghosted, created_at 
+            FROM trips 
+            WHERE employee_id = ? 
+            ORDER BY entry_date DESC
+        ''', (employee_id,))
         trips = [Trip(**dict(row)) for row in c.fetchall()]
-        conn.close()
+        # Connection managed by Flask teardown handler
         return trips
     
     @classmethod
@@ -368,9 +414,15 @@ class Trip:
         """Get trip by ID"""
         conn = get_db()
         c = conn.cursor()
-        c.execute('SELECT * FROM trips WHERE id = ?', (trip_id,))
+        # OPTIMIZATION: Select specific columns instead of SELECT *
+        c.execute('''
+            SELECT id, employee_id, country, entry_date, exit_date, purpose, 
+                   travel_days, is_private, job_ref, ghosted, created_at 
+            FROM trips 
+            WHERE id = ?
+        ''', (trip_id,))
         row = c.fetchone()
-        conn.close()
+        # Connection managed by Flask teardown handler
         return Trip(**dict(row)) if row else None
     
     @classmethod
