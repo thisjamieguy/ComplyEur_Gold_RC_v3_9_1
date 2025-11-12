@@ -47,13 +47,12 @@ echo "   Installing from: $TMP_DIR/requirements_core.txt"
 echo "📦 Upgrading pip, setuptools, wheel..."
 pip install --upgrade pip setuptools wheel --no-cache-dir 2>&1 | tail -5 || echo "⚠️  Warning: pip upgrade had issues, continuing..."
 
-# Install core requirements with wheel preference (avoid building from source)
+# Install core requirements - try standard install first, then fallback to wheels-only
 echo ""
 echo "📦 Installing core Python dependencies..."
-echo "   Using --prefer-binary to prefer pre-built wheels over building from source"
-echo "   This avoids ninja/build failures on Render"
+echo "   Strategy: Prefer wheels, fallback to building from source only if wheels unavailable"
 
-# Try installing all core requirements at once (faster, uses wheels)
+# Try installing all at once with wheel preference
 set +e
 pip install --prefer-binary --no-cache-dir -r "$TMP_DIR/requirements_core.txt" > "$TMP_DIR/pip_install.log" 2>&1
 PIP_EXIT=$?
@@ -61,19 +60,26 @@ set -e
 
 if [ $PIP_EXIT -ne 0 ]; then
     echo ""
-    echo "⚠️  Standard install failed, checking error details..."
-    echo "   Last 30 lines of install log:"
-    tail -30 "$TMP_DIR/pip_install.log"
-    echo ""
+    echo "⚠️  Install failed, analyzing error..."
     
-    # Check if it's a specific package failing
-    if grep -q "metadata-generation-failed\|ninja.*build stopped" "$TMP_DIR/pip_install.log"; then
-        echo "⚠️  Detected metadata-generation-failed error"
-        echo "   This means a package is trying to build from source and failing"
-        echo "   Attempting to install with --only-binary (wheels only)..."
+    # Check if it's a metadata-generation-failed error
+    if grep -qi "metadata-generation-failed\|ninja.*build stopped\|Building wheel for" "$TMP_DIR/pip_install.log"; then
+        echo "   Detected build-from-source failure"
+        echo "   Package trying to build from source (no wheel available)"
         echo ""
+        echo "   Identifying failing package..."
         
-        # Try installing only packages that have wheels
+        # Extract package name from error (look for "Building wheel for <package>")
+        FAILING_PACKAGE=$(grep -i "Building wheel for" "$TMP_DIR/pip_install.log" | head -1 | sed 's/.*Building wheel for \([^ ]*\).*/\1/' || echo "unknown")
+        if [ "$FAILING_PACKAGE" != "unknown" ] && [ -n "$FAILING_PACKAGE" ]; then
+            echo "   ⚠️  Failing package: $FAILING_PACKAGE"
+            echo "   This package doesn't have a pre-built wheel for this platform"
+        fi
+        
+        echo ""
+        echo "   Attempting wheels-only install (skip packages without wheels)..."
+        
+        # Try wheels-only install - this will skip packages without wheels
         set +e
         pip install --only-binary :all: --no-cache-dir -r "$TMP_DIR/requirements_core.txt" > "$TMP_DIR/pip_wheels_only.log" 2>&1
         WHEELS_EXIT=$?
@@ -81,25 +87,31 @@ if [ $PIP_EXIT -ne 0 ]; then
         
         if [ $WHEELS_EXIT -ne 0 ]; then
             echo ""
-            echo "❌ ERROR: Core dependencies failed to install even with wheels-only"
-            echo "   Some packages don't have pre-built wheels for this platform"
-            echo "   Last 30 lines of wheels-only install log:"
-            tail -30 "$TMP_DIR/pip_wheels_only.log"
+            echo "❌ ERROR: Some packages don't have wheels and failed to build"
             echo ""
-            echo "   Core requirements that should be installed:"
-            cat "$TMP_DIR/requirements_core.txt"
+            echo "   Last 40 lines of error log:"
+            tail -40 "$TMP_DIR/pip_install.log"
             echo ""
-            echo "   Python version: $(python --version 2>&1)"
-            echo "   Pip version: $(pip --version 2>&1)"
-            echo "   Platform: $(python -c 'import platform; print(platform.platform())')"
+            echo "   Failed packages (no wheels available):"
+            grep -i "ERROR: Could not find a version\|ERROR: No matching distribution\|Skipping" "$TMP_DIR/pip_wheels_only.log" || echo "   (check logs above)"
+            echo ""
+            echo "   Environment info:"
+            echo "   Python: $(python --version 2>&1)"
+            echo "   Pip: $(pip --version 2>&1)"
+            echo "   Platform: $(python -c 'import platform; print(platform.platform())' 2>/dev/null || echo 'unknown')"
+            echo ""
+            echo "   Solution: Update failing packages to versions with wheels"
             exit 1
         else
-            echo "✅ Core dependencies installed successfully (wheels only)"
+            echo "✅ Core dependencies installed successfully (using wheels only)"
+            echo "   Note: Some packages may be missing if they don't have wheels"
         fi
     else
         echo ""
-        echo "❌ ERROR: Core dependencies failed to install"
-        echo "   Check the error messages above for details"
+        echo "❌ ERROR: Installation failed (not a build-from-source issue)"
+        echo "   Last 40 lines of error log:"
+        tail -40 "$TMP_DIR/pip_install.log"
+        echo ""
         exit 1
     fi
 else
