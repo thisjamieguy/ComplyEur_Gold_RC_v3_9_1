@@ -1,0 +1,288 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e3]:
+    - navigation "Main Sidebar" [ref=e4]:
+      - generic [ref=e5]:
+        - link "Go to Dashboard" [ref=e6] [cursor=pointer]:
+          - /url: /dashboard
+          - heading "EU Tracker" [level=2] [ref=e7]
+        - button "Toggle Sidebar" [ref=e8] [cursor=pointer]:
+          - generic [ref=e9]: Toggle sidebar navigation
+          - img [ref=e10]
+      - generic [ref=e12] [cursor=pointer]:
+        - generic [ref=e13]: EU
+        - generic [ref=e14]:
+          - generic [ref=e15]: Admin
+          - generic [ref=e16]: Administrator
+        - img [ref=e18]
+      - navigation [ref=e20]:
+        - list [ref=e21]:
+          - listitem [ref=e22]:
+            - link "Home" [ref=e23] [cursor=pointer]:
+              - /url: /home
+              - img [ref=e24]
+              - generic [ref=e27]: Home
+          - listitem [ref=e28]:
+            - link "Dashboard" [ref=e29] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e30]
+              - generic [ref=e35]: Dashboard
+          - listitem [ref=e36]:
+            - link "Add Trips" [ref=e37] [cursor=pointer]:
+              - /url: /bulk_add_trip
+              - img [ref=e38]
+              - generic [ref=e41]: Add Trips
+          - listitem [ref=e42]:
+            - link "Import Data" [ref=e43] [cursor=pointer]:
+              - /url: /import_excel
+              - img [ref=e44]
+              - generic [ref=e47]: Import Data
+          - listitem [ref=e48]:
+            - link "Future Job Alerts" [ref=e49] [cursor=pointer]:
+              - /url: /future_job_alerts
+              - img [ref=e50]
+              - generic [ref=e52]: Future Job Alerts
+          - listitem [ref=e53]:
+            - link "Compliance Planner" [ref=e54] [cursor=pointer]:
+              - /url: /what_if_scenario
+              - img [ref=e55]
+              - generic [ref=e58]: Compliance Planner
+          - listitem [ref=e59]:
+            - link "EU Entry Requirements" [ref=e60] [cursor=pointer]:
+              - /url: /entry-requirements
+              - img [ref=e61]
+              - generic [ref=e64]: EU Entry Requirements
+    - generic [ref=e65]:
+      - banner [ref=e66]:
+        - generic [ref=e68]:
+          - img [ref=e69]
+          - generic [ref=e72]: Search employees
+          - textbox "Search employees" [ref=e73]:
+            - /placeholder: Search employees...
+        - button "Admin Administrator" [ref=e76] [cursor=pointer]:
+          - generic [ref=e77]: EU
+          - generic [ref=e78]:
+            - generic [ref=e79]: Admin
+            - generic [ref=e80]: Administrator
+          - img [ref=e81]
+      - navigation "Breadcrumb" [ref=e83]:
+        - list
+      - main [ref=e84]:
+        - generic [ref=e85]:
+          - heading "Privacy Policy" [level=1] [ref=e86]
+          - paragraph [ref=e87]: How we process and protect your personal data
+          - generic [ref=e89]:
+            - strong [ref=e90]: "Last Updated:"
+            - text: 2025-11-13
+            - text: This Privacy Policy explains how the EU Trip Tracker processes personal data in compliance with the General Data Protection Regulation (GDPR).
+        - generic [ref=e91]:
+          - generic [ref=e92]:
+            - heading "1. What is the EU Trip Tracker?" [level=2] [ref=e94]
+            - paragraph [ref=e96]: The EU Trip Tracker is an internal compliance tool used to monitor employee business travel to Schengen Area countries and ensure compliance with the 90/180-day rule. It is a local-only system with minimal data collection and no third-party integrations.
+          - generic [ref=e97]:
+            - heading "2. Data Controller" [level=2] [ref=e99]
+            - paragraph [ref=e101]: The data controller is your organization's administrator who operates this system. For questions or requests regarding your personal data, please contact your system administrator.
+          - generic [ref=e102]:
+            - heading "3. Personal Data We Process" [level=2] [ref=e104]
+            - generic [ref=e105]:
+              - paragraph [ref=e106]:
+                - strong [ref=e107]: "We store only the following minimal data:"
+              - list [ref=e108]:
+                - listitem [ref=e109]:
+                  - strong [ref=e110]: "Employee Name:"
+                  - text: Used to identify you in the system
+                - listitem [ref=e111]:
+                  - strong [ref=e112]: "Trip Records:"
+                  - list [ref=e113]:
+                    - listitem [ref=e114]: Country code (e.g., FR, DE, IT)
+                    - listitem [ref=e115]: Entry date
+                    - listitem [ref=e116]: Exit date
+                    - listitem [ref=e117]: Travel days (calculated)
+                    - listitem [ref=e118]: Record creation timestamp
+              - paragraph [ref=e119]:
+                - strong [ref=e120]: "We do NOT collect or store:"
+              - list [ref=e121]:
+                - listitem [ref=e122]: Email addresses, phone numbers, or contact information
+                - listitem [ref=e123]: Home addresses or location data
+                - listitem [ref=e124]: Financial or payment information
+                - listitem [ref=e125]: Health or biometric data
+                - listitem [ref=e126]: Special category data (race, religion, political opinions, etc.)
+                - listitem [ref=e127]: Employment details beyond your name
+                - listitem [ref=e128]: Any tracking, analytics, or profiling data
+          - generic [ref=e129]:
+            - heading "4. Purpose and Lawful Basis" [level=2] [ref=e131]
+            - generic [ref=e132]:
+              - paragraph [ref=e133]:
+                - strong [ref=e134]: "Why we process your data:"
+              - paragraph [ref=e135]: To track compliance with the Schengen 90/180-day rule, which limits non-residents to 90 days within any 180-day period in the Schengen Area. This helps prevent legal violations and ensures business travel compliance.
+              - paragraph [ref=e136]:
+                - strong [ref=e137]: "Lawful basis:"
+              - list [ref=e138]:
+                - listitem [ref=e139]:
+                  - strong [ref=e140]: "Employee data:"
+                  - text: Legitimate Interests (compliance tracking for business operations)
+                - listitem [ref=e141]:
+                  - strong [ref=e142]: "Trip data:"
+                  - text: Legal Obligation (compliance with Schengen regulations)
+          - generic [ref=e143]:
+            - heading "5. Where and How We Store Your Data" [level=2] [ref=e145]
+            - generic [ref=e146]:
+              - paragraph [ref=e147]:
+                - strong [ref=e148]: "Storage location:"
+              - paragraph [ref=e149]:
+                - text: All data is stored in a local SQLite database file (eu_tracker.db) on the server where this application runs. There is
+                - strong [ref=e150]: no cloud storage
+                - text: and
+                - strong [ref=e151]: no external data transfers
+                - text: .
+              - paragraph [ref=e152]:
+                - strong [ref=e153]: "Security measures:"
+              - list [ref=e154]:
+                - listitem [ref=e155]: Password-protected admin access with strong hashing (Argon2/bcrypt)
+                - listitem [ref=e156]: Session idle timeout (30 minutes)
+                - listitem [ref=e157]: Login rate limiting (max 5 attempts per 5 minutes)
+                - listitem [ref=e158]: HttpOnly and SameSite=Strict session cookies
+                - listitem [ref=e159]: Secure cookie support (when HTTPS is enabled)
+                - listitem [ref=e160]: Audit logging for all administrative actions
+                - listitem [ref=e161]: No external API calls or third-party SDKs
+                - listitem [ref=e162]: Foreign key constraints with CASCADE delete (data integrity)
+          - generic [ref=e163]:
+            - heading "6. Cookies and Tracking" [level=2] [ref=e165]
+            - generic [ref=e166]:
+              - paragraph [ref=e167]:
+                - strong [ref=e168]: "Session Cookie (Essential):"
+              - paragraph [ref=e169]: "We use a single, essential session cookie for admin authentication. This cookie:"
+              - list [ref=e170]:
+                - listitem [ref=e171]: Contains only a random session ID (no personal data)
+                - listitem [ref=e172]: Expires after 30 minutes of inactivity
+                - listitem [ref=e173]: Is HttpOnly (not accessible via JavaScript)
+                - listitem [ref=e174]: Uses SameSite=Strict (CSRF protection)
+                - listitem [ref=e175]: Does not require consent (essential for functionality)
+              - paragraph [ref=e176]:
+                - strong [ref=e177]: "No Tracking:"
+              - paragraph [ref=e178]:
+                - text: We do
+                - strong [ref=e179]: not
+                - text: "use:"
+              - list [ref=e180]:
+                - listitem [ref=e181]: Analytics cookies (e.g., Google Analytics)
+                - listitem [ref=e182]: Marketing or advertising cookies
+                - listitem [ref=e183]: Social media tracking
+                - listitem [ref=e184]: Cross-site tracking
+                - listitem [ref=e185]: Third-party cookies of any kind
+          - generic [ref=e186]:
+            - heading "7. Data Retention" [level=2] [ref=e188]
+            - generic [ref=e189]:
+              - paragraph [ref=e190]:
+                - strong [ref=e191]: "Retention Policy:"
+              - paragraph [ref=e192]:
+                - text: Trip records are retained for
+                - strong [ref=e193]: 36 months
+                - text: after the trip exit date. After this period, trips are automatically deleted during retention purges.
+              - paragraph [ref=e194]: Employee records are automatically deleted when they have no remaining trips.
+              - paragraph [ref=e195]:
+                - strong [ref=e196]: Why this retention period?
+              - paragraph [ref=e197]: This allows sufficient time for compliance audits and historical reporting while minimizing data storage. The retention period is configurable by your administrator.
+          - generic [ref=e198]:
+            - heading "8. Data Sharing and Transfers" [level=2] [ref=e200]
+            - generic [ref=e201]:
+              - paragraph [ref=e202]:
+                - strong [ref=e203]: "Third-party sharing:"
+                - text: None
+              - paragraph [ref=e204]:
+                - strong [ref=e205]: "Cross-border transfers:"
+                - text: None
+              - paragraph [ref=e206]:
+                - strong [ref=e207]: "Automated decision-making:"
+                - text: None
+              - paragraph [ref=e208]:
+                - text: Your data is stored locally and is
+                - strong [ref=e209]: never
+                - text: shared with third parties, transferred outside your organization, or used for automated decision-making or profiling.
+          - generic [ref=e210]:
+            - heading "9. Who Can Access Your Data" [level=2] [ref=e212]
+            - paragraph [ref=e214]: Only authorized administrators can access the system. There are no public endpoints (except this privacy policy page). All data access is logged in an audit trail.
+          - generic [ref=e215]:
+            - heading "10. Your Rights Under GDPR" [level=2] [ref=e217]
+            - generic [ref=e218]:
+              - paragraph [ref=e219]: "You have the following rights regarding your personal data:"
+              - generic [ref=e220]:
+                - heading "📥 Right to Access" [level=4] [ref=e221]
+                - paragraph [ref=e222]: Request a copy of all your personal data stored in the system. Administrators can generate a DSAR (Data Subject Access Request) export as a ZIP file containing your employee record (JSON), trip history (CSV), and processing notes (TXT).
+              - generic [ref=e223]:
+                - heading "Right to Rectification" [level=4] [ref=e224]
+                - paragraph [ref=e225]: Request correction of inaccurate data. Administrators can update your name or modify trip records via the Privacy Tools interface.
+              - generic [ref=e226]:
+                - heading "Right to Erasure (\"Right to be Forgotten\")" [level=4] [ref=e227]
+                - paragraph [ref=e228]:
+                  - text: Request deletion of all your personal data. Administrators can permanently delete your employee record and all associated trips via the Privacy Tools interface.
+                  - strong [ref=e229]: This action is irreversible.
+              - generic [ref=e230]:
+                - heading "Right to Restriction of Processing" [level=4] [ref=e231]
+                - paragraph [ref=e232]: "Request restriction of processing. Administrators can anonymize your record (replacing your name with \"Employee #XXXX\") while keeping aggregate data for compliance."
+              - generic [ref=e233]:
+                - heading "📤 Right to Data Portability" [level=4] [ref=e234]
+                - paragraph [ref=e235]: Receive your data in a structured, machine-readable format (JSON and CSV). This is included in the DSAR export.
+              - generic [ref=e236]:
+                - heading "⛔ Right to Object" [level=4] [ref=e237]
+                - paragraph [ref=e238]: Object to processing based on legitimate interests. Contact your administrator to discuss concerns about data processing.
+              - generic [ref=e239]:
+                - heading "Right to Be Informed" [level=4] [ref=e240]
+                - paragraph [ref=e241]: This privacy policy fulfills your right to be informed about how your data is processed. Administrators can also provide a detailed explanation via the Privacy Tools interface.
+              - paragraph [ref=e242]: To exercise any of these rights, please contact your system administrator.
+          - generic [ref=e243]:
+            - heading "11. Audit Logging" [level=2] [ref=e245]
+            - generic [ref=e246]:
+              - paragraph [ref=e247]: "All administrative actions are logged for security and compliance purposes:"
+              - list [ref=e248]:
+                - listitem [ref=e249]: Login attempts (success and failure)
+                - listitem [ref=e250]: Data exports (DSAR requests)
+                - listitem [ref=e251]: Data deletions
+                - listitem [ref=e252]: Data rectifications
+                - listitem [ref=e253]: Retention purges
+                - listitem [ref=e254]: Settings changes
+              - paragraph [ref=e255]:
+                - text: Audit logs contain timestamps, action types, and masked administrator identifiers.
+                - strong [ref=e256]: No passwords or sensitive personal data are logged.
+          - generic [ref=e257]:
+            - heading "12. Changes to This Privacy Policy" [level=2] [ref=e259]
+            - paragraph [ref=e261]: We may update this privacy policy from time to time to reflect changes in functionality or legal requirements. The "Last Updated" date at the top of this page will be revised accordingly.
+          - generic [ref=e262]:
+            - heading "13. Contact & Complaints" [level=2] [ref=e264]
+            - generic [ref=e265]:
+              - paragraph [ref=e266]:
+                - strong [ref=e267]: "For data requests or questions:"
+                - text: Contact your system administrator.
+              - paragraph [ref=e268]:
+                - strong [ref=e269]: "To lodge a complaint:"
+                - text: You have the right to lodge a complaint with your local data protection authority if you believe your data protection rights have been violated.
+              - paragraph [ref=e270]:
+                - text: "For EU/EEA residents, find your local authority at:"
+                - link "https://edpb.europa.eu/about-edpb/board/members_en" [ref=e271] [cursor=pointer]:
+                  - /url: https://edpb.europa.eu/about-edpb/board/members_en
+          - generic [ref=e273]:
+            - heading "Summary" [level=3] [ref=e274]
+            - list [ref=e275]:
+              - listitem [ref=e276]: Minimal data (name + trip dates only)
+              - listitem [ref=e277]: Local storage (no cloud, no third parties)
+              - listitem [ref=e278]: Secure access (password-protected, rate-limited)
+              - listitem [ref=e279]: Automatic retention (36 months, then deleted)
+              - listitem [ref=e280]: Full GDPR rights (access, rectify, delete, export)
+              - listitem [ref=e281]: No tracking, analytics, or profiling
+              - listitem [ref=e282]: Audit logging for transparency
+      - contentinfo [ref=e283]:
+        - paragraph [ref=e284]: © 2025 ComplyEur — EU Travel Compliance Made Simple.
+        - generic [ref=e285]:
+          - link "Cookie Policy" [ref=e286] [cursor=pointer]:
+            - /url: /cookie-policy
+          - text: ·
+          - link "Privacy Policy" [ref=e287] [cursor=pointer]:
+            - /url: /privacy-policy
+  - paragraph [ref=e289]:
+    - text: This app uses only essential cookies required for secure login and operation. No tracking or advertising cookies are used.
+    - button "OK" [ref=e290] [cursor=pointer]
+```

@@ -1291,6 +1291,48 @@ def add_employee():
     finally:
         conn.close()
 
+@main_bp.route('/delete_employee/<int:employee_id>', methods=['POST'])
+@login_required
+def delete_employee(employee_id):
+    """Delete an employee and all their trips"""
+    try:
+        from .models import get_db
+        conn = get_db()
+        c = conn.cursor()
+        
+        # Delete all trips for this employee
+        c.execute('DELETE FROM trips WHERE employee_id = ?', (employee_id,))
+        trips_deleted = c.rowcount
+        
+        # Delete the employee
+        c.execute('DELETE FROM employees WHERE id = ?', (employee_id,))
+        employee_deleted = c.rowcount
+        
+        conn.commit()
+        
+        if employee_deleted > 0:
+            flash(f'Employee and {trips_deleted} associated trip(s) deleted successfully.', 'success')
+            # Write audit log
+            try:
+                from flask import current_app
+                CONFIG = current_app.config.get('CONFIG', {})
+                audit_log_path = CONFIG.get('AUDIT_LOG_PATH', 'logs/audit.log')
+                write_audit(audit_log_path, 'employee_delete', session.get('username', 'admin'), {
+                    'employee_id': employee_id,
+                    'trips_deleted': trips_deleted
+                })
+            except Exception:
+                pass  # Don't fail delete if audit logging fails
+        else:
+            flash('Employee not found.', 'error')
+        
+        return redirect(url_for('main.dashboard'))
+        
+    except Exception as e:
+        logger.error(f"Error deleting employee: {e}")
+        flash(f'Error deleting employee: {str(e)}', 'error')
+        return redirect(url_for('main.dashboard'))
+
 @main_bp.route('/add_trip', methods=['POST'])
 @login_required
 def add_trip():
@@ -1448,14 +1490,23 @@ def edit_trip(trip_id):
     CONFIG = current_app.config['CONFIG']
 
     try:
-        payload = request.get_json(force=True) or {}
-        new_country = (payload.get('country') or '').strip()
+        # Support both JSON and form data
+        if request.content_type and 'application/json' in request.content_type:
+            try:
+                payload = request.get_json() or {}
+            except Exception as e:
+                logger.error(f"Failed to parse JSON in edit_trip: {e}")
+                payload = {}
+        else:
+            payload = request.form.to_dict() if request.form else {}
+        
+        new_country = (payload.get('country') or payload.get('country_code') or '').strip()
         new_entry = payload.get('entry_date')
         new_exit = payload.get('exit_date')
         new_employee_id = payload.get('employee_id')  # NEW: Support employee changes
 
         if not (new_country and new_entry and new_exit):
-            return jsonify({'error': 'Missing required fields'}), 400
+            return jsonify({'success': False, 'message': 'Missing required fields', 'error': 'Missing required fields'}), 400
 
         # Parse dates
         from datetime import date as _date
@@ -1463,7 +1514,7 @@ def edit_trip(trip_id):
             entry_dt = _date.fromisoformat(new_entry)
             exit_dt = _date.fromisoformat(new_exit)
         except Exception:
-            return jsonify({'error': 'Invalid date format'}), 400
+            return jsonify({'success': False, 'error': 'Invalid date format'}), 400
 
         # Load existing trip and employee
         conn = get_db()
@@ -1472,7 +1523,7 @@ def edit_trip(trip_id):
         current_trip = c.fetchone()
         if not current_trip:
             conn.close()
-            return jsonify({'error': 'Trip not found'}), 404
+            return jsonify({'success': False, 'error': 'Trip not found'}), 404
 
         # Determine target employee (could be same or different)
         target_employee_id = int(new_employee_id) if new_employee_id else current_trip['employee_id']
@@ -1482,7 +1533,7 @@ def edit_trip(trip_id):
             c.execute('SELECT id FROM employees WHERE id = ?', (target_employee_id,))
             if not c.fetchone():
                 conn.close()
-                return jsonify({'error': 'Target employee not found'}), 400
+                return jsonify({'success': False, 'error': 'Target employee not found'}), 400
 
         # Validate against overlaps for target employee
         c.execute('SELECT id, entry_date, exit_date FROM trips WHERE employee_id = ? AND id != ?',
@@ -1493,7 +1544,7 @@ def edit_trip(trip_id):
         hard_errors, _warnings = validate_trip(existing, entry_dt, exit_dt, trip_id_to_exclude=trip_id)
         if hard_errors:
             conn.close()
-            return jsonify({'error': hard_errors[0]}), 400
+            return jsonify({'success': False, 'error': hard_errors[0]}), 400
 
         # Update trip (potentially with new employee)
         c.execute('UPDATE trips SET employee_id = ?, country = ?, entry_date = ?, exit_date = ? WHERE id = ?',
@@ -2146,10 +2197,9 @@ def test_calendar_data():
     from flask import current_app
     from .services.rolling90 import presence_days, days_used_in_window, calculate_days_remaining, get_risk_level
     from datetime import date, timedelta
+    from .models import get_db
     
-    db_path = current_app.config['DATABASE']
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
+    conn = get_db()
     c = conn.cursor()
     
     try:
@@ -2257,8 +2307,7 @@ def test_calendar_data():
     except Exception as e:
         logger.error(f"Test calendar data API error: {e}")
         return jsonify({'error': str(e)}), 500
-    finally:
-        conn.close()
+    # Connection managed by Flask teardown handler - no need to close
 
 @main_bp.route('/api/calendar_data')
 @login_required

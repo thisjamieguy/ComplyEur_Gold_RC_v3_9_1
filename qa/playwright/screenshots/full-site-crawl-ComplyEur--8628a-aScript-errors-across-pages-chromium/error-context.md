@@ -1,0 +1,143 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e3]:
+    - navigation "Main Sidebar" [ref=e4]:
+      - generic [ref=e5]:
+        - link "Go to Dashboard" [ref=e6] [cursor=pointer]:
+          - /url: /dashboard
+          - heading "EU Tracker" [level=2] [ref=e7]
+        - button "Toggle Sidebar" [ref=e8] [cursor=pointer]:
+          - generic [ref=e9]: Toggle sidebar navigation
+          - img [ref=e10]
+      - generic [ref=e12] [cursor=pointer]:
+        - generic [ref=e13]: EU
+        - generic [ref=e14]:
+          - generic [ref=e15]: Admin
+          - generic [ref=e16]: Administrator
+        - img [ref=e18]
+      - navigation [ref=e20]:
+        - list [ref=e21]:
+          - listitem [ref=e22]:
+            - link "Home" [ref=e23] [cursor=pointer]:
+              - /url: /home
+              - img [ref=e24]
+              - generic [ref=e27]: Home
+          - listitem [ref=e28]:
+            - link "Dashboard" [ref=e29] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e30]
+              - generic [ref=e35]: Dashboard
+          - listitem [ref=e36]:
+            - link "Add Trips" [ref=e37] [cursor=pointer]:
+              - /url: /bulk_add_trip
+              - img [ref=e38]
+              - generic [ref=e41]: Add Trips
+          - listitem [ref=e42]:
+            - link "Import Data" [ref=e43] [cursor=pointer]:
+              - /url: /import_excel
+              - img [ref=e44]
+              - generic [ref=e47]: Import Data
+          - listitem [ref=e48]:
+            - link "Future Job Alerts" [ref=e49] [cursor=pointer]:
+              - /url: /future_job_alerts
+              - img [ref=e50]
+              - generic [ref=e52]: Future Job Alerts
+          - listitem [ref=e53]:
+            - link "Compliance Planner" [ref=e54] [cursor=pointer]:
+              - /url: /what_if_scenario
+              - img [ref=e55]
+              - generic [ref=e58]: Compliance Planner
+          - listitem [ref=e59]:
+            - link "EU Entry Requirements" [ref=e60] [cursor=pointer]:
+              - /url: /entry-requirements
+              - img [ref=e61]
+              - generic [ref=e64]: EU Entry Requirements
+    - generic [ref=e65]:
+      - banner [ref=e66]:
+        - generic [ref=e68]:
+          - img [ref=e69]
+          - generic [ref=e72]: Search employees
+          - textbox "Search employees" [ref=e73]:
+            - /placeholder: Search employees...
+        - button "Admin Administrator" [ref=e76] [cursor=pointer]:
+          - generic [ref=e77]: EU
+          - generic [ref=e78]:
+            - generic [ref=e79]: Admin
+            - generic [ref=e80]: Administrator
+          - img [ref=e81]
+      - navigation "Breadcrumb" [ref=e83]:
+        - list [ref=e84]:
+          - listitem [ref=e85]:
+            - link "Dashboard" [ref=e86] [cursor=pointer]:
+              - /url: /dashboard
+            - text: ">"
+          - listitem [ref=e87]:
+            - text: /
+            - generic [ref=e88]: Import Data
+      - main [ref=e89]:
+        - generic [ref=e91]:
+          - generic [ref=e92]:
+            - heading "Import Excel Data" [level=1] [ref=e93]
+            - paragraph [ref=e94]: Upload Excel files to import trip data for multiple employees
+          - link "Back to Dashboard" [ref=e96] [cursor=pointer]:
+            - /url: /dashboard
+            - img [ref=e97]
+            - text: Back to Dashboard
+        - generic [ref=e101]:
+          - generic [ref=e102]:
+            - generic [ref=e103]:
+              - heading "Upload File" [level=2] [ref=e104]
+              - button "Clear All Data" [ref=e105] [cursor=pointer]:
+                - img [ref=e106]
+                - text: Clear All Data
+            - generic [ref=e108]:
+              - generic [ref=e109]:
+                - generic [ref=e110]: Excel File (.xlsx or .xls) *
+                - button "Excel File (.xlsx or .xls) *" [ref=e111] [cursor=pointer]
+                - generic [ref=e112]: "Supported formats: Excel files (.xlsx, .xls) - Maximum 10MB"
+              - button "Upload and Process" [ref=e113] [cursor=pointer]:
+                - img [ref=e114]
+                - generic [ref=e117]: Upload and Process
+          - generic [ref=e118]:
+            - heading "Import Instructions" [level=2] [ref=e120]
+            - generic [ref=e121]:
+              - generic [ref=e122]:
+                - heading "Standard Format" [level=4] [ref=e123]
+                - paragraph [ref=e124]: "Create an Excel file with the following columns:"
+                - generic [ref=e125]:
+                  - generic [ref=e126]: Name | Country | Entry Date | Exit Date
+                  - generic [ref=e127]: John Doe | France | 2024-01-15 | 2024-01-20
+                  - generic [ref=e128]: Jane Smith | Germany | 2024-02-01 | 2024-02-10
+              - generic [ref=e129]:
+                - heading "Work Schedule Format" [level=4] [ref=e130]
+                - paragraph [ref=e131]: "The system can parse work schedule Excel files with:"
+                - list [ref=e132]:
+                  - listitem [ref=e133]: Employee names in column A (starting from row 10)
+                  - listitem [ref=e134]: Dates in row 3 (starting from column B)
+                  - listitem [ref=e135]: Country codes in assignment cells (e.g., "tr/FR", "DE", "IT")
+                  - listitem [ref=e136]: Travel days marked with "tr/" prefix
+                  - listitem [ref=e137]: Consecutive days automatically aggregated into trip blocks
+              - generic [ref=e138]:
+                - heading "Country Codes" [level=4] [ref=e139]
+                - paragraph [ref=e140]: Use standard 2-letter country codes (AT, BE, BG, HR, CY, CZ, DK, EE, FI, FR, DE, GR, HU, IS, IE, IT, LV, LI, LT, LU, MT, NL, NO, PL, PT, RO, SK, SI, ES, SE, CH)
+              - generic [ref=e141]:
+                - generic [ref=e142]:
+                  - img [ref=e143]
+                  - generic [ref=e145]: Auto-Import
+                - paragraph [ref=e146]: The system will automatically parse your Excel file, aggregate consecutive days into trip blocks, and import all valid trips directly to your database.
+      - contentinfo [ref=e147]:
+        - paragraph [ref=e148]: © 2025 ComplyEur — EU Travel Compliance Made Simple.
+        - generic [ref=e149]:
+          - link "Cookie Policy" [ref=e150] [cursor=pointer]:
+            - /url: /cookie-policy
+          - text: ·
+          - link "Privacy Policy" [ref=e151] [cursor=pointer]:
+            - /url: /privacy-policy
+  - paragraph [ref=e153]:
+    - text: This app uses only essential cookies required for secure login and operation. No tracking or advertising cookies are used.
+    - button "OK" [ref=e154] [cursor=pointer]
+```

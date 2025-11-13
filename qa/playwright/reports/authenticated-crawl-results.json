@@ -1,0 +1,45 @@
+{
+  "visitedUrls": [
+    "http://localhost:5001/dashboard",
+    "http://localhost:5001/home",
+    "http://localhost:5001/bulk_add_trip",
+    "http://localhost:5001/import_excel",
+    "http://localhost:5001/future_job_alerts",
+    "http://localhost:5001/what_if_scenario",
+    "http://localhost:5001/entry-requirements",
+    "http://localhost:5001/profile",
+    "http://localhost:5001/admin_privacy_tools",
+    "http://localhost:5001/help",
+    "http://localhost:5001/employee/3",
+    "http://localhost:5001/employee/1",
+    "http://localhost:5001/employee/2",
+    "http://localhost:5001/cookie-policy",
+    "http://localhost:5001/privacy-policy",
+    "http://localhost:5001/export_future_alerts",
+    "http://localhost:5001/admin_settings",
+    "http://localhost:5001/privacy"
+  ],
+  "totalPages": 18,
+  "errors": [
+    {
+      "url": "http://localhost:5001/employee/1",
+      "error": "Cannot read properties of null (reading 'querySelectorAll')",
+      "stack": "TypeError: Cannot read properties of null (reading 'querySelectorAll')\n    at sortTripTable (http://localhost:5001/employee/1:841:39)\n    at http://localhost:5001/employee/1:926:9",
+      "timestamp": "2025-11-13T21:47:13.725Z"
+    },
+    {
+      "url": "http://localhost:5001/employee/2",
+      "error": "Cannot read properties of null (reading 'querySelectorAll')",
+      "stack": "TypeError: Cannot read properties of null (reading 'querySelectorAll')\n    at sortTripTable (http://localhost:5001/employee/2:841:39)\n    at http://localhost:5001/employee/2:926:9",
+      "timestamp": "2025-11-13T21:47:14.810Z"
+    },
+    {
+      "url": "http://localhost:5001/export_future_alerts",
+      "error": "page.goto: Download is starting\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5001/export_future_alerts\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-11-13T21:47:17.916Z"
+    }
+  ],
+  "consoleErrors": [],
+  "brokenLinks": [],
+  "hasErrors": true
+}

@@ -1,0 +1,26 @@
+{
+  "visitedUrls": [
+    "http://localhost:5001/",
+    "http://localhost:5001/privacy",
+    "http://localhost:5001/signup",
+    "http://localhost:5001/login",
+    "http://localhost:5001/cookie-policy",
+    "http://localhost:5001/dashboard",
+    "http://localhost:5001/home",
+    "http://localhost:5001/bulk_add_trip",
+    "http://localhost:5001/import_excel",
+    "http://localhost:5001/future_job_alerts",
+    "http://localhost:5001/what_if_scenario",
+    "http://localhost:5001/entry-requirements",
+    "http://localhost:5001/profile",
+    "http://localhost:5001/admin_privacy_tools",
+    "http://localhost:5001/help",
+    "http://localhost:5001/privacy-policy",
+    "http://localhost:5001/landing"
+  ],
+  "totalPages": 17,
+  "errors": [],
+  "consoleErrors": [],
+  "brokenLinks": [],
+  "hasErrors": false
+}

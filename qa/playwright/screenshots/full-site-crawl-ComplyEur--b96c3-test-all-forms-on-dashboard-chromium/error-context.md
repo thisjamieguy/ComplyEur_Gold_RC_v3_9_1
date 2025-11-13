@@ -1,0 +1,233 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e3]:
+    - navigation "Main Sidebar" [ref=e4]:
+      - generic [ref=e5]:
+        - link "Go to Dashboard" [ref=e6] [cursor=pointer]:
+          - /url: /dashboard
+          - heading "EU Tracker" [level=2] [ref=e7]
+        - button "Toggle Sidebar" [ref=e8] [cursor=pointer]:
+          - generic [ref=e9]: Toggle sidebar navigation
+          - img [ref=e10]
+      - generic [ref=e12] [cursor=pointer]:
+        - generic [ref=e13]: EU
+        - generic [ref=e14]:
+          - generic [ref=e15]: Admin
+          - generic [ref=e16]: Administrator
+        - img [ref=e18]
+      - navigation [ref=e20]:
+        - list [ref=e21]:
+          - listitem [ref=e22]:
+            - link "Home" [ref=e23] [cursor=pointer]:
+              - /url: /home
+              - img [ref=e24]
+              - generic [ref=e27]: Home
+          - listitem [ref=e28]:
+            - link "Dashboard" [ref=e29] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e30]
+              - generic [ref=e35]: Dashboard
+          - listitem [ref=e36]:
+            - link "Add Trips" [ref=e37] [cursor=pointer]:
+              - /url: /bulk_add_trip
+              - img [ref=e38]
+              - generic [ref=e41]: Add Trips
+          - listitem [ref=e42]:
+            - link "Import Data" [ref=e43] [cursor=pointer]:
+              - /url: /import_excel
+              - img [ref=e44]
+              - generic [ref=e47]: Import Data
+          - listitem [ref=e48]:
+            - link "Future Job Alerts" [ref=e49] [cursor=pointer]:
+              - /url: /future_job_alerts
+              - img [ref=e50]
+              - generic [ref=e52]: Future Job Alerts
+          - listitem [ref=e53]:
+            - link "Compliance Planner" [ref=e54] [cursor=pointer]:
+              - /url: /what_if_scenario
+              - img [ref=e55]
+              - generic [ref=e58]: Compliance Planner
+          - listitem [ref=e59]:
+            - link "EU Entry Requirements" [ref=e60] [cursor=pointer]:
+              - /url: /entry-requirements
+              - img [ref=e61]
+              - generic [ref=e64]: EU Entry Requirements
+    - generic [ref=e65]:
+      - banner [ref=e66]:
+        - generic [ref=e68]:
+          - img [ref=e69]
+          - generic [ref=e72]: Search employees
+          - textbox "Search employees" [ref=e73]:
+            - /placeholder: Search employees...
+        - button "Admin Administrator" [ref=e76] [cursor=pointer]:
+          - generic [ref=e77]: EU
+          - generic [ref=e78]:
+            - generic [ref=e79]: Admin
+            - generic [ref=e80]: Administrator
+          - img [ref=e81]
+      - navigation "Breadcrumb" [ref=e83]:
+        - list
+      - main [ref=e84]:
+        - generic [ref=e85]:
+          - heading "EU Trip Tracker Dashboard" [level=1] [ref=e86]
+          - paragraph [ref=e87]: Monitor employee travel compliance with the 90/180 day rule
+        - generic [ref=e88]:
+          - generic [ref=e89]:
+            - generic [ref=e90]:
+              - heading "Add New Employee" [level=2] [ref=e91]
+              - generic [ref=e92]:
+                - link "Bulk Add Trip" [ref=e93] [cursor=pointer]:
+                  - /url: /bulk_add_trip
+                  - img [ref=e94]
+                  - text: Bulk Add Trip
+                - link "Import Excel" [ref=e97] [cursor=pointer]:
+                  - /url: /import_excel
+                  - img [ref=e98]
+                  - text: Import Excel
+            - generic [ref=e101]:
+              - generic [ref=e102]:
+                - generic [ref=e103]: Employee Name *
+                - textbox "Enter employee name" [ref=e104]
+                - generic [ref=e105]: "?"
+                - alert
+                - generic [ref=e106]: Enter the full name of the employee
+                - button "Click for help" [ref=e107] [cursor=pointer]:
+                  - img [ref=e108]
+              - button "Add Employee" [ref=e111] [cursor=pointer]:
+                - generic [ref=e112]: Add Employee
+          - generic [ref=e113]:
+            - generic [ref=e114]:
+              - heading "Employee Overview" [level=2] [ref=e115]
+              - generic [ref=e116]:
+                - generic [ref=e117]:
+                  - generic [ref=e118]:
+                    - textbox "Search employees..." [ref=e119]
+                    - img [ref=e120]
+                  - button "Filters" [ref=e123] [cursor=pointer]:
+                    - img [ref=e124]
+                    - text: Filters
+                - generic [ref=e126]:
+                  - generic [ref=e127]:
+                    - generic [ref=e128]: "Sort by:"
+                    - combobox [ref=e129]:
+                      - option "First Name" [selected]
+                      - option "Last Name"
+                      - option "Days Used"
+                      - option "Days Remaining"
+                      - option "Trip Count"
+                  - generic [ref=e130]:
+                    - button "Table View" [ref=e131] [cursor=pointer]:
+                      - img [ref=e132]
+                      - text: Table View
+                    - button "Card View" [ref=e137] [cursor=pointer]:
+                      - img [ref=e138]
+                      - text: Card View
+            - table [ref=e145]:
+              - rowgroup [ref=e146]:
+                - row "Name ↕ Trips ↕ Days Used ↕ Days Remaining ↕ Forecasted Days Remaining Next Trip ↕ Actions" [ref=e147]:
+                  - cell "Name ↕" [ref=e148] [cursor=pointer]:
+                    - text: Name
+                    - generic [ref=e149]: ↕
+                  - cell "Trips ↕" [ref=e150] [cursor=pointer]:
+                    - text: Trips
+                    - generic [ref=e151]: ↕
+                  - cell "Days Used ↕" [ref=e152] [cursor=pointer]:
+                    - text: Days Used
+                    - generic [ref=e153]: ↕
+                  - cell "Days Remaining ↕" [ref=e154] [cursor=pointer]:
+                    - text: Days Remaining
+                    - generic [ref=e155]: ↕
+                  - cell "Forecasted Days Remaining" [ref=e156]
+                  - cell "Next Trip ↕" [ref=e157] [cursor=pointer]:
+                    - text: Next Trip
+                    - generic [ref=e158]: ↕
+                  - cell "Actions" [ref=e159]
+              - rowgroup [ref=e160]:
+                - 'row "Debug Test Employee 1 0/90 90 days 0 of 90 days used 82 days Next job: 15-11-2025 → 22-11-2025 (France) France - 15-11-2025 Details" [ref=e161]':
+                  - cell "Debug Test Employee" [ref=e162]:
+                    - link "Debug Test Employee" [ref=e163] [cursor=pointer]:
+                      - /url: /employee/3
+                  - cell "1" [ref=e164]
+                  - cell "0/90" [ref=e165]
+                  - cell "90 days 0 of 90 days used" [ref=e166]:
+                    - generic [ref=e168]:
+                      - generic [ref=e170]: 90 days
+                      - generic "0 of 90 days used" [ref=e172]
+                  - 'cell "82 days Next job: 15-11-2025 → 22-11-2025 (France)" [ref=e173]':
+                    - generic [ref=e174]:
+                      - generic [ref=e175]: 82 days
+                      - generic [ref=e176]: "Next job: 15-11-2025 → 22-11-2025 (France)"
+                  - cell "France - 15-11-2025" [ref=e177]:
+                    - generic [ref=e178]: France - 15-11-2025
+                  - cell "Details" [ref=e179]:
+                    - link "Details" [ref=e181] [cursor=pointer]:
+                      - /url: /employee/3
+                - row "Test Employee for Forms Test 0 0/90 90 days 0 of 90 days used 90 days No upcoming trips Details" [ref=e182]:
+                  - cell "Test Employee for Forms Test" [ref=e183]:
+                    - link "Test Employee for Forms Test" [ref=e184] [cursor=pointer]:
+                      - /url: /employee/1
+                  - cell "0" [ref=e185]
+                  - cell "0/90" [ref=e186]
+                  - cell "90 days 0 of 90 days used" [ref=e187]:
+                    - generic [ref=e189]:
+                      - generic [ref=e191]: 90 days
+                      - generic "0 of 90 days used" [ref=e193]
+                  - cell "90 days" [ref=e194]:
+                    - generic [ref=e196]: 90 days
+                  - cell "No upcoming trips" [ref=e197]
+                  - cell "Details" [ref=e198]:
+                    - link "Details" [ref=e200] [cursor=pointer]:
+                      - /url: /employee/1
+                - row "Test Employee for Forms Test 0 0/90 90 days 0 of 90 days used 90 days No upcoming trips Details" [ref=e201]:
+                  - cell "Test Employee for Forms Test" [ref=e202]:
+                    - link "Test Employee for Forms Test" [ref=e203] [cursor=pointer]:
+                      - /url: /employee/2
+                  - cell "0" [ref=e204]
+                  - cell "0/90" [ref=e205]
+                  - cell "90 days 0 of 90 days used" [ref=e206]:
+                    - generic [ref=e208]:
+                      - generic [ref=e210]: 90 days
+                      - generic "0 of 90 days used" [ref=e212]
+                  - cell "90 days" [ref=e213]:
+                    - generic [ref=e215]: 90 days
+                  - cell "No upcoming trips" [ref=e216]
+                  - cell "Details" [ref=e217]:
+                    - link "Details" [ref=e219] [cursor=pointer]:
+                      - /url: /employee/2
+          - generic [ref=e220]:
+            - heading "Recent Actions" [level=2] [ref=e222]
+            - generic [ref=e224]:
+              - generic [ref=e225]:
+                - img [ref=e227]
+                - generic [ref=e230]:
+                  - generic [ref=e231]: Employee added
+                  - generic [ref=e232]: John Doe was added to the system
+                  - generic [ref=e233]: 2 minutes ago
+              - generic [ref=e234]:
+                - img [ref=e236]
+                - generic [ref=e239]:
+                  - generic [ref=e240]: Trip added
+                  - generic [ref=e241]: Jane Smith - France (Paris)
+                  - generic [ref=e242]: 15 minutes ago
+              - generic [ref=e243]:
+                - img [ref=e245]
+                - generic [ref=e248]:
+                  - generic [ref=e249]: Data imported
+                  - generic [ref=e250]: 15 trips imported from Excel
+                  - generic [ref=e251]: 1 hour ago
+      - contentinfo [ref=e252]:
+        - paragraph [ref=e253]: © 2025 ComplyEur — EU Travel Compliance Made Simple.
+        - generic [ref=e254]:
+          - link "Cookie Policy" [ref=e255] [cursor=pointer]:
+            - /url: /cookie-policy
+          - text: ·
+          - link "Privacy Policy" [ref=e256] [cursor=pointer]:
+            - /url: /privacy-policy
+  - paragraph [ref=e258]:
+    - text: This app uses only essential cookies required for secure login and operation. No tracking or advertising cookies are used.
+    - button "OK" [ref=e259] [cursor=pointer]
+```
