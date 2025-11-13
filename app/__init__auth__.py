@@ -322,10 +322,27 @@ def create_app():
     def inject_csrf_token():
         """Inject CSRF token into template context for forms."""
         try:
+            from flask import has_request_context, current_app
             from flask_wtf.csrf import generate_csrf
-            return {'csrf_token': generate_csrf()}
-        except Exception:
+            
+            # Only generate CSRF token if:
+            # 1. We're in a request context
+            # 2. CSRF is enabled
+            # 3. Flask-WTF is initialized
+            if (has_request_context() and 
+                current_app.config.get('WTF_CSRF_ENABLED', False) and
+                hasattr(current_app, 'extensions') and 
+                'csrf' in current_app.extensions):
+                return {'csrf_token': generate_csrf()}
+            else:
+                # Return empty string if CSRF not available/needed
+                return {'csrf_token': ''}
+        except Exception as e:
             # If CSRF is not available, return empty string
+            # Log error in debug mode but don't fail
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.debug(f"CSRF token generation skipped: {e}")
             return {'csrf_token': ''}
 
     # CLI - User model is now available
@@ -335,6 +352,7 @@ def create_app():
     # Error handlers
     @app.errorhandler(500)
     def app_internal_error(error):
+        """Handle 500 errors gracefully, even if context processors fail."""
         from flask import render_template
         from datetime import datetime
         import traceback
@@ -343,6 +361,21 @@ def create_app():
         logger.error(f"500 Internal Server Error: {error}")
         logger.error(traceback.format_exc())
         error_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        return render_template('500.html', error_time=error_time), 500
+        try:
+            # Try to render template with error_time
+            return render_template('500.html', error_time=error_time), 500
+        except Exception as template_error:
+            # If template rendering fails, return simple HTML
+            logger.error(f"Template rendering failed: {template_error}")
+            return f'''
+            <!DOCTYPE html>
+            <html><head><title>500 - Internal Server Error</title></head>
+            <body style="font-family: sans-serif; padding: 40px; text-align: center;">
+                <h1>500 - Internal Server Error</h1>
+                <p>Something went wrong. Please try again later.</p>
+                <p><a href="/dashboard">Return to Dashboard</a></p>
+                <p style="color: #666; font-size: 12px;">Error time: {error_time}</p>
+            </body></html>
+            ''', 500
 
     return app

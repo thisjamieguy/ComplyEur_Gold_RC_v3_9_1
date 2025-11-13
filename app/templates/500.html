@@ -82,7 +82,7 @@
             Something went wrong while processing your request. Our monitoring has captured the issue,
             and we will look into it right away. Please try again in a moment.
         </p>
-        <a href="{{ url_for('main.dashboard') }}" class="button">Return to Dashboard</a>
+        <a href="/dashboard" class="button">Return to Dashboard</a>
         <div class="details">Reference time: {{ error_time or 'unavailable' }}</div>
     </main>
 </body>
