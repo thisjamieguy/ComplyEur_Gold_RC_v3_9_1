@@ -189,6 +189,16 @@ def create_app():
     # Register main blueprint for dashboard and other routes
     from .routes import main_bp
     app.register_blueprint(main_bp)
+    
+    # Health check endpoint (no auth required for monitoring)
+    from .routes_health import health_bp
+    app.register_blueprint(health_bp)
+    
+    # Set APP_START_TS and APP_VERSION for health endpoints
+    import time
+    app.config['APP_START_TS'] = time.time()
+    # Use version from environment or default
+    app.config['APP_VERSION'] = os.getenv('APP_VERSION', '1.7.7')
 
 
     # Jinja filters (match main app filters for consistency)
@@ -216,5 +226,17 @@ def create_app():
     from . import cli as cli_mod
     cli_mod.init_cli(app, db, models_auth.User)
 
+    # Error handlers
+    @app.errorhandler(500)
+    def app_internal_error(error):
+        from flask import render_template
+        from datetime import datetime
+        import traceback
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"500 Internal Server Error: {error}")
+        logger.error(traceback.format_exc())
+        error_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        return render_template('500.html', error_time=error_time), 500
 
     return app

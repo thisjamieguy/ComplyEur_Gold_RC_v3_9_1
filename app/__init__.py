@@ -533,6 +533,8 @@ def create_app():
     def app_internal_error(error):
         logger.error(f"500 Internal Server Error: {error}")
         logger.error(traceback.format_exc())
-        return render_template('500.html'), 500
+        from datetime import datetime
+        error_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        return render_template('500.html', error_time=error_time), 500
 
     return app
