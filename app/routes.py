@@ -1531,8 +1531,13 @@ def edit_trip(trip_id):
 @login_required
 def import_excel():
     """Display import Excel form and handle file uploads"""
-    from flask import current_app
-    CONFIG = current_app.config['CONFIG']
+    try:
+        from flask import current_app
+        CONFIG = current_app.config['CONFIG']
+    except Exception as e:
+        logger.error(f"Failed to get app config: {e}")
+        flash('Server configuration error. Please contact support.')
+        return render_template('import_excel.html')
 
     logger.info(f"import_excel: {request.method} request")
     
@@ -1551,8 +1556,19 @@ def import_excel():
         if file and allowed_file(file.filename):
             try:
                 # Create uploads directory if it doesn't exist
-                upload_dir = os.path.join(os.path.dirname(__file__), '..', 'uploads')
+                # Use persistent directory on Render, local uploads folder otherwise
+                persistent_dir = os.getenv('PERSISTENT_DIR')
+                if persistent_dir and os.path.exists(persistent_dir):
+                    upload_dir = os.path.join(persistent_dir, 'uploads')
+                else:
+                    upload_dir = os.path.join(os.path.dirname(__file__), '..', 'uploads')
+                
+                logger.info(f"Creating upload directory: {upload_dir}")
                 os.makedirs(upload_dir, exist_ok=True)
+                
+                # Verify directory is writable
+                if not os.access(upload_dir, os.W_OK):
+                    raise PermissionError(f"Upload directory is not writable: {upload_dir}")
                 
                 # Save uploaded file
                 filename = secure_filename(file.filename)
