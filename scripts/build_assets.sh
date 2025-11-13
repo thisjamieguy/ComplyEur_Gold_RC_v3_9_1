@@ -3,7 +3,8 @@
 # Part of Lighthouse 5-star optimization initiative
 # Compatible with Render.com deployment (handles missing npm tools gracefully)
 
-set -e
+# Don't exit on error - handle failures gracefully
+set +e
 
 echo "🚀 ComplyEur Asset Build Script"
 echo "================================"
@@ -113,14 +114,22 @@ else
 fi
 
 echo ""
-echo "✅ Build complete!"
-echo ""
-echo "📊 Summary:"
-echo "   CSS Bundle: $CSS_SIZE"
-echo "   JS Bundle: $JS_SIZE"
-echo ""
-echo "💡 To use minified versions, update templates to reference:"
-echo "   - css/bundle.min.css"
-echo "   - js/bundle.min.js"
+# Check if bundles were created successfully
+if [ -f "$BUNDLE_CSS" ] && [ -f "$BUNDLE_JS" ]; then
+    echo "✅ Build complete!"
+    echo ""
+    echo "📊 Summary:"
+    echo "   CSS Bundle: $CSS_SIZE"
+    echo "   JS Bundle: $JS_SIZE"
+    echo ""
+    echo "💡 To use minified versions, update templates to reference:"
+    echo "   - css/bundle.min.css"
+    echo "   - js/bundle.min.js"
+    exit 0
+else
+    echo "⚠️  Build completed with warnings - some bundles may be missing"
+    echo "   Application will continue to work using individual CSS/JS files"
+    exit 0  # Don't fail - app works without bundles
+fi
 
 

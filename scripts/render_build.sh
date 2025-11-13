@@ -182,7 +182,7 @@ else
     echo "⚠️  playwright installation skipped (test-only, not required for production)"
 fi
 
-# Run asset build script
+# Run asset build script (optional - don't fail build if this fails)
 echo ""
 echo "📦 Building assets..."
 if [ ! -f "./scripts/build_assets.sh" ]; then
@@ -192,7 +192,17 @@ else
         echo "⚠️  Warning: build_assets.sh is not executable, making it executable..."
         chmod +x ./scripts/build_assets.sh
     fi
+    # Run asset build but don't fail the entire deployment if it fails
+    set +e
     ./scripts/build_assets.sh
+    ASSET_BUILD_EXIT=$?
+    set -e
+    if [ $ASSET_BUILD_EXIT -ne 0 ]; then
+        echo "⚠️  Warning: Asset build failed (exit code: $ASSET_BUILD_EXIT)"
+        echo "   Continuing deployment - app will work without bundled assets"
+    else
+        echo "✅ Asset build completed successfully"
+    fi
 fi
 
 # Cleanup temp directory
