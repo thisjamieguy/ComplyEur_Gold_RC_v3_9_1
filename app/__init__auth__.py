@@ -161,20 +161,43 @@ def create_app():
         # Create default admin user if no users exist (for fresh deployments)
         try:
             user_count = User.query.count()
+            app.logger.info(f"Checking auth database - found {user_count} user(s)")
+            
             if user_count == 0:
                 from .security import hash_password
+                app.logger.info("Creating default admin user...")
+                
+                # Hash the password
+                password_hash = hash_password('admin123')
+                app.logger.info(f"Password hashed successfully (length: {len(password_hash)})")
+                
+                # Create user
                 default_admin = User(
                     username='admin',
-                    password_hash=hash_password('admin123')
+                    password_hash=password_hash,
+                    role='admin'
                 )
                 db.session.add(default_admin)
                 db.session.commit()
-                app.logger.info("✅ Created default admin user (username: admin, password: admin123)")
+                
+                # Verify it was created
+                verify_count = User.query.count()
+                app.logger.info(f"✅ Default admin user created! Database now has {verify_count} user(s)")
+                app.logger.info("✅ Login credentials: username=admin, password=admin123")
                 app.logger.warning("⚠️  SECURITY: Change the default password immediately after first login!")
             else:
-                app.logger.info(f"Auth database has {user_count} user(s)")
+                app.logger.info(f"Auth database already has {user_count} user(s) - skipping default user creation")
+                # List usernames for debugging
+                try:
+                    users = User.query.all()
+                    usernames = [u.username for u in users]
+                    app.logger.info(f"Existing users: {', '.join(usernames)}")
+                except Exception as e:
+                    app.logger.warning(f"Could not list users: {e}")
         except Exception as e:
-            app.logger.warning(f"Could not create default admin user: {e}")
+            app.logger.error(f"ERROR creating default admin user: {e}")
+            import traceback
+            app.logger.error(traceback.format_exc())
             # Don't fail startup if this fails
         
         # Add DATABASE and CONFIG for main routes compatibility
