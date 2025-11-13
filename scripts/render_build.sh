@@ -205,6 +205,39 @@ else
     fi
 fi
 
+# Test that the app can be imported (catches import errors early)
+echo ""
+echo "🧪 Testing app import..."
+set +e
+# Set minimal environment for app test (use temp directory for test database)
+export DATABASE_PATH="${TMP_DIR}/test_app.db"
+export PERSISTENT_DIR="${TMP_DIR}"
+export SECRET_KEY="test-secret-key-for-build-only-$(date +%s)"
+export FLASK_ENV="production"
+export RENDER="true"
+python -c "
+import os
+os.makedirs('${TMP_DIR}', exist_ok=True)
+from app.__init__auth__ import create_app
+app = create_app()
+print('✅ App imported and initialized successfully')
+" > "$TMP_DIR/app_test.log" 2>&1
+APP_TEST_EXIT=$?
+set -e
+
+if [ $APP_TEST_EXIT -ne 0 ]; then
+    echo "❌ ERROR: App import test failed!"
+    echo ""
+    echo "   Error output:"
+    cat "$TMP_DIR/app_test.log"
+    echo ""
+    echo "   This indicates a problem with app initialization."
+    echo "   Check the error above for missing dependencies or configuration issues."
+    exit 1
+else
+    echo "✅ App import test passed"
+fi
+
 # Cleanup temp directory
 rm -rf "$TMP_DIR" 2>/dev/null || true
 

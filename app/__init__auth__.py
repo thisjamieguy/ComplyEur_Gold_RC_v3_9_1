@@ -158,9 +158,28 @@ def create_app():
         import os
         db_path = os.getenv('DATABASE_PATH', 'data/eu_tracker.db')
         if not os.path.isabs(db_path):
-            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-            db_path = os.path.join(project_root, db_path)
+            # On Render, use PERSISTENT_DIR if set, otherwise use project root
+            persistent_dir = os.getenv('PERSISTENT_DIR')
+            if persistent_dir:
+                # If PERSISTENT_DIR is set (e.g., /var/data), use it directly
+                # Extract just the filename from the path (e.g., 'eu_tracker.db' from 'data/eu_tracker.db')
+                db_filename = os.path.basename(db_path)
+                db_path = os.path.join(persistent_dir, db_filename)
+            else:
+                project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+                db_path = os.path.join(project_root, db_path)
+        
+        # Ensure database directory exists
+        db_dir = os.path.dirname(db_path)
+        if db_dir and not os.path.exists(db_dir):
+            try:
+                os.makedirs(db_dir, exist_ok=True)
+                app.logger.info(f"Created database directory: {db_dir}")
+            except Exception as e:
+                app.logger.warning(f"Could not create database directory {db_dir}: {e}")
+        
         app.config['DATABASE'] = db_path
+        app.logger.info(f"Database path configured: {db_path}")
         
         # Load CONFIG from settings.json if available
         try:
@@ -182,17 +201,37 @@ def create_app():
             }
 
     # Blueprints - must be after models are initialized
-    from .routes_auth import auth_bp, init_routes
-    init_routes(db, csrf, limiter)
-    app.register_blueprint(auth_bp)
+    try:
+        from .routes_auth import auth_bp, init_routes
+        init_routes(db, csrf, limiter)
+        app.register_blueprint(auth_bp)
+        app.logger.info("Auth blueprint registered successfully")
+    except Exception as e:
+        app.logger.error(f"Failed to register auth blueprint: {e}")
+        import traceback
+        app.logger.error(traceback.format_exc())
+        # Don't fail startup - app can work without auth in some cases
     
     # Register main blueprint for dashboard and other routes
-    from .routes import main_bp
-    app.register_blueprint(main_bp)
+    try:
+        from .routes import main_bp
+        app.register_blueprint(main_bp)
+        app.logger.info("Main blueprint registered successfully")
+    except Exception as e:
+        app.logger.error(f"Failed to register main blueprint: {e}")
+        import traceback
+        app.logger.error(traceback.format_exc())
+        # This is critical - re-raise if main routes fail
+        raise
     
     # Health check endpoint (no auth required for monitoring)
-    from .routes_health import health_bp
-    app.register_blueprint(health_bp)
+    try:
+        from .routes_health import health_bp
+        app.register_blueprint(health_bp)
+        app.logger.info("Health blueprint registered successfully")
+    except Exception as e:
+        app.logger.warning(f"Failed to register health blueprint: {e}")
+        # Health check is nice to have but not critical
     
     # Set APP_START_TS and APP_VERSION for health endpoints
     import time
