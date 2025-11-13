@@ -243,7 +243,7 @@ def format_date_filter(date_str):
    FLASK_DEBUG=False
    ```
 
-2. **Build Command:** `pip install -r requirements.txt`
+2. **Build Command:** `./scripts/render_build.sh`
 
 3. **Start Command:** `gunicorn wsgi:app --bind 0.0.0.0:$PORT`
 
@@ -323,4 +323,3 @@ All critical issues have been resolved. The application is:
 
 **Report Generated:** 2024-12-19  
 **Next Review:** After deployment to staging environment
-
