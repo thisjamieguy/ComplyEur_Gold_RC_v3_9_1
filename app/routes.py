@@ -3,7 +3,7 @@ import hashlib
 import sqlite3
 import logging
 import traceback
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from functools import wraps
 import os
 import re
@@ -247,9 +247,18 @@ def verify_and_upgrade_password(stored_hash, password):
 
 def allowed_file(filename):
     """Check if file extension is allowed"""
-    from flask import current_app
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
+    try:
+        from flask import current_app
+        allowed_extensions = current_app.config.get('ALLOWED_EXTENSIONS', {'xlsx', 'xls'})
+    except (RuntimeError, KeyError):
+        # Fallback if app context not available or config missing
+        allowed_extensions = {'xlsx', 'xls'}
+    
+    if not filename or '.' not in filename:
+        return False
+    
+    ext = filename.rsplit('.', 1)[1].lower()
+    return ext in allowed_extensions
 
 @main_bp.route('/')
 def index():
@@ -914,6 +923,10 @@ def dashboard():
         risk_thresholds = CONFIG.get('RISK_THRESHOLDS', {'green': 30, 'amber': 10})
         warning_threshold = CONFIG.get('FUTURE_JOB_WARNING_THRESHOLD', 80)
         
+        # Use fixed compliance start date (October 12, 2025)
+        from .services.rolling90 import COMPLIANCE_START_DATE
+        compliance_start_date = COMPLIANCE_START_DATE
+        
         # Track future compliance alerts summary
         future_alerts_red = 0
         future_alerts_yellow = 0
@@ -1020,19 +1033,19 @@ def dashboard():
             trips = trips_by_employee.get(emp_id, [])
             
             # Calculate presence days and usage using new rolling90 module
-            presence = presence_days(trips)
-            days_used = days_used_in_window(presence, today)
-            days_remaining = calculate_days_remaining(presence, today)
+            presence = presence_days(trips, compliance_start_date)
+            days_used = days_used_in_window(presence, today, compliance_start_date)
+            days_remaining = calculate_days_remaining(presence, today, compliance_start_date=compliance_start_date)
             risk_level = get_risk_level(days_remaining, risk_thresholds)
             
             # Calculate earliest safe entry date
-            safe_entry = earliest_safe_entry(presence, today)
+            safe_entry = earliest_safe_entry(presence, today, compliance_start_date=compliance_start_date)
             
             # Calculate days until compliant for at-risk employees (days_remaining < 0)
             days_until_compliant_val = None
             compliance_date = None
             if days_remaining < 0:
-                days_until_compliant_val, compliance_date = days_until_compliant(presence, today)
+                days_until_compliant_val, compliance_date = days_until_compliant(presence, today, compliance_start_date=compliance_start_date)
 
             # Get total trip count (already calculated from batch query)
             trip_count = trip_counts_by_employee.get(emp_id, 0)
@@ -1046,7 +1059,7 @@ def dashboard():
             recent_trips = [redact_private_trip_data(dict(trip)) for trip in recent_trips_raw]
             
             # Calculate future job forecasts for this employee
-            forecasts = get_all_future_jobs_for_employee(emp_id, trips, warning_threshold)
+            forecasts = get_all_future_jobs_for_employee(emp_id, trips, warning_threshold, compliance_start_date)
             for forecast in forecasts:
                 if forecast['risk_level'] == 'red':
                     future_alerts_red += 1
@@ -1131,6 +1144,10 @@ def employee_detail(employee_id):
     CONFIG = current_app.config['CONFIG']
     risk_thresholds = CONFIG.get('RISK_THRESHOLDS', {'green': 30, 'amber': 10})
     
+    # Use fixed compliance start date (October 12, 2025)
+    from .services.rolling90 import COMPLIANCE_START_DATE
+    compliance_start_date = COMPLIANCE_START_DATE
+    
     try:
         conn = get_db()
         c = conn.cursor()
@@ -1201,17 +1218,17 @@ def employee_detail(employee_id):
             simple_trips.append({'entry_date': entry_str, 'exit_date': exit_str, 'country': row['country']})
 
         # Compute rolling 90/180 stats for this employee
-        presence = presence_days(simple_trips)
+        presence = presence_days(simple_trips, compliance_start_date)
         from datetime import datetime as _dt
         ref_date = today
-        days_used = days_used_in_window(presence, ref_date)
-        days_remaining = calculate_days_remaining(presence, ref_date)
+        days_used = days_used_in_window(presence, ref_date, compliance_start_date)
+        days_remaining = calculate_days_remaining(presence, ref_date, compliance_start_date=compliance_start_date)
         risk_level = get_risk_level(days_remaining, risk_thresholds)
-        safe_entry = earliest_safe_entry(presence, ref_date)
+        safe_entry = earliest_safe_entry(presence, ref_date, compliance_start_date=compliance_start_date)
         days_until_safe = None
         compliant_date = None
         if days_remaining < 0:
-            days_until_safe, compliant_date = days_until_compliant(presence, ref_date)
+            days_until_safe, compliant_date = days_until_compliant(presence, ref_date, compliance_start_date=compliance_start_date)
 
         # Calculate per-trip compliance snapshots so job context rows reflect accurate rolling totals.
         limit = 90
@@ -1219,7 +1236,7 @@ def employee_detail(employee_id):
         for trip_id, meta in trip_date_meta.items():
             baseline = meta.get('exit') or meta.get('entry') or today
             ref_point = baseline + timedelta(days=1)
-            remaining_after_trip = calculate_days_remaining(presence, ref_point)
+            remaining_after_trip = calculate_days_remaining(presence, ref_point, compliance_start_date=compliance_start_date)
             trip_metrics[trip_id] = {
                 'days_remaining_after': remaining_after_trip,
                 'days_used_to_date': limit - remaining_after_trip,
@@ -1584,113 +1601,165 @@ def import_excel():
     """Display import Excel form and handle file uploads"""
     try:
         from flask import current_app
-        CONFIG = current_app.config['CONFIG']
+        CONFIG = current_app.config.get('CONFIG')
+        if not CONFIG:
+            raise ValueError("CONFIG not found in app config")
     except Exception as e:
         logger.error(f"Failed to get app config: {e}")
+        logger.error(traceback.format_exc())
         flash('Server configuration error. Please contact support.')
-        return render_template('import_excel.html')
+        return render_template('import_excel.html'), 500
 
     logger.info(f"import_excel: {request.method} request")
     
     if request.method == 'POST':
         start_time = time.monotonic()
-        # Check if file was uploaded
-        if 'excel_file' not in request.files:
-            flash('No file selected')
-            return render_template('import_excel.html')
-        
-        file = request.files['excel_file']
-        if file.filename == '':
-            flash('No file selected')
-            return render_template('import_excel.html')
-        
-        if file and allowed_file(file.filename):
+        file_path = None
+        try:
+            # Check if file was uploaded
+            if 'excel_file' not in request.files:
+                flash('No file selected')
+                return render_template('import_excel.html')
+            
+            file = request.files['excel_file']
+            if not file or file.filename == '':
+                flash('No file selected')
+                return render_template('import_excel.html')
+            
+            # Validate file extension
+            if not allowed_file(file.filename):
+                flash('Invalid file type. Please upload an Excel file (.xlsx or .xls)')
+                return render_template('import_excel.html')
+            
+            # Create uploads directory if it doesn't exist
+            # Use persistent directory on Render, local uploads folder otherwise
+            persistent_dir = os.getenv('PERSISTENT_DIR')
+            if persistent_dir and os.path.exists(persistent_dir):
+                upload_dir = os.path.join(persistent_dir, 'uploads')
+            else:
+                upload_dir = os.path.join(os.path.dirname(__file__), '..', 'uploads')
+            
+            logger.info(f"Creating upload directory: {upload_dir}")
+            os.makedirs(upload_dir, exist_ok=True)
+            
+            # Verify directory is writable
+            if not os.access(upload_dir, os.W_OK):
+                raise PermissionError(f"Upload directory is not writable: {upload_dir}")
+            
+            # Save uploaded file
+            filename = secure_filename(file.filename)
+            if not filename:
+                flash('Invalid filename. Please ensure your file has a valid name.')
+                return render_template('import_excel.html')
+            
+            file_path = os.path.join(upload_dir, filename)
+            logger.info(f"Saving uploaded file to: {file_path}")
+            file.save(file_path)
+            
+            # Verify file was saved
+            if not os.path.exists(file_path):
+                raise FileNotFoundError(f"Failed to save uploaded file to {file_path}")
+            
+            # Import the importer module (located at project root)
+            import sys
+            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+            if project_root not in sys.path:
+                sys.path.insert(0, project_root)
+            
             try:
-                # Create uploads directory if it doesn't exist
-                # Use persistent directory on Render, local uploads folder otherwise
-                persistent_dir = os.getenv('PERSISTENT_DIR')
-                if persistent_dir and os.path.exists(persistent_dir):
-                    upload_dir = os.path.join(persistent_dir, 'uploads')
-                else:
-                    upload_dir = os.path.join(os.path.dirname(__file__), '..', 'uploads')
-                
-                logger.info(f"Creating upload directory: {upload_dir}")
-                os.makedirs(upload_dir, exist_ok=True)
-                
-                # Verify directory is writable
-                if not os.access(upload_dir, os.W_OK):
-                    raise PermissionError(f"Upload directory is not writable: {upload_dir}")
-                
-                # Save uploaded file
-                filename = secure_filename(file.filename)
-                file_path = os.path.join(upload_dir, filename)
-                file.save(file_path)
-                
-                # Import the importer module (located at project root)
-                import sys
-                sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
                 from importer import import_excel as process_excel
-                
-                # Process the Excel file with extended scanning enabled
-                logger.info(f"Starting Excel processing for '{filename}'")
+            except ImportError as import_err:
+                logger.error(f"Failed to import importer module: {import_err}")
+                logger.error(f"Python path: {sys.path}")
+                raise ImportError(f"Cannot import importer module: {import_err}")
+            
+            # Process the Excel file with extended scanning enabled
+            logger.info(f"Starting Excel processing for '{filename}'")
+            try:
                 result = process_excel(file_path, enable_extended_scan=True)
-                elapsed = time.monotonic() - start_time
-                logger.info(f"Finished Excel processing in {elapsed:.2f}s for '{filename}'")
-                
-                if result['success']:
-                    # Log successful import
-                    write_audit(CONFIG['AUDIT_LOG_PATH'], 'excel_import_success', 'admin', {
+            except Exception as process_err:
+                logger.error(f"Error in process_excel: {process_err}")
+                logger.error(traceback.format_exc())
+                raise
+            
+            elapsed = time.monotonic() - start_time
+            logger.info(f"Finished Excel processing in {elapsed:.2f}s for '{filename}'")
+            
+            if result.get('success'):
+                # Log successful import
+                try:
+                    write_audit(CONFIG.get('AUDIT_LOG_PATH', './logs/audit.log'), 'excel_import_success', 'admin', {
                         'filename': filename,
-                        'trips_added': result['trips_added'],
-                        'employees_processed': result['employees_processed'],
+                        'trips_added': result.get('trips_added', 0),
+                        'employees_processed': result.get('employees_processed', 0),
                         'employees_created': result.get('employees_created', 0),
                         'total_employee_names_found': result.get('total_employee_names_found', 0)
                     })
-                    
-                    # Clean up uploaded file
-                    try:
+                except Exception as audit_err:
+                    logger.warning(f"Failed to write audit log: {audit_err}")
+                
+                # Clean up uploaded file
+                try:
+                    if os.path.exists(file_path):
                         os.remove(file_path)
-                    except:
-                        pass
-                    
-                    return render_template('import_excel.html', import_summary=result)
-                else:
-                    # Log failed import
-                    write_audit(CONFIG['AUDIT_LOG_PATH'], 'excel_import_failed', 'admin', {
+                except Exception as cleanup_err:
+                    logger.warning(f"Failed to cleanup uploaded file: {cleanup_err}")
+                
+                return render_template('import_excel.html', import_summary=result)
+            else:
+                # Log failed import
+                error_msg = result.get('error', 'Unknown error')
+                try:
+                    write_audit(CONFIG.get('AUDIT_LOG_PATH', './logs/audit.log'), 'excel_import_failed', 'admin', {
                         'filename': filename,
-                        'error': result.get('error', 'Unknown error')
+                        'error': error_msg
                     })
-                    
-                    flash(f'Import failed: {result.get("error", "Unknown error")}')
-                    
-                    # Clean up uploaded file
-                    try:
+                except Exception as audit_err:
+                    logger.warning(f"Failed to write audit log: {audit_err}")
+                
+                flash(f'Import failed: {error_msg}')
+                
+                # Clean up uploaded file
+                try:
+                    if os.path.exists(file_path):
                         os.remove(file_path)
-                    except:
-                        pass
+                except Exception as cleanup_err:
+                    logger.warning(f"Failed to cleanup uploaded file: {cleanup_err}")
+                
+                return render_template('import_excel.html')
                     
-                    return render_template('import_excel.html')
-                    
-            except Exception as e:
-                logger.error(f"Error processing Excel file: {e}")
-                import traceback
-                error_trace = traceback.format_exc()
-                logger.error(f"Excel import traceback: {error_trace}")
-                write_audit(CONFIG['AUDIT_LOG_PATH'], 'excel_import_error', 'admin', {
-                    'filename': file.filename if file else 'unknown',
+        except Exception as e:
+            logger.error(f"Error processing Excel file: {e}")
+            error_trace = traceback.format_exc()
+            logger.error(f"Excel import traceback: {error_trace}")
+            
+            try:
+                write_audit(CONFIG.get('AUDIT_LOG_PATH', './logs/audit.log'), 'excel_import_error', 'admin', {
+                    'filename': file.filename if 'file' in locals() and file else 'unknown',
                     'error': str(e)
                 })
-                flash(f'Error processing file: {str(e)}. Please check the file format and try again.')
-                # Clean up uploaded file on error
-                try:
-                    if 'file_path' in locals() and os.path.exists(file_path):
-                        os.remove(file_path)
-                except Exception as cleanup_error:
-                    logger.warning(f"Failed to cleanup uploaded file: {cleanup_error}")
-                return render_template('import_excel.html')
-        else:
-            flash('Invalid file type. Please upload an Excel file (.xlsx or .xls)')
-            return render_template('import_excel.html')
+            except Exception as audit_err:
+                logger.warning(f"Failed to write audit log: {audit_err}")
+            
+            # Provide user-friendly error message
+            error_message = str(e)
+            if 'PermissionError' in error_message or 'not writable' in error_message:
+                flash('Server configuration error: Upload directory is not writable. Please contact support.')
+            elif 'FileNotFoundError' in error_message or 'not found' in error_message:
+                flash('Error: Could not save or find the uploaded file. Please try again.')
+            elif 'ImportError' in error_message:
+                flash('Server error: Import module not available. Please contact support.')
+            else:
+                flash(f'Error processing file: {error_message}. Please check the file format and try again.')
+            
+            # Clean up uploaded file on error
+            try:
+                if 'file_path' in locals() and file_path and os.path.exists(file_path):
+                    os.remove(file_path)
+            except Exception as cleanup_error:
+                logger.warning(f"Failed to cleanup uploaded file: {cleanup_error}")
+            
+            return render_template('import_excel.html'), 500
     
     return render_template('import_excel.html')
 
@@ -1703,6 +1772,10 @@ def future_job_alerts():
     CONFIG = current_app.config['CONFIG']
 
     warning_threshold = CONFIG.get('FUTURE_JOB_WARNING_THRESHOLD', 80)
+    
+    # Use fixed compliance start date (October 12, 2025)
+    from .services.rolling90 import COMPLIANCE_START_DATE
+    compliance_start_date = COMPLIANCE_START_DATE
 
     # Query params
     risk_filter = request.args.get('risk', 'all')  # all | red | yellow | green
@@ -1748,7 +1821,7 @@ def future_job_alerts():
             trips = trips_by_employee.get(emp['id'], [])
             
             # Calculate future job forecasts for this employee
-            forecasts = get_all_future_jobs_for_employee(emp['id'], trips, warning_threshold)
+            forecasts = get_all_future_jobs_for_employee(emp['id'], trips, warning_threshold, compliance_start_date)
             for f in forecasts:
                 # Enrich with employee metadata for the template
                 f['employee_name'] = emp['name']
@@ -1798,6 +1871,10 @@ def export_future_alerts():
     from flask import current_app
     CONFIG = current_app.config['CONFIG']
     warning_threshold = CONFIG.get('FUTURE_JOB_WARNING_THRESHOLD', 80)
+    
+    # Use fixed compliance start date (October 12, 2025)
+    from .services.rolling90 import COMPLIANCE_START_DATE
+    compliance_start_date = COMPLIANCE_START_DATE
 
     # Build the same forecast dataset (unfiltered export)
     conn = get_db()
@@ -1817,7 +1894,7 @@ def export_future_alerts():
             for t in c.fetchall()
         ]
 
-        forecasts = get_all_future_jobs_for_employee(emp['id'], trips, warning_threshold)
+        forecasts = get_all_future_jobs_for_employee(emp['id'], trips, warning_threshold, compliance_start_date)
         for f in forecasts:
             rows.append({
                 'Employee': emp['name'],
@@ -2234,6 +2311,10 @@ def test_calendar_data():
         if not employees:
             return jsonify({'resources': [], 'events': []})
         
+        # Use fixed compliance start date (October 12, 2025)
+        from .services.rolling90 import COMPLIANCE_START_DATE
+        compliance_start_date = COMPLIANCE_START_DATE
+        
         # Calculate compliance for each employee
         resources = []
         for emp in employees:
@@ -2247,9 +2328,9 @@ def test_calendar_data():
             emp_trips = [dict(row) for row in c.fetchall()]
             
             # Calculate compliance
-            presence = presence_days(emp_trips)
-            days_used = days_used_in_window(presence, today)
-            days_remaining = calculate_days_remaining(presence, today)
+            presence = presence_days(emp_trips, compliance_start_date)
+            days_used = days_used_in_window(presence, today, compliance_start_date)
+            days_remaining = calculate_days_remaining(presence, today, compliance_start_date=compliance_start_date)
             
             # Determine risk level and color
             risk_thresholds = {'yellow': 80, 'red': 90}
@@ -2369,6 +2450,10 @@ def api_calendar_data():
         if not employees:
             return jsonify({'resources': [], 'events': []})
         
+        # Use fixed compliance start date (October 12, 2025)
+        from .services.rolling90 import COMPLIANCE_START_DATE
+        compliance_start_date = COMPLIANCE_START_DATE
+        
         # Calculate compliance for each employee
         resources = []
         for emp in employees:
@@ -2382,9 +2467,9 @@ def api_calendar_data():
             emp_trips = [dict(row) for row in c.fetchall()]
             
             # Calculate compliance
-            presence = presence_days(emp_trips)
-            days_used = days_used_in_window(presence, today)
-            days_remaining = calculate_days_remaining(presence, today)
+            presence = presence_days(emp_trips, compliance_start_date)
+            days_used = days_used_in_window(presence, today, compliance_start_date)
+            days_remaining = calculate_days_remaining(presence, today, compliance_start_date=compliance_start_date)
             
             # Determine risk level and color
             risk_thresholds = {'yellow': 80, 'red': 90}

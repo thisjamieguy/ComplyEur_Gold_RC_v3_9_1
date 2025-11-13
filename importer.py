@@ -127,11 +127,20 @@ def get_database_path() -> str:
     """
     # Try Flask app context first
     try:
-        from flask import current_app
-        if current_app:
-            return current_app.config.get('DATABASE', 'data/eu_tracker.db')
-    except (RuntimeError, ImportError):
-        pass
+        from flask import has_app_context, current_app
+        if has_app_context() and current_app:
+            db_path = current_app.config.get('DATABASE')
+            if db_path:
+                # Ensure path is absolute
+                if not os.path.isabs(db_path):
+                    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__)))
+                    db_path = os.path.join(project_root, db_path)
+                return os.path.abspath(db_path)
+    except (RuntimeError, ImportError, AttributeError) as e:
+        # Log but continue to fallback
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.debug(f"Could not get database path from Flask app context: {e}")
     
     # Fall back to environment variable
     db_path = os.getenv('DATABASE_PATH', 'data/eu_tracker.db')
@@ -141,7 +150,7 @@ def get_database_path() -> str:
         project_root = os.path.abspath(os.path.dirname(__file__))
         db_path = os.path.join(project_root, db_path)
     
-    return db_path
+    return os.path.abspath(db_path)
 
 
 def get_or_create_employee(conn: sqlite3.Connection, name: str) -> int:
