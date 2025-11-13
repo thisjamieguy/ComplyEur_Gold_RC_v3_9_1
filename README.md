@@ -33,6 +33,8 @@ A secure, local-only Flask web application for tracking employee travel to EU/Sc
 2. **Install dependencies**
    ```bash
    pip install -r requirements.txt
+   # For tests/dev tools:
+   pip install -r requirements-dev.txt
    ```
 
 3. **Set up environment variables**
@@ -55,7 +57,7 @@ A secure, local-only Flask web application for tracking employee travel to EU/Sc
 1. **Connect your GitHub repository to Render**
 2. **Create a new Web Service**
 3. **Configure build settings:**
-   - Build Command: `pip install -r requirements.txt`
+   - Build Command: `./scripts/render_build.sh`
    - Start Command: `gunicorn wsgi:app`
 4. **Set environment variables:**
    - `SECRET_KEY`: A secure random string
