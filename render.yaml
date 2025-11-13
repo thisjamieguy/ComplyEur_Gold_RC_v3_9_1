@@ -5,8 +5,8 @@ services:
     region: frankfurt
     plan: starter
     branch: main
-    buildCommand: ./scripts/render_build.sh
-    startCommand: gunicorn wsgi:app --bind 0.0.0.0:$PORT --log-file - --access-logfile -
+    buildCommand: chmod +x ./scripts/render_build.sh ./start.sh && ./scripts/render_build.sh
+    startCommand: ./start.sh
     autoDeploy: true
     healthCheckPath: /health
     healthCheckIntervalSeconds: 30

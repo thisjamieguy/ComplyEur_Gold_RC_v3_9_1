@@ -76,8 +76,12 @@ def create_app():
         # Ensure parent directory exists
         db_dir = os.path.dirname(db_path)
         if db_dir and not os.path.exists(db_dir):
-            os.makedirs(db_dir, exist_ok=True)
-            app.logger.info("Created database directory: %s", db_dir)
+            try:
+                os.makedirs(db_dir, exist_ok=True)
+                app.logger.info("Created database directory: %s", db_dir)
+            except Exception as e:
+                app.logger.error(f"Failed to create database directory {db_dir}: {e}")
+                raise
 
     # DB
     db.init_app(app)
