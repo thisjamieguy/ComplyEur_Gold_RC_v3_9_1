@@ -2608,7 +2608,8 @@ def delete_all_data():
 
         # Write audit entry
         try:
-            write_audit(CONFIG['AUDIT_LOG_PATH'], 'delete_all_data', 'admin', {
+            audit_log_path = CONFIG.get('AUDIT_LOG_PATH', 'logs/audit.log')
+            write_audit(audit_log_path, 'delete_all_data', 'admin', {
                 'employees_deleted': employees_before,
                 'trips_deleted': trips_before - private_trips_before,
                 'private_trips_preserved': private_trips_before,
@@ -2625,7 +2626,8 @@ def delete_all_data():
     except Exception as e:
         logger.error(f"Delete all data error: {e}")
         try:
-            write_audit(CONFIG['AUDIT_LOG_PATH'], 'delete_all_data_error', 'admin', {'error': str(e)})
+            audit_log_path = CONFIG.get('AUDIT_LOG_PATH', 'logs/audit.log')
+            write_audit(audit_log_path, 'delete_all_data_error', 'admin', {'error': str(e)})
         except Exception:
             pass
         flash(f'Failed to delete data: {str(e)}')

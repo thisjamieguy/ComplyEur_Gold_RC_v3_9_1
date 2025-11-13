@@ -361,6 +361,17 @@ function confirmClearAllData() {
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = '{{ url_for("main.delete_all_data") }}';
+            
+            // Add CSRF token if available
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+            if (csrfToken) {
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrf_token';
+                csrfInput.value = csrfToken;
+                form.appendChild(csrfInput);
+            }
+            
             document.body.appendChild(form);
             form.submit();
         }

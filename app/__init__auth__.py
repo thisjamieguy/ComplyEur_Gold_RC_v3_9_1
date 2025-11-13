@@ -317,6 +317,16 @@ def create_app():
         except Exception:
             return str(date_str)
 
+    # Make CSRF token available to all templates
+    @app.context_processor
+    def inject_csrf_token():
+        """Inject CSRF token into template context for forms."""
+        try:
+            from flask_wtf.csrf import generate_csrf
+            return {'csrf_token': generate_csrf()}
+        except Exception:
+            # If CSRF is not available, return empty string
+            return {'csrf_token': ''}
 
     # CLI - User model is now available
     from . import cli as cli_mod
