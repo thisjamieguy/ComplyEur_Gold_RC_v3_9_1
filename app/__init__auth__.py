@@ -158,6 +158,25 @@ def create_app():
         models_auth.User = User
         db.create_all()
         
+        # Create default admin user if no users exist (for fresh deployments)
+        try:
+            user_count = User.query.count()
+            if user_count == 0:
+                from .security import hash_password
+                default_admin = User(
+                    username='admin',
+                    password_hash=hash_password('admin123')
+                )
+                db.session.add(default_admin)
+                db.session.commit()
+                app.logger.info("✅ Created default admin user (username: admin, password: admin123)")
+                app.logger.warning("⚠️  SECURITY: Change the default password immediately after first login!")
+            else:
+                app.logger.info(f"Auth database has {user_count} user(s)")
+        except Exception as e:
+            app.logger.warning(f"Could not create default admin user: {e}")
+            # Don't fail startup if this fails
+        
         # Add DATABASE and CONFIG for main routes compatibility
         import os
         db_path = os.getenv('DATABASE_PATH', 'data/eu_tracker.db')
