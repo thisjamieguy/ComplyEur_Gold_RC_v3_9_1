@@ -32,7 +32,7 @@ This document provides step-by-step instructions for deploying ComplyEur to Rend
 ### Build Command
 
 ```bash
-pip install -r requirements.txt
+./scripts/render_build.sh
 ```
 
 ### Start Command
@@ -119,7 +119,7 @@ openssl rand -hex 32
 3. **Branch**: Select **"main"**
 4. **Root Directory**: Leave empty (uses root)
 5. **Runtime**: Select **"Python 3"**
-6. **Build Command**: Enter `pip install -r requirements.txt`
+6. **Build Command**: Enter `./scripts/render_build.sh`
 7. **Start Command**: Enter `gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120`
 
 ### 5. Configure Environment Variables
@@ -376,4 +376,3 @@ For PostgreSQL (recommended for production):
 **Last Updated**: 2025-11-12  
 **Version**: 3.9.1 (Gold Release Candidate)  
 **Status**: Production-Ready
-
