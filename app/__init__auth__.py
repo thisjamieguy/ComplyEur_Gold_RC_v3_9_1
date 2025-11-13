@@ -227,6 +227,17 @@ def create_app():
         app.config['DATABASE'] = db_path
         app.logger.info(f"Database path configured: {db_path}")
         
+        # Initialize main database tables (including legacy admin table)
+        try:
+            from . import models
+            app.logger.info("Initializing main database tables...")
+            models.init_db()
+            app.logger.info("✅ Main database tables initialized")
+        except Exception as e:
+            app.logger.error(f"Failed to initialize main database: {e}")
+            import traceback
+            app.logger.error(traceback.format_exc())
+        
         # Load CONFIG from settings.json if available
         try:
             import json
