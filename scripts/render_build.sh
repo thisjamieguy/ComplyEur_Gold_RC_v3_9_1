@@ -21,6 +21,23 @@ if [ ! -f "requirements.txt" ]; then
     exit 1
 fi
 
+# Ensure required system build tools are present (needed when wheels unavailable)
+if command -v apt-get >/dev/null 2>&1; then
+    echo "🔧 Installing system build dependencies via apt..."
+    export DEBIAN_FRONTEND=noninteractive
+    if ! apt-get update -y >"$TMP_DIR/apt-update.log" 2>&1; then
+        echo "⚠️  Warning: apt-get update failed (see $TMP_DIR/apt-update.log), continuing without system deps"
+    else
+        if ! apt-get install -y --no-install-recommends build-essential libffi-dev libargon2-dev python3-dev pkg-config ninja-build >"$TMP_DIR/apt-install.log" 2>&1; then
+            echo "⚠️  Warning: apt-get install failed (see $TMP_DIR/apt-install.log), continuing without system deps"
+        else
+            echo "✅ System build dependencies installed"
+        fi
+    fi
+else
+    echo "ℹ️  apt-get not available (likely macOS/local dev); skipping system dependency install"
+fi
+
 # Create requirements file without problematic/test-only packages
 echo "📦 Preparing requirements (excluding optional/test-only packages)..."
 # Exclude: python-magic (optional, has fallback), playwright (test-only), 
@@ -183,4 +200,3 @@ rm -rf "$TMP_DIR" 2>/dev/null || true
 
 echo ""
 echo "✅ Build complete!"
-
