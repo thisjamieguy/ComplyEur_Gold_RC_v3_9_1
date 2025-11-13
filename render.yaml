@@ -19,6 +19,8 @@ services:
         value: "true"
       - key: DATABASE_PATH
         value: /var/data/eu_tracker.db
+      - key: SQLALCHEMY_DATABASE_URI
+        value: sqlite:////var/data/auth.db
       - key: LOG_LEVEL
         value: INFO
       - key: PERSISTENT_DIR
