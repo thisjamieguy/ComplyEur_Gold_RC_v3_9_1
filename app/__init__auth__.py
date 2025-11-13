@@ -123,8 +123,8 @@ def create_app():
     csp = {
         'default-src': ["'self'"],
         'img-src': ["'self'", "data:"],
-        'style-src': ["'self'", "'unsafe-inline'"],  # Keep unsafe-inline for CSS
-        'script-src': ["'self'"],  # Allow scripts from same origin (static files)
+        'style-src': ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],  # Allow Bootstrap CSS from CDN
+        'script-src': ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],  # Allow Bootstrap JS and inline scripts
         'base-uri': ["'none'"],
         'object-src': ["'none'"],
         'frame-ancestors': ["'none'"],
