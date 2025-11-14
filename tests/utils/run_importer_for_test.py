@@ -103,11 +103,11 @@ def main() -> int:
 
     summaries: List[Dict[str, Any]] = []
     with app.app_context():
+        conn = get_db()
         for _ in range(max(1, args.imports)):
-            result = import_excel(str(excel_path))
+            result = import_excel(str(excel_path), db_conn=conn)
             summaries.append(result)
 
-        conn = get_db()
         db_state = fetch_db_state(conn)
 
     output = {

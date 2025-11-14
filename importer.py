@@ -202,13 +202,19 @@ def save_trip(conn: sqlite3.Connection, employee_id: int, country: str, entry_da
     return True
 
 
-def import_excel(file_path: str, enable_extended_scan: bool = False) -> Dict[str, Any]:
+def import_excel(
+    file_path: str,
+    enable_extended_scan: bool = False,
+    db_conn: Optional[sqlite3.Connection] = None
+) -> Dict[str, Any]:
     """
     Import trips from an Excel file.
     
     Args:
         file_path: Path to the Excel file (.xlsx or .xls)
         enable_extended_scan: If True, scans more rows for headers (default: False)
+        db_conn: Optional existing SQLite connection to reuse. If None, a new
+                 connection is created and closed within this function.
     
     Returns:
         Dictionary with keys:
@@ -317,10 +323,14 @@ def import_excel(file_path: str, enable_extended_scan: bool = False) -> Dict[str
             trips.append((current_trip[0], current_trip[1], current_trip[2], current_trip[3], current_trip[4]))
         
         # Connect to database and save trips
-        db_path = get_database_path()
-        conn = sqlite3.connect(db_path, check_same_thread=False)
-        conn.row_factory = sqlite3.Row
-        
+        conn = db_conn
+        own_connection = False
+        if conn is None:
+            db_path = get_database_path()
+            conn = sqlite3.connect(db_path, check_same_thread=False)
+            conn.row_factory = sqlite3.Row
+            own_connection = True
+
         trips_added = 0
         employees_created = 0
         employees_processed = set()
@@ -338,7 +348,8 @@ def import_excel(file_path: str, enable_extended_scan: bool = False) -> Dict[str
             if save_trip(conn, employee_id, country, entry_date, exit_date, travel_days):
                 trips_added += 1
         
-        conn.close()
+        if own_connection and conn is not None:
+            conn.close()
         
         return {
             'success': True,

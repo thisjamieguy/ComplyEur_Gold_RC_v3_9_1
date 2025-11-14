@@ -5,11 +5,17 @@ This module provides functions to calculate:
 1. All days an employee has been present in the Schengen Area
 2. Days used within any rolling 180-day window
 3. The earliest safe re-entry date for an employee
+
+Compliance tracking started on October 12, 2025. Trips before this date are excluded from all calculations.
 """
 
 from datetime import date, timedelta
 from typing import List, Dict, Optional, Set
 from functools import lru_cache
+
+# Fixed compliance start date - when tracking began
+# Trips before this date are excluded from all calculations
+COMPLIANCE_START_DATE = date(2025, 10, 12)
 
 # Canonical Schengen membership list (codes + friendly names) for accurate compliance checks.
 # This ensures planner/alert calculations do not treat non-Schengen trips as Schengen usage.
@@ -92,15 +98,17 @@ def is_schengen_country(country_code_or_name: str) -> bool:
     return bool(code and code in SCHENGEN_COUNTRIES)
 
 
-def presence_days(trips: List[Dict]) -> Set[date]:
+def presence_days(trips: List[Dict], compliance_start_date: Optional[date] = COMPLIANCE_START_DATE) -> Set[date]:
     """
     Return all individual days spent in Schengen from trip date ranges.
     Ireland (IE) trips are excluded from Schengen calculations.
+    Trips before compliance_start_date (if provided) are excluded.
     
     OPTIMIZATION: Uses memoization for repeated calculations (Phase 2).
     
     Args:
         trips: List of trip dicts with 'entry_date', 'exit_date' (YYYY-MM-DD strings), and 'country' or 'country_code'
+        compliance_start_date: Optional date when compliance tracking started. Trips before this date are excluded.
     
     Returns:
         Set of date objects representing all days present in Schengen
@@ -114,6 +122,21 @@ def presence_days(trips: List[Dict]) -> Set[date]:
         >>> len(days)
         5  # Only France trip counts (Ireland excluded)
     """
+    # Filter trips by compliance start date if provided
+    filtered_trips = trips
+    if compliance_start_date:
+        filtered_trips = []
+        for trip in trips:
+            entry_str = trip.get('entry_date', '')
+            try:
+                entry_dt = date.fromisoformat(entry_str) if isinstance(entry_str, str) else entry_str
+                # Only include trips that start on or after compliance start date
+                if entry_dt >= compliance_start_date:
+                    filtered_trips.append(trip)
+            except (ValueError, AttributeError):
+                # If we can't parse the date, include it (conservative approach)
+                filtered_trips.append(trip)
+    
     # Create a hashable key from trips for caching
     # Use a simple tuple of (entry, exit, country) for each trip
     trips_key = tuple(
@@ -122,10 +145,12 @@ def presence_days(trips: List[Dict]) -> Set[date]:
             str(trip.get('exit_date', '')),
             str(trip.get('country', '') or trip.get('country_code', ''))
         )
-        for trip in trips
+        for trip in filtered_trips
     )
     
     # Check cache (use memoized version)
+    # Note: Cache key doesn't include compliance_start_date, so cache may include older trips
+    # This is acceptable as the filtering happens before caching
     return _presence_days_impl(trips_key)
 
 
@@ -161,16 +186,18 @@ def _presence_days_impl(trips_key: tuple) -> Set[date]:
     return days
 
 
-def days_used_in_window(presence: Set[date], ref_date: date) -> int:
+def days_used_in_window(presence: Set[date], ref_date: date, compliance_start_date: Optional[date] = COMPLIANCE_START_DATE) -> int:
     """
     Return count of presence days in the last 180 days up to ref_date.
     
     The 180-day window is [ref_date - 179 days, ref_date] inclusive.
     This gives us 180 days total.
+    Days before compliance_start_date (if provided) are excluded.
     
     Args:
         presence: Set of all dates when employee was in Schengen
         ref_date: Reference date (usually today or a future date)
+        compliance_start_date: Optional date when compliance tracking started. Days before this are excluded.
     
     Returns:
         Number of days used within the 180-day window
@@ -185,6 +212,10 @@ def days_used_in_window(presence: Set[date], ref_date: date) -> int:
     window_start = ref_date - timedelta(days=180)
     window_end = ref_date - timedelta(days=1)
     
+    # Adjust window_start to not be before compliance_start_date
+    if compliance_start_date:
+        window_start = max(window_start, compliance_start_date)
+    
     count = 0
     for day in presence:
         if window_start <= day <= window_end:
@@ -192,7 +223,7 @@ def days_used_in_window(presence: Set[date], ref_date: date) -> int:
     return count
 
 
-def earliest_safe_entry(presence: Set[date], today: date, limit: int = 90) -> Optional[date]:
+def earliest_safe_entry(presence: Set[date], today: date, limit: int = 90, compliance_start_date: Optional[date] = COMPLIANCE_START_DATE) -> Optional[date]:
     """
     Return earliest date where total days in window <= limit-1 (to allow entry).
     Returns None if already eligible today.
@@ -205,6 +236,7 @@ def earliest_safe_entry(presence: Set[date], today: date, limit: int = 90) -> Op
         presence: Set of all dates when employee was in Schengen
         today: Current date
         limit: Maximum allowed days (default 90)
+        compliance_start_date: Optional date when compliance tracking started. Days before this are excluded.
     
     Returns:
         Earliest safe entry date, or None if already eligible
@@ -216,7 +248,7 @@ def earliest_safe_entry(presence: Set[date], today: date, limit: int = 90) -> Op
         date(2024, 6, 30)  # When oldest days fall out of window
     """
     # Check if already eligible today
-    used_today = days_used_in_window(presence, today)
+    used_today = days_used_in_window(presence, today, compliance_start_date)
     if used_today <= limit - 1:
         return None  # Already eligible
     
@@ -226,6 +258,8 @@ def earliest_safe_entry(presence: Set[date], today: date, limit: int = 90) -> Op
     
     # Find the oldest presence day that affects today's window
     window_start_today = today - timedelta(days=179)
+    if compliance_start_date:
+        window_start_today = max(window_start_today, compliance_start_date)
     relevant_days = sorted([d for d in presence if d >= window_start_today])
     
     if not relevant_days:
@@ -239,7 +273,7 @@ def earliest_safe_entry(presence: Set[date], today: date, limit: int = 90) -> Op
     max_check = today + timedelta(days=180)  # Don't check beyond 180 days
     
     while check_date <= max_check:
-        used = days_used_in_window(presence, check_date)
+        used = days_used_in_window(presence, check_date, compliance_start_date)
         if used <= limit - 1:
             return check_date
         check_date += timedelta(days=1)
@@ -253,7 +287,7 @@ def earliest_safe_entry(presence: Set[date], today: date, limit: int = 90) -> Op
     return None
 
 
-def calculate_days_remaining(presence: Set[date], ref_date: date, limit: int = 90) -> int:
+def calculate_days_remaining(presence: Set[date], ref_date: date, limit: int = 90, compliance_start_date: Optional[date] = COMPLIANCE_START_DATE) -> int:
     """
     Calculate how many days remain before hitting the limit.
     
@@ -261,11 +295,12 @@ def calculate_days_remaining(presence: Set[date], ref_date: date, limit: int = 9
         presence: Set of all dates when employee was in Schengen
         ref_date: Reference date (usually today)
         limit: Maximum allowed days (default 90)
+        compliance_start_date: Optional date when compliance tracking started. Days before this are excluded.
     
     Returns:
         Number of days remaining (can be negative if over limit)
     """
-    used = days_used_in_window(presence, ref_date)
+    used = days_used_in_window(presence, ref_date, compliance_start_date)
     return limit - used
 
 
@@ -299,7 +334,7 @@ def get_risk_level(days_remaining: int, thresholds: Dict[str, int]) -> str:
         return 'red'
 
 
-def days_until_compliant(presence: Set[date], today: date, limit: int = 90) -> tuple[int, date]:
+def days_until_compliant(presence: Set[date], today: date, limit: int = 90, compliance_start_date: Optional[date] = COMPLIANCE_START_DATE) -> tuple[int, date]:
     """
     Calculate days until employee becomes compliant and the compliance date.
     
@@ -310,6 +345,7 @@ def days_until_compliant(presence: Set[date], today: date, limit: int = 90) -> t
         presence: Set of all dates when employee was in Schengen
         today: Current date
         limit: Maximum allowed days (default 90)
+        compliance_start_date: Optional date when compliance tracking started. Days before this are excluded.
     
     Returns:
         Tuple of (days_until_compliant, compliance_date)
@@ -321,14 +357,14 @@ def days_until_compliant(presence: Set[date], today: date, limit: int = 90) -> t
         >>> days  # Should be positive number of days
         >>> date  # The exact date they become compliant
     """
-    days_remaining = calculate_days_remaining(presence, today, limit)
+    days_remaining = calculate_days_remaining(presence, today, limit, compliance_start_date)
     
     # If already compliant, return 0 days
     if days_remaining >= 0:
         return 0, today
     
     # Find the earliest safe entry date (when they become compliant)
-    safe_entry = earliest_safe_entry(presence, today, limit)
+    safe_entry = earliest_safe_entry(presence, today, limit, compliance_start_date)
     
     if safe_entry is None:
         # This shouldn't happen if days_remaining < 0, but handle gracefully

@@ -170,6 +170,9 @@ class SiteCrawler {
     // Skip logout to maintain session
     if (normalized.includes('/logout')) return false;
     
+    // Skip export/download endpoints (they trigger downloads, not page loads)
+    if (normalized.includes('/export') || normalized.includes('/download')) return false;
+    
     return true;
   }
 

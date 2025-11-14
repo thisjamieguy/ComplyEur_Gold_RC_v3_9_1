@@ -1,6 +1,6 @@
 import os
 import json
-from datetime import timedelta
+from datetime import timedelta, date
 
 
 DEFAULTS = {

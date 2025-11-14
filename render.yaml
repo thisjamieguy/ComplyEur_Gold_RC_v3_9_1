@@ -8,8 +8,8 @@ services:
     buildCommand: chmod +x ./scripts/render_build_fast.sh ./start.sh && ./scripts/render_build_fast.sh
     startCommand: ./start.sh
     autoDeploy: true
-    healthCheckPath: /health
-    healthCheckIntervalSeconds: 30
+    # Health checks disabled - Render will not wait for health check during deployment
+    # WARNING: This means Render won't automatically restart your service if it crashes
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9

@@ -477,7 +477,19 @@ function parseDDMMYYYY(dateStr) {
 
 function sortTripTable(column) {
     const tbody = document.getElementById('tripTableBody');
+    
+    // Guard against missing table (employee with no trips)
+    if (!tbody) {
+        console.warn('Trip table body not found - employee may have no trips');
+        return;
+    }
+    
     const tripRows = Array.from(tbody.querySelectorAll('tr[data-trip-id]'));
+    
+    // Guard against empty table
+    if (tripRows.length === 0) {
+        return;
+    }
     
     // Toggle sort direction if clicking the same column
     if (currentSortColumn === column) {
@@ -521,9 +533,13 @@ function sortTripTable(column) {
     });
     
     const activeHeader = document.querySelector(`th[onclick="sortTripTable('${column}')"]`);
-    const activeArrow = activeHeader.querySelector('.sort-arrow');
-    activeArrow.classList.add('active');
-    activeArrow.textContent = currentSortDirection === 'asc' ? '▲' : '▼';
+    if (activeHeader) {
+        const activeArrow = activeHeader.querySelector('.sort-arrow');
+        if (activeArrow) {
+            activeArrow.classList.add('active');
+            activeArrow.textContent = currentSortDirection === 'asc' ? '▲' : '▼';
+        }
+    }
     
     // Fade out effect
     tbody.style.opacity = '0.3';
@@ -555,6 +571,12 @@ function sortTripTable(column) {
 document.addEventListener('DOMContentLoaded', function() {
     // Give the page a moment to fully render, then apply saved sort
     setTimeout(() => {
+        // Check if table exists before trying to sort
+        const tbody = document.getElementById('tripTableBody');
+        if (!tbody) {
+            return; // No table, nothing to sort
+        }
+        
         // First, reset all arrows to inactive state
         document.querySelectorAll('.sort-arrow').forEach(arrow => {
             arrow.classList.remove('active');

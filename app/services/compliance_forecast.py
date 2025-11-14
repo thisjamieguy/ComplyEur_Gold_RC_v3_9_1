@@ -4,6 +4,8 @@ Future Job Compliance Forecast Service
 This module provides functions to forecast compliance issues for future scheduled jobs
 based on the 90/180 day EU rolling window rule, considering both past trips and other
 scheduled future trips.
+
+Compliance tracking started on October 12, 2025. Trips before this date are excluded from all calculations.
 """
 
 from datetime import date, timedelta
@@ -13,7 +15,8 @@ from .rolling90 import (
     days_used_in_window, 
     earliest_safe_entry, 
     calculate_days_remaining,
-    is_schengen_country
+    is_schengen_country,
+    COMPLIANCE_START_DATE
 )
 
 
@@ -39,7 +42,8 @@ def get_risk_level_for_forecast(days_used: int, warning_threshold: int = 80) -> 
 def calculate_compliant_from_date(
     all_trips: List[Dict],
     future_job: Dict,
-    limit: int = 90
+    limit: int = 90,
+    compliance_start_date: Optional[date] = COMPLIANCE_START_DATE
 ) -> Optional[date]:
     """
     Calculate the date when an employee will become compliant for a future job.
@@ -51,6 +55,7 @@ def calculate_compliant_from_date(
         all_trips: List of all trips (past and future)
         future_job: The future job that would be non-compliant
         limit: Maximum allowed days (default 90)
+        compliance_start_date: Optional date when compliance tracking started. Trips before this are excluded.
     
     Returns:
         Date when employee will be compliant, or None if already compliant
@@ -61,14 +66,14 @@ def calculate_compliant_from_date(
     
     # Get all presence days from trips BEFORE this job
     trips_before_job = [t for t in all_trips if date.fromisoformat(t['entry_date'] if isinstance(t['entry_date'], str) else str(t['entry_date'])) < job_start]
-    presence = presence_days(trips_before_job)
+    presence = presence_days(trips_before_job, compliance_start_date)
     
     # Check each day from job_start onwards to find when it becomes compliant
     check_date = job_start
     max_check = job_start + timedelta(days=180)  # Don't check beyond 180 days
     
     while check_date <= max_check:
-        days_used_at_check = days_used_in_window(presence, check_date)
+        days_used_at_check = days_used_in_window(presence, check_date, compliance_start_date)
         
         # If adding the job duration would be compliant, this is the date
         if days_used_at_check + job_duration <= limit:
@@ -85,7 +90,8 @@ def calculate_future_job_compliance(
     future_job: Dict,
     all_employee_trips: List[Dict],
     warning_threshold: int = 80,
-    limit: int = 90
+    limit: int = 90,
+    compliance_start_date: Optional[date] = COMPLIANCE_START_DATE
 ) -> Dict:
     """
     Calculate compliance status for a future job.
@@ -132,10 +138,10 @@ def calculate_future_job_compliance(
     ]
     
     # Calculate presence days from trips before the job
-    presence = presence_days(trips_before_job)
+    presence = presence_days(trips_before_job, compliance_start_date)
     
     # Calculate days used in 180-day window at job start date
-    days_used_before = days_used_in_window(presence, job_start)
+    days_used_before = days_used_in_window(presence, job_start, compliance_start_date)
     
     # Calculate days after adding this job (only if Schengen)
     days_after = days_used_before + (job_duration if is_job_schengen else 0)
@@ -148,7 +154,7 @@ def calculate_future_job_compliance(
     # If not compliant, calculate when it would be compliant
     compliant_from = None
     if not is_compliant and is_job_schengen:
-        compliant_from = calculate_compliant_from_date(all_employee_trips, future_job, limit)
+        compliant_from = calculate_compliant_from_date(all_employee_trips, future_job, limit, compliance_start_date)
     
     # Find trips that contribute to the window (for detailed breakdown)
     window_start = job_start - timedelta(days=179)
@@ -178,7 +184,8 @@ def calculate_future_job_compliance(
 def get_all_future_jobs_for_employee(
     employee_id: int,
     all_trips: List[Dict],
-    warning_threshold: int = 80
+    warning_threshold: int = 80,
+    compliance_start_date: Optional[date] = COMPLIANCE_START_DATE
 ) -> List[Dict]:
     """
     Get compliance forecast for all future jobs for an employee.
@@ -205,7 +212,8 @@ def get_all_future_jobs_for_employee(
             employee_id,
             future_job,
             all_trips,
-            warning_threshold
+            warning_threshold,
+            compliance_start_date=compliance_start_date
         )
         forecasts.append(forecast)
     
@@ -218,7 +226,8 @@ def calculate_what_if_scenario(
     scenario_start: date,
     scenario_end: date,
     scenario_country: str,
-    warning_threshold: int = 80
+    warning_threshold: int = 80,
+    compliance_start_date: Optional[date] = COMPLIANCE_START_DATE
 ) -> Dict:
     """
     Calculate a "what-if" scenario for a potential future trip.
@@ -248,6 +257,7 @@ def calculate_what_if_scenario(
         employee_id,
         hypothetical_trip,
         all_trips,
-        warning_threshold
+        warning_threshold,
+        compliance_start_date=compliance_start_date
     )
 
