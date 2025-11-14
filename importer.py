@@ -80,14 +80,22 @@ def _normalise_country_code(country: str) -> str:
     return code
 
 
-def _validate_employee_column(ws, header_row: int) -> None:
+def _validate_employee_column(ws, header_row: int) -> Optional[str]:
     header_value = ws.cell(row=header_row, column=1).value
     header_str = str(header_value or '').strip().lower()
-    if not header_str or not any(indicator in header_str for indicator in REQUIRED_HEADER_INDICATORS):
-        raise ImportValidationError(
-            "Column A must contain employee names (header should reference 'Employee').",
-            details={"header_value": header_value},
-        )
+    if header_str and any(indicator in header_str for indicator in REQUIRED_HEADER_INDICATORS):
+        return None
+
+    # Fallback: if header missing but the following rows contain clear names, allow it
+    for row_idx in range(header_row + 1, min(header_row + 10, ws.max_row + 1)):
+        cell_value = ws.cell(row=row_idx, column=1).value
+        if isinstance(cell_value, str) and cell_value.strip():
+            return "Employee header missing; detected names in column A and continued import."
+
+    raise ImportValidationError(
+        "Column A must contain employee names (header should reference 'Employee').",
+        details={"header_value": header_value},
+    )
 
 
 def detect_country_enhanced(cell_text: str) -> Optional[str]:
@@ -293,7 +301,7 @@ def import_excel(
         if not header_row:
             raise ImportValidationError("Could not find a date header row in the first 15 rows.")
 
-        _validate_employee_column(ws, header_row)
+        header_warning = _validate_employee_column(ws, header_row)
 
         date_columns: Dict[int, date] = {}
         for col_idx in range(2, ws.max_column + 1):
@@ -386,6 +394,8 @@ def import_excel(
         employees_created = 0
         employees_processed: set[int] = set()
         warnings: List[str] = []
+        if header_warning:
+            warnings.append(header_warning)
         duplicates_skipped = 0
 
         for employee_name, country, entry_date, exit_date, travel_days in trips:
