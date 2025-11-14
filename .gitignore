@@ -117,3 +117,7 @@ playwright-report/
 # Test artifacts
 tests/tmp/
 testsprite_tests/tmp/
+
+# Secrets and sensitive files
+secrets/
+*.encrypted

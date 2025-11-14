@@ -4,6 +4,7 @@ Provides CSRF, rate limiting (when available), secure session configuration,
 security headers via Talisman, and SQLAlchemy initialisation for auth models.
 """
 
+import os
 import logging
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -42,8 +43,71 @@ else:
 
 def create_app():
     """Create and configure the authentication Flask application instance."""
-    app = Flask(__name__, instance_relative_config=True)
+    import json
+    import logging
+    
+    # Configure logging early
+    log_handlers = [logging.StreamHandler()]
+    try:
+        logs_dir = os.path.join(os.path.dirname(__file__), '..', 'logs')
+        os.makedirs(logs_dir, exist_ok=True)
+        log_handlers.append(logging.FileHandler(os.path.join(logs_dir, 'app.log')))
+    except Exception:
+        pass
+    
+    log_level_str = os.getenv('LOG_LEVEL', 'INFO').upper()
+    log_level = getattr(logging, log_level_str, logging.INFO)
+    logging.basicConfig(
+        level=log_level,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=log_handlers
+    )
+    logger = logging.getLogger(__name__)
+    
+    # Use absolute paths for template and static folders (matching __init__.py)
+    app_dir = os.path.dirname(__file__)
+    template_folder = os.path.join(app_dir, 'templates')
+    static_folder = os.path.join(app_dir, 'static')
+    
+    app = Flask(__name__, instance_relative_config=True, 
+                static_folder=static_folder, template_folder=template_folder)
     app.config.from_object(Config)
+    logger.info(f"Flask app created (template_folder: {template_folder})")
+    
+    # Load EU Entry Requirements data at startup
+    EU_ENTRY_DATA = []
+    try:
+        logger.info("Loading EU entry requirements data...")
+        data_file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'eu_entry_requirements.json')
+        logger.info(f"Looking for data file at: {data_file_path}")
+        with open(data_file_path, 'r', encoding='utf-8') as f:
+            EU_ENTRY_DATA = json.load(f)
+        logger.info(f"Loaded {len(EU_ENTRY_DATA)} EU entry requirements")
+    except Exception as e:
+        logger.error(f"Failed to load EU entry requirements data: {e}")
+        logger.exception("EU entry data load failed")
+    
+    # Schengen country code mapping
+    COUNTRY_CODE_MAPPING = {
+        'AT': 'Austria', 'BE': 'Belgium', 'BG': 'Bulgaria', 'HR': 'Croatia',
+        'CY': 'Cyprus', 'CZ': 'Czech Republic', 'DK': 'Denmark', 'EE': 'Estonia',
+        'FI': 'Finland', 'FR': 'France', 'DE': 'Germany', 'GR': 'Greece',
+        'HU': 'Hungary', 'IS': 'Iceland', 'IE': 'Ireland', 'IT': 'Italy',
+        'LV': 'Latvia', 'LI': 'Liechtenstein', 'LT': 'Lithuania', 'LU': 'Luxembourg',
+        'MT': 'Malta', 'NL': 'Netherlands', 'NO': 'Norway', 'PL': 'Poland',
+        'PT': 'Portugal', 'RO': 'Romania', 'SK': 'Slovakia', 'SI': 'Slovenia',
+        'ES': 'Spain', 'SE': 'Sweden', 'CH': 'Switzerland'
+    }
+    
+    # Make variables available to routes
+    app.config['EU_ENTRY_DATA'] = EU_ENTRY_DATA
+    app.config['COUNTRY_CODE_MAPPING'] = COUNTRY_CODE_MAPPING
+    app.config['ALLOWED_EXTENSIONS'] = {'xlsx', 'xls'}
+    
+    # Upload configuration
+    UPLOAD_FOLDER = 'uploads'
+    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     
     # Ensure session is enabled and configured properly for CSRF
     app.config['SESSION_COOKIE_HTTPONLY'] = True
@@ -58,7 +122,6 @@ def create_app():
     # Fix database path and ensure directory exists BEFORE db.init_app
     db_uri = app.config.get('SQLALCHEMY_DATABASE_URI', '')
     if db_uri.startswith('sqlite:///'):
-        import os
         # SQLite URIs: sqlite:///path (absolute) or sqlite:////path (also absolute)
         # sqlite:///./path should be relative but let's handle it explicitly
         db_path = db_uri.replace('sqlite:///', '').replace('sqlite:////', '')
@@ -89,7 +152,6 @@ def create_app():
 
     # CSRF - Enable based on environment (production has HTTPS, local does not)
     # On Render/production, HTTPS is available so CSRF works properly
-    import os  # Ensure os is imported
     is_production = (
         os.getenv('FLASK_ENV') == 'production' or 
         os.getenv('RENDER') == 'true' or
@@ -147,6 +209,93 @@ def create_app():
     # CSP nonce support removed - using Talisman's built-in CSP with unsafe-inline for scripts
     # This avoids importing app.core.csp which has heavy cryptography dependencies
 
+    # Initialize Flask-Caching for performance optimization
+    try:
+        from flask_caching import Cache
+        cache_config = {
+            'CACHE_TYPE': 'SimpleCache',  # In-memory cache
+            'CACHE_DEFAULT_TIMEOUT': 300  # 5 minutes default timeout
+        }
+        cache = Cache(app, config=cache_config)
+        app.config['CACHE'] = cache
+        logger.info("Flask-Caching initialized successfully")
+    except ImportError:
+        logger.warning("Flask-Caching not available, caching disabled")
+        app.config['CACHE'] = None
+    except Exception as e:
+        logger.warning(f"Failed to initialize Flask-Caching: {e}")
+        app.config['CACHE'] = None
+
+    # Initialize Flask-Compress for gzip compression
+    try:
+        from flask_compress import Compress
+        Compress(app)
+        logger.info("Flask-Compress initialized successfully")
+    except ImportError:
+        logger.warning("Flask-Compress not available, compression disabled")
+    except Exception as e:
+        logger.warning(f"Failed to initialize Flask-Compress: {e}")
+
+    # Load CONFIG from config module (matching __init__.py behavior)
+    try:
+        from config import load_config, get_session_lifetime
+        CONFIG = load_config()
+        app.config['CONFIG'] = CONFIG
+        app.permanent_session_lifetime = get_session_lifetime(CONFIG)
+        logger.info("Configuration loaded from config module")
+    except Exception as e:
+        logger.warning(f"Failed to load config from config module: {e}")
+        # Fallback to settings.json approach (already in app context block below)
+        app.config['CONFIG'] = {
+            'RETENTION_MONTHS': 36,
+            'SESSION_IDLE_TIMEOUT_MINUTES': 30,
+        }
+        from datetime import timedelta
+        app.permanent_session_lifetime = timedelta(minutes=30)
+
+    # Make version and year available to all templates
+    import time
+    APP_VERSION = os.getenv('APP_VERSION', '1.7.7')
+    _app_start_ts = time.time()
+    
+    @app.context_processor
+    def inject_version():
+        from datetime import datetime
+        return dict(app_version=APP_VERSION, current_year=datetime.now().year)
+    
+    # Add custom template filters (matching __init__.py)
+    @app.template_filter('country_name')
+    def country_name_filter(country_code):
+        """Convert country code to full country name"""
+        return COUNTRY_CODE_MAPPING.get(country_code, country_code)
+    
+    @app.template_filter('is_ireland')
+    def is_ireland_filter(country_code):
+        """Return True if the country code represents Ireland (IE)."""
+        if not country_code:
+            return False
+        try:
+            return str(country_code).strip().upper() in ['IE', 'IRELAND']
+        except Exception:
+            return False
+    
+    @app.template_filter('format_ddmmyyyy')
+    def format_ddmmyyyy_filter(dt):
+        """Format datetime object to DD-MM-YYYY string"""
+        if not dt:
+            return ''
+        try:
+            from .services.date_utils import format_ddmmyyyy
+            return format_ddmmyyyy(dt)
+        except Exception:
+            return str(dt)
+    
+    # Expose country_image_path helper to Jinja
+    try:
+        from utils.images import country_image_path
+        app.jinja_env.globals["country_image_path"] = country_image_path
+    except Exception:
+        logger.debug("country_image_path helper not available")
 
     # Initialize models in app context
     with app.app_context():
@@ -201,7 +350,6 @@ def create_app():
             # Don't fail startup if this fails
         
         # Add DATABASE and CONFIG for main routes compatibility
-        import os
         db_path = os.getenv('DATABASE_PATH', 'data/eu_tracker.db')
         if not os.path.isabs(db_path):
             # On Render, use PERSISTENT_DIR if set, otherwise use project root
@@ -291,10 +439,31 @@ def create_app():
         # Health check is nice to have but not critical
     
     # Set APP_START_TS and APP_VERSION for health endpoints
-    import time
-    app.config['APP_START_TS'] = time.time()
-    # Use version from environment or default
-    app.config['APP_VERSION'] = os.getenv('APP_VERSION', '1.7.7')
+    app.config['APP_START_TS'] = _app_start_ts
+    app.config['APP_VERSION'] = APP_VERSION
+    
+    # Register minimal API blueprints for testing (under /api prefix)
+    try:
+        from .routes_employees import employees_bp
+        app.register_blueprint(employees_bp, url_prefix="/api")
+        logger.info("Employees API blueprint registered")
+    except Exception as e:
+        logger.warning(f"Failed to register employees blueprint: {e}")
+    
+    try:
+        from .routes_trips import trips_bp
+        app.register_blueprint(trips_bp, url_prefix="/api")
+        logger.info("Trips API blueprint registered")
+    except Exception as e:
+        logger.warning(f"Failed to register trips blueprint: {e}")
+    
+    # Audit trail dashboard
+    try:
+        from .routes_audit import audit_bp
+        app.register_blueprint(audit_bp)
+        logger.info("Audit blueprint registered")
+    except Exception as e:
+        logger.warning(f"Failed to register audit blueprint: {e}")
 
 
     # Jinja filters (match main app filters for consistency)
@@ -349,7 +518,30 @@ def create_app():
     from . import cli as cli_mod
     cli_mod.init_cli(app, db, models_auth.User)
 
-    # Error handlers
+    # Error handlers (matching __init__.py)
+    @app.errorhandler(403)
+    def app_forbidden_error(error):
+        from flask import render_template
+        logger.warning(f"403 error: {error}")
+        return render_template('403.html'), 403
+
+    @app.errorhandler(404)
+    def app_not_found_error(error):
+        from flask import render_template
+        logger.warning(f"404 error: {error}")
+        return render_template('404.html'), 404
+    
+    @app.errorhandler(405)
+    def method_not_allowed(error):
+        logger.error(f"=== 405 METHOD NOT ALLOWED ===")
+        from flask import request
+        logger.error(f"URL: {request.url}")
+        logger.error(f"Method: {request.method}")
+        logger.error(f"Endpoint: {request.endpoint}")
+        logger.error(f"Available methods for this route: {error.description}")
+        logger.error(f"=== END 405 ERROR ===")
+        return f"Method {request.method} not allowed for {request.url}", 405
+
     @app.errorhandler(500)
     def app_internal_error(error):
         """Handle 500 errors gracefully, even if context processors fail."""

@@ -1,3 +1,25 @@
+"""
+ComplyEur Application Package
+
+For consistency, this module re-exports create_app from __init__auth__.py,
+which is the same factory used in production (Render). This ensures local
+development behaves identically to production.
+
+Legacy factory code remains below for reference but is not used.
+"""
+
+# Re-export the production factory for consistency
+# This ensures local and Render use the same app initialization
+from .__init__auth__ import create_app
+
+# Also export for backward compatibility
+__all__ = ['create_app']
+
+# ============================================================================
+# LEGACY FACTORY CODE - KEPT FOR REFERENCE BUT NOT USED
+# The production factory is in __init__auth__.py
+# ============================================================================
+
 import os
 import json
 import secrets
@@ -18,7 +40,7 @@ load_dotenv()
 # Application Version
 APP_VERSION = "1.7.7"
 
-def create_app():
+def _legacy_create_app():
     """Application factory pattern"""
     # Configure logging
     # Ensure logs directory exists

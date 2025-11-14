@@ -470,18 +470,76 @@ def test_summary():
                          trips=trips_data,
                          totals=totals)
 
-# Calendar temporarily sandboxed in /calendar_dev
-# Minimal stub route for testing compatibility
+# Calendar Feature - In Development
+# Accessible only when CALENDAR_DEV_MODE is enabled or in development environment
+def _is_calendar_enabled():
+    """Check if calendar feature should be accessible (dev mode only)"""
+    from flask import current_app
+    import os
+    
+    # Check config flag
+    config = current_app.config.get('CONFIG', {})
+    if config.get('CALENDAR_DEV_MODE', False):
+        return True
+    
+    # Check environment variable
+    if os.getenv('CALENDAR_DEV_MODE', '').lower() in ('true', '1', 'yes'):
+        return True
+    
+    # Check if in development environment (not production)
+    is_production = (
+        os.getenv('FLASK_ENV') == 'production' or 
+        os.getenv('RENDER') == 'true' or
+        os.getenv('RENDER_EXTERNAL_HOSTNAME')
+    )
+    return not is_production  # Available in non-production environments
+
 @main_bp.route('/calendar')
 @login_required
 def calendar():
-    """Stub route - calendar is sandboxed in /calendar_dev"""
-    return '<html><body><h1>Calendar is sandboxed</h1><p>See /calendar_dev for development version.</p></body></html>', 200
+    """Calendar view - only accessible in development mode"""
+    if not _is_calendar_enabled():
+        return '<html><body><h1>Calendar Unavailable</h1><p>This feature is currently in development and not available in production.</p><p>For development access, set CALENDAR_DEV_MODE=true in your environment or config.</p></body></html>', 403
+    
+    from flask import current_app
+    from datetime import date, timedelta
+    
+    # Get config for template
+    config = current_app.config.get('CONFIG', {})
+    
+    # Optional: Get employee filter from query params
+    employee_id = request.args.get('employee_id', type=int)
+    employee_name = None
+    
+    if employee_id:
+        conn = get_db()
+        c = conn.cursor()
+        c.execute('SELECT id, name FROM employees WHERE id = ?', (employee_id,))
+        employee = c.fetchone()
+        conn.close()
+        
+        if employee:
+            employee_name = employee['name']
+    
+    return render_template('calendar.html',
+                         employee_id=employee_id,
+                         employee_name=employee_name,
+                         config={'CONFIG': config})
+
+@main_bp.route('/calendar_dev')
+@login_required
+def calendar_dev():
+    """Development-only calendar access route"""
+    if not _is_calendar_enabled():
+        return '<html><body><h1>Development Access Only</h1><p>This route is only available in development mode.</p></body></html>', 403
+    return redirect(url_for('main.calendar'))
 
 @main_bp.route('/calendar_view')
 @login_required
 def calendar_view():
-    """Stub route - calendar is sandboxed in /calendar_dev"""
+    """Redirect to calendar (if enabled)"""
+    if not _is_calendar_enabled():
+        return redirect(url_for('main.dashboard'))
     return redirect(url_for('main.calendar'))
 
 # @main_bp.route('/employee/<int:employee_id>/calendar')
@@ -1608,7 +1666,7 @@ def import_excel():
         logger.error(f"Failed to get app config: {e}")
         logger.error(traceback.format_exc())
         flash('Server configuration error. Please contact support.')
-        return render_template('import_excel.html'), 500
+        return make_response(render_template('import_excel.html'), 500)
 
     logger.info(f"import_excel: {request.method} request")
     
@@ -1672,11 +1730,19 @@ def import_excel():
                 logger.error(f"Failed to import importer module: {import_err}")
                 logger.error(f"Python path: {sys.path}")
                 raise ImportError(f"Cannot import importer module: {import_err}")
+
+            try:
+                from .models import get_db
+            except ImportError as model_import_err:
+                logger.error(f"Failed to import get_db: {model_import_err}")
+                raise
+            
+            db_conn = get_db()
             
             # Process the Excel file with extended scanning enabled
             logger.info(f"Starting Excel processing for '{filename}'")
             try:
-                result = process_excel(file_path, enable_extended_scan=True)
+                result = process_excel(file_path, enable_extended_scan=True, db_conn=db_conn)
             except Exception as process_err:
                 logger.error(f"Error in process_excel: {process_err}")
                 logger.error(traceback.format_exc())
@@ -1759,7 +1825,7 @@ def import_excel():
             except Exception as cleanup_error:
                 logger.warning(f"Failed to cleanup uploaded file: {cleanup_error}")
             
-            return render_template('import_excel.html'), 500
+            return make_response(render_template('import_excel.html'), 500)
     
     return render_template('import_excel.html')
 
