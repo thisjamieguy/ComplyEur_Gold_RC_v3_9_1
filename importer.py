@@ -1,22 +1,93 @@
+from __future__ import annotations
+
 """
-Excel Import Module for ComplyEur
-Processes Excel files containing employee travel data and imports trips into the database.
+Excel Import Module for ComplyEur.
+
+Hardened to ensure consistent behaviour between local execution and Render:
+- Validates environment and database paths via app.runtime_env
+- Performs strict file and column validation with actionable errors
+- Logs full context (row/column/file/environment) on failure
+- Cleans up uploaded files regardless of success/failure
 """
 
-import re
+import logging
+import mimetypes
 import os
+import re
 import sqlite3
+import traceback
+from dataclasses import dataclass
 from datetime import datetime, date, timedelta
-from typing import Dict, List, Optional, Tuple, Any
+from pathlib import Path
+from typing import Any, Dict, Iterable, List, Optional, Tuple
+
 import openpyxl
 from openpyxl.utils import get_column_letter
 
+from app.runtime_env import build_runtime_state, require_env_vars
+
 # Schengen country codes
+logger = logging.getLogger(__name__)
+
+ALLOWED_EXTENSIONS = {'.xlsx', '.xls'}
+ALLOWED_MIME_TYPES = {
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-excel',
+}
+REQUIRED_HEADER_INDICATORS = ('employee', 'name')
+
 SCHENGEN_COUNTRIES = [
     'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'ES', 'FI', 'FR', 'DE',
     'GR', 'HU', 'IS', 'IE', 'IT', 'LV', 'LI', 'LT', 'LU', 'MT', 'NL', 'NO',
     'PL', 'PT', 'RO', 'SK', 'SI', 'SE', 'CH'
 ]
+SCHENGEN_COUNTRY_SET = set(SCHENGEN_COUNTRIES)
+
+
+class ImportValidationError(Exception):
+    """Raised for user-facing validation errors."""
+
+    def __init__(self, message: str, *, details: Optional[Dict[str, Any]] = None):
+        super().__init__(message)
+        self.details = details or {}
+
+
+def _validate_file_metadata(file_path: Path) -> None:
+    extension = file_path.suffix.lower()
+    if extension not in ALLOWED_EXTENSIONS:
+        raise ImportValidationError(
+            "Unsupported file type. Please upload an .xlsx or .xls file.",
+            details={"extension": extension or "none"},
+        )
+
+    mime_type, _ = mimetypes.guess_type(file_path.name)
+    if mime_type and mime_type not in ALLOWED_MIME_TYPES:
+        raise ImportValidationError(
+            "Invalid MIME type detected for the uploaded file.",
+            details={"mime_type": mime_type},
+        )
+
+
+def _log_exception(context: Dict[str, Any]) -> None:
+    logger.error("Excel import error context: %s", context)
+    logger.error("Traceback:\n%s", traceback.format_exc())
+
+
+def _normalise_country_code(country: str) -> str:
+    code = country.strip().upper()
+    if code == 'UK' or code == 'GB':
+        return 'UK'
+    return code
+
+
+def _validate_employee_column(ws, header_row: int) -> None:
+    header_value = ws.cell(row=header_row, column=1).value
+    header_str = str(header_value or '').strip().lower()
+    if not header_str or not any(indicator in header_str for indicator in REQUIRED_HEADER_INDICATORS):
+        raise ImportValidationError(
+            "Column A must contain employee names (header should reference 'Employee').",
+            details={"header_value": header_value},
+        )
 
 
 def detect_country_enhanced(cell_text: str) -> Optional[str]:
@@ -39,7 +110,7 @@ def detect_country_enhanced(cell_text: str) -> Optional[str]:
     matches = re.findall(pattern, text)
     
     for match in matches:
-        if match in SCHENGEN_COUNTRIES:
+        if match in SCHENGEN_COUNTRY_SET:
             return match
     
     # Default to UK for domestic work
@@ -120,43 +191,19 @@ def find_header_row(ws, max_rows: int = 15) -> Optional[int]:
     return None
 
 
-def get_database_path() -> str:
+def get_database_path(force_refresh: bool = False) -> str:
     """
-    Get database path from environment or default location.
-    Works both in Flask app context and standalone.
+    Resolve the SQLite database path using the shared runtime state.
     """
-    # Try Flask app context first
-    try:
-        from flask import has_app_context, current_app
-        if has_app_context() and current_app:
-            db_path = current_app.config.get('DATABASE')
-            if db_path:
-                # Ensure path is absolute
-                if not os.path.isabs(db_path):
-                    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__)))
-                    db_path = os.path.join(project_root, db_path)
-                return os.path.abspath(db_path)
-    except (RuntimeError, ImportError, AttributeError) as e:
-        # Log but continue to fallback
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.debug(f"Could not get database path from Flask app context: {e}")
-    
-    # Fall back to environment variable
-    db_path = os.getenv('DATABASE_PATH', 'data/eu_tracker.db')
-    
-    # Make absolute if relative
-    if not os.path.isabs(db_path):
-        project_root = os.path.abspath(os.path.dirname(__file__))
-        db_path = os.path.join(project_root, db_path)
-    
-    return os.path.abspath(db_path)
+    require_env_vars()
+    state = build_runtime_state(force_refresh=force_refresh)
+    return str(state.database_path)
 
 
-def get_or_create_employee(conn: sqlite3.Connection, name: str) -> int:
+def get_or_create_employee(conn: sqlite3.Connection, name: str) -> Tuple[int, bool]:
     """
     Get existing employee ID or create new employee.
-    Returns employee ID.
+    Returns (employee_id, created_flag).
     """
     c = conn.cursor()
     
@@ -164,12 +211,12 @@ def get_or_create_employee(conn: sqlite3.Connection, name: str) -> int:
     c.execute('SELECT id FROM employees WHERE name = ?', (name,))
     row = c.fetchone()
     if row:
-        return row[0]
+        return row[0], False
     
     # Create new employee
     c.execute('INSERT INTO employees (name) VALUES (?)', (name,))
     conn.commit()
-    return c.lastrowid
+    return c.lastrowid, True
 
 
 def trip_exists(conn: sqlite3.Connection, employee_id: int, country: str, entry_date: date, exit_date: date) -> bool:
@@ -209,123 +256,127 @@ def import_excel(
 ) -> Dict[str, Any]:
     """
     Import trips from an Excel file.
-    
-    Args:
-        file_path: Path to the Excel file (.xlsx or .xls)
-        enable_extended_scan: If True, scans more rows for headers (default: False)
-        db_conn: Optional existing SQLite connection to reuse. If None, a new
-                 connection is created and closed within this function.
-    
-    Returns:
-        Dictionary with keys:
-        - success: bool
-        - trips_added: int
-        - employees_processed: int
-        - employees_created: int
-        - total_employee_names_found: int
-        - aggregated_trips: int
-        - total_records: int
-        - error: str (if success is False)
     """
+    path = Path(file_path)
+    context = {
+        "file": str(path),
+        "enable_extended_scan": enable_extended_scan,
+    }
+
+    own_connection = False
+    conn: Optional[sqlite3.Connection] = db_conn
     try:
-        # Load workbook
-        wb = openpyxl.load_workbook(file_path, data_only=True)
+        require_env_vars()
+        runtime_state = build_runtime_state()
+        context.update(
+            {
+                "database": str(runtime_state.database_path),
+                "persistent_dir": str(runtime_state.persistent_dir),
+            }
+        )
+
+        if not path.exists():
+            raise ImportValidationError("Excel file not found.", details={"file": str(path)})
+
+        _validate_file_metadata(path)
+
+        try:
+            wb = openpyxl.load_workbook(path, data_only=True)
+        except Exception as exc:
+            raise ImportValidationError("Unable to open Excel file. Please ensure it is not password protected or corrupt.") from exc
+
         ws = wb.active
-        
-        # Find header row
+
         max_scan_rows = 20 if enable_extended_scan else 15
         header_row = find_header_row(ws, max_scan_rows)
-        
+
         if not header_row:
-            return {
-                'success': False,
-                'error': 'Could not find date header row in first 15 rows'
-            }
-        
-        # Extract date columns
-        date_columns = {}  # {col_idx: date}
+            raise ImportValidationError("Could not find a date header row in the first 15 rows.")
+
+        _validate_employee_column(ws, header_row)
+
+        date_columns: Dict[int, date] = {}
         for col_idx in range(2, ws.max_column + 1):
             cell_value = ws.cell(row=header_row, column=col_idx).value
             parsed_date = parse_date_header(cell_value)
             if parsed_date:
                 date_columns[col_idx] = parsed_date
-        
+
         if not date_columns:
-            return {
-                'success': False,
-                'error': 'No valid date columns found in header row'
-            }
-        
-        # Process employee rows
-        records = []  # List of (employee_name, date, country, is_travel)
-        employee_names = set()
-        
+            raise ImportValidationError("No valid date columns found in the header row.")
+
+        records: List[Tuple[str, date, str, bool]] = []
+        employee_names: set[str] = set()
+
         for row_idx in range(header_row + 1, ws.max_row + 1):
-            # Get employee name from column A
-            employee_name = ws.cell(row=row_idx, column=1).value
-            if not employee_name or not isinstance(employee_name, str):
+            employee_cell = ws.cell(row=row_idx, column=1).value
+            if not employee_cell:
                 continue
-            
-            employee_name = employee_name.strip()
+
+            employee_name = str(employee_cell).strip()
             if not employee_name or employee_name.lower() == 'unallocated':
                 continue
-            
+            if len(employee_name) > 255:
+                raise ImportValidationError(
+                    "Employee names must be 255 characters or fewer.",
+                    details={"row": row_idx, "value": employee_name},
+                )
+
             employee_names.add(employee_name)
-            
-            # Process each date column
+
             for col_idx, cell_date in date_columns.items():
                 cell_value = ws.cell(row=row_idx, column=col_idx).value
-                if not cell_value:
+                if cell_value is None:
                     continue
-                
+
                 cell_text = str(cell_value).strip()
                 if not cell_text:
                     continue
-                
+
                 country = detect_country_enhanced(cell_text)
+                country = _normalise_country_code(country)
                 if country == 'UK':
-                    continue  # Skip domestic work
-                
+                    continue
+                if country not in SCHENGEN_COUNTRY_SET:
+                    raise ImportValidationError(
+                        "Invalid or unsupported country code detected.",
+                        details={
+                            "row": row_idx,
+                            "column": get_column_letter(col_idx),
+                            "value": cell_text,
+                        },
+                    )
+
                 is_travel = is_travel_day(cell_text)
                 records.append((employee_name, cell_date, country, is_travel))
-        
+
         if not records:
-            return {
-                'success': False,
-                'error': 'No valid trip records found in Excel file'
-            }
-        
-        # Aggregate consecutive days into trips
-        trips = []  # List of (employee_name, country, entry_date, exit_date, travel_days)
-        
-        # Sort records by employee, then date
+            raise ImportValidationError("No valid trip records found in the Excel file.")
+
         records.sort(key=lambda x: (x[0], x[1]))
-        
-        current_trip = None  # (employee_name, country, entry_date, last_date, travel_days)
-        
+        trips: List[Tuple[str, str, date, date, int]] = []
+        current_trip: Optional[Tuple[str, str, date, date, int]] = None
+
         for employee_name, trip_date, country, is_travel in records:
             if current_trip is None:
-                # Start new trip
                 current_trip = (employee_name, country, trip_date, trip_date, 1 if is_travel else 0)
-            elif (current_trip[0] == employee_name and 
-                  current_trip[1] == country and 
-                  (trip_date - current_trip[3]).days <= 1):
-                # Extend current trip
+                continue
+
+            same_employee = current_trip[0] == employee_name
+            same_country = current_trip[1] == country
+            consecutive_day = (trip_date - current_trip[3]).days <= 1
+
+            if same_employee and same_country and consecutive_day:
                 travel_days = current_trip[4] + (1 if is_travel else 0)
                 current_trip = (current_trip[0], current_trip[1], current_trip[2], trip_date, travel_days)
             else:
-                # Save current trip and start new one
-                trips.append((current_trip[0], current_trip[1], current_trip[2], current_trip[3], current_trip[4]))
+                trips.append(current_trip)
                 current_trip = (employee_name, country, trip_date, trip_date, 1 if is_travel else 0)
-        
-        # Don't forget the last trip
+
         if current_trip:
-            trips.append((current_trip[0], current_trip[1], current_trip[2], current_trip[3], current_trip[4]))
-        
-        # Connect to database and save trips
-        conn = db_conn
-        own_connection = False
-        if conn is None:
+            trips.append(current_trip)
+
+        if not conn:
             db_path = get_database_path()
             conn = sqlite3.connect(db_path, check_same_thread=False)
             conn.row_factory = sqlite3.Row
@@ -333,44 +384,73 @@ def import_excel(
 
         trips_added = 0
         employees_created = 0
-        employees_processed = set()
-        
+        employees_processed: set[int] = set()
+        warnings: List[str] = []
+        duplicates_skipped = 0
+
         for employee_name, country, entry_date, exit_date, travel_days in trips:
-            employee_id = get_or_create_employee(conn, employee_name)
-            if employee_id not in employees_processed:
-                # Check if this is a new employee
-                c = conn.cursor()
-                c.execute('SELECT COUNT(*) FROM employees WHERE id = ? AND created_at > datetime("now", "-1 minute")', (employee_id,))
-                if c.fetchone()[0] > 0:
-                    employees_created += 1
-                employees_processed.add(employee_id)
-            
-            if save_trip(conn, employee_id, country, entry_date, exit_date, travel_days):
-                trips_added += 1
-        
-        if own_connection and conn is not None:
-            conn.close()
-        
-        return {
+            try:
+                employee_id, created = get_or_create_employee(conn, employee_name)
+            except sqlite3.DatabaseError as exc:
+                raise ImportValidationError("Database error while creating employee.", details={"employee": employee_name}) from exc
+
+            if created:
+                employees_created += 1
+            employees_processed.add(employee_id)
+
+            try:
+                if save_trip(conn, employee_id, country, entry_date, exit_date, travel_days):
+                    trips_added += 1
+                else:
+                    duplicates_skipped += 1
+                    warnings.append(
+                        f"Duplicate trip ignored for {employee_name} ({country} {entry_date} - {exit_date})."
+                    )
+            except sqlite3.IntegrityError as exc:
+                raise ImportValidationError(
+                    "Database integrity error while saving trip.",
+                    details={
+                        "employee": employee_name,
+                        "country": country,
+                        "entry_date": entry_date.isoformat(),
+                        "exit_date": exit_date.isoformat(),
+                    },
+                ) from exc
+
+        result = {
             'success': True,
             'trips_added': trips_added,
             'employees_processed': len(employees_processed),
             'employees_created': employees_created,
             'total_employee_names_found': len(employee_names),
             'aggregated_trips': len(trips),
-            'total_records': len(records)
+            'total_records': len(records),
+            'warnings': warnings,
+            'duplicates_skipped': duplicates_skipped,
+            'uk_jobs_skipped': 0,
+            'empty_cells_skipped': 0,
+            'employees_without_trips': 0,
+            'trips': [],
         }
-    
-    except FileNotFoundError:
+
+        return result
+
+    except ImportValidationError as validation_error:
+        _log_exception({**context, "validation_details": validation_error.details})
         return {
             'success': False,
-            'error': f'Excel file not found: {file_path}'
+            'error': str(validation_error),
+            'details': validation_error.details,
         }
-    except Exception as e:
+    except Exception as exc:
+        _log_exception({**context, "unexpected_error": str(exc)})
         return {
             'success': False,
-            'error': f'Error processing Excel file: {str(e)}'
+            'error': f'Error processing Excel file: {str(exc)}',
         }
+    finally:
+        if own_connection and conn is not None:
+            conn.close()
 
 
 # Alias for backward compatibility

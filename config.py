@@ -2,6 +2,8 @@ import os
 import json
 from datetime import timedelta, date
 
+from app.runtime_env import build_runtime_state
+
 
 DEFAULTS = {
     'RETENTION_MONTHS': 36,
@@ -9,6 +11,7 @@ DEFAULTS = {
     'PASSWORD_HASH_SCHEME': 'argon2',
     'DSAR_EXPORT_DIR': './exports',
     'AUDIT_LOG_PATH': './logs/audit.log',
+    'UPLOAD_DIR': './uploads',
     'SESSION_COOKIE_SECURE': False,
     'TEST_MODE': False,  # Toggle to enable/disable test pages
     'CALENDAR_DEV_MODE': False,  # Enable calendar in development (hidden from production)
@@ -26,33 +29,13 @@ SETTINGS_FILE = os.path.join(os.path.dirname(__file__), 'settings.json')
 
 
 def ensure_directories(config: dict) -> None:
-    # Determine persistent base directory (prefer PERSISTENT_DIR, else next to DB)
-    db_path_env = os.getenv('DATABASE_PATH', 'data/eu_tracker.db')
-    persistent_base = os.path.abspath(
-        os.getenv('PERSISTENT_DIR', os.path.dirname(os.path.abspath(db_path_env)))
-    )
-
-    # Resolve exports directory: ENV > config > default; make absolute under persistent_base if relative
-    exports_env = os.getenv('EXPORT_DIR')
-    exports_dir = exports_env or config.get('DSAR_EXPORT_DIR', DEFAULTS['DSAR_EXPORT_DIR'])
-    if not os.path.isabs(exports_dir):
-        exports_dir = os.path.join(persistent_base, exports_dir)
-    exports_dir = os.path.abspath(exports_dir)
-    config['DSAR_EXPORT_DIR'] = exports_dir
-
-    # Resolve audit log path: ENV > config > default; make absolute under persistent_base if relative
-    audit_env = os.getenv('AUDIT_LOG_PATH')
-    logs_path = audit_env or config.get('AUDIT_LOG_PATH', DEFAULTS['AUDIT_LOG_PATH'])
-    if not os.path.isabs(logs_path):
-        logs_path = os.path.join(persistent_base, logs_path)
-    logs_path = os.path.abspath(logs_path)
-    config['AUDIT_LOG_PATH'] = logs_path
-
-    logs_dir = os.path.dirname(logs_path)
+    """Populate config paths using the shared runtime state."""
+    state = build_runtime_state()
+    config['DSAR_EXPORT_DIR'] = str(state.directories['exports'])
+    config['UPLOAD_DIR'] = str(state.directories['uploads'])
+    config['AUDIT_LOG_PATH'] = str(state.audit_log_file)
+    # Ensure compliance dir remains available next to repo (non-persistent content)
     compliance_dir = os.path.join(os.path.dirname(__file__), 'compliance')
-
-    os.makedirs(exports_dir, exist_ok=True)
-    os.makedirs(logs_dir, exist_ok=True)
     os.makedirs(compliance_dir, exist_ok=True)
 
 

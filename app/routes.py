@@ -7,7 +7,8 @@ from datetime import datetime, timedelta, date
 from functools import wraps
 import os
 import re
-import openpyxl
+from pathlib import Path
+from typing import Optional
 from werkzeug.utils import secure_filename
 from config import load_config, get_session_lifetime, save_config
 import time
@@ -100,6 +101,7 @@ import json
 import atexit
 import signal
 from dotenv import load_dotenv
+from .runtime_env import build_runtime_state
 
 # Load environment variables
 load_dotenv()
@@ -1657,176 +1659,131 @@ def edit_trip(trip_id):
 @login_required
 def import_excel():
     """Display import Excel form and handle file uploads"""
-    try:
-        from flask import current_app
-        CONFIG = current_app.config.get('CONFIG')
-        if not CONFIG:
-            raise ValueError("CONFIG not found in app config")
-    except Exception as e:
-        logger.error(f"Failed to get app config: {e}")
-        logger.error(traceback.format_exc())
-        flash('Server configuration error. Please contact support.')
-        return make_response(render_template('import_excel.html'), 500)
+    from flask import current_app
+    CONFIG = current_app.config.get('CONFIG', {})
+    runtime_state = build_runtime_state()
+    upload_dir = Path(current_app.config.get('UPLOAD_FOLDER', runtime_state.directories['uploads']))
+    upload_dir.mkdir(parents=True, exist_ok=True)
 
-    logger.info(f"import_excel: {request.method} request")
-    
+    logger.info("import_excel: %s request (upload_dir=%s)", request.method, upload_dir)
+
     if request.method == 'POST':
         start_time = time.monotonic()
-        file_path = None
+        uploaded_path: Optional[Path] = None
+        db_conn: Optional[sqlite3.Connection] = None
+        filename = None
+
         try:
-            # Check if file was uploaded
-            if 'excel_file' not in request.files:
-                flash('No file selected')
-                return render_template('import_excel.html')
-            
-            file = request.files['excel_file']
+            file = request.files.get('excel_file')
             if not file or file.filename == '':
-                flash('No file selected')
-                return render_template('import_excel.html')
-            
-            # Validate file extension
+                flash('Please choose an Excel file to upload.', 'warning')
+                return make_response(render_template('import_excel.html'), 400)
+
             if not allowed_file(file.filename):
-                flash('Invalid file type. Please upload an Excel file (.xlsx or .xls)')
-                return render_template('import_excel.html')
-            
-            # Create uploads directory if it doesn't exist
-            # Use persistent directory on Render, local uploads folder otherwise
-            persistent_dir = os.getenv('PERSISTENT_DIR')
-            if persistent_dir and os.path.exists(persistent_dir):
-                upload_dir = os.path.join(persistent_dir, 'uploads')
-            else:
-                upload_dir = os.path.join(os.path.dirname(__file__), '..', 'uploads')
-            
-            logger.info(f"Creating upload directory: {upload_dir}")
-            os.makedirs(upload_dir, exist_ok=True)
-            
-            # Verify directory is writable
-            if not os.access(upload_dir, os.W_OK):
-                raise PermissionError(f"Upload directory is not writable: {upload_dir}")
-            
-            # Save uploaded file
+                flash('Invalid file type. Only .xlsx and .xls files are accepted.', 'warning')
+                return make_response(render_template('import_excel.html'), 400)
+
             filename = secure_filename(file.filename)
             if not filename:
-                flash('Invalid filename. Please ensure your file has a valid name.')
-                return render_template('import_excel.html')
-            
-            file_path = os.path.join(upload_dir, filename)
-            logger.info(f"Saving uploaded file to: {file_path}")
-            file.save(file_path)
-            
-            # Verify file was saved
-            if not os.path.exists(file_path):
-                raise FileNotFoundError(f"Failed to save uploaded file to {file_path}")
-            
-            # Import the importer module (located at project root)
+                flash('The uploaded file name is invalid.', 'warning')
+                return make_response(render_template('import_excel.html'), 400)
+
+            uploaded_path = upload_dir / filename
+            file.save(uploaded_path)
+            if not uploaded_path.exists():
+                raise FileNotFoundError(f"Uploaded file missing after save: {uploaded_path}")
+
             import sys
             project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
             if project_root not in sys.path:
                 sys.path.insert(0, project_root)
-            
-            try:
-                from importer import import_excel as process_excel
-            except ImportError as import_err:
-                logger.error(f"Failed to import importer module: {import_err}")
-                logger.error(f"Python path: {sys.path}")
-                raise ImportError(f"Cannot import importer module: {import_err}")
+            from importer import import_excel as process_excel  # Lazy import to ensure latest version
 
-            try:
-                from .models import get_db
-            except ImportError as model_import_err:
-                logger.error(f"Failed to import get_db: {model_import_err}")
-                raise
-            
+            from .models import get_db
             db_conn = get_db()
-            
-            # Process the Excel file with extended scanning enabled
-            logger.info(f"Starting Excel processing for '{filename}'")
-            try:
-                result = process_excel(file_path, enable_extended_scan=True, db_conn=db_conn)
-            except Exception as process_err:
-                logger.error(f"Error in process_excel: {process_err}")
-                logger.error(traceback.format_exc())
-                raise
-            
+
+            result = process_excel(str(uploaded_path), enable_extended_scan=True, db_conn=db_conn)
             elapsed = time.monotonic() - start_time
-            logger.info(f"Finished Excel processing in {elapsed:.2f}s for '{filename}'")
-            
+            logger.info("Finished Excel processing for '%s' in %.2fs", filename, elapsed)
+
+            audit_payload = {
+                'filename': filename,
+                'elapsed_seconds': round(elapsed, 2),
+                'database': current_app.config.get('DATABASE'),
+            }
+
             if result.get('success'):
-                # Log successful import
-                try:
-                    write_audit(CONFIG.get('AUDIT_LOG_PATH', './logs/audit.log'), 'excel_import_success', 'admin', {
-                        'filename': filename,
-                        'trips_added': result.get('trips_added', 0),
-                        'employees_processed': result.get('employees_processed', 0),
-                        'employees_created': result.get('employees_created', 0),
-                        'total_employee_names_found': result.get('total_employee_names_found', 0)
-                    })
-                except Exception as audit_err:
-                    logger.warning(f"Failed to write audit log: {audit_err}")
-                
-                # Clean up uploaded file
-                try:
-                    if os.path.exists(file_path):
-                        os.remove(file_path)
-                except Exception as cleanup_err:
-                    logger.warning(f"Failed to cleanup uploaded file: {cleanup_err}")
-                
-                return render_template('import_excel.html', import_summary=result)
-            else:
-                # Log failed import
-                error_msg = result.get('error', 'Unknown error')
-                try:
-                    write_audit(CONFIG.get('AUDIT_LOG_PATH', './logs/audit.log'), 'excel_import_failed', 'admin', {
-                        'filename': filename,
-                        'error': error_msg
-                    })
-                except Exception as audit_err:
-                    logger.warning(f"Failed to write audit log: {audit_err}")
-                
-                flash(f'Import failed: {error_msg}')
-                
-                # Clean up uploaded file
-                try:
-                    if os.path.exists(file_path):
-                        os.remove(file_path)
-                except Exception as cleanup_err:
-                    logger.warning(f"Failed to cleanup uploaded file: {cleanup_err}")
-                
-                return render_template('import_excel.html')
-                    
-        except Exception as e:
-            logger.error(f"Error processing Excel file: {e}")
-            error_trace = traceback.format_exc()
-            logger.error(f"Excel import traceback: {error_trace}")
-            
-            try:
-                write_audit(CONFIG.get('AUDIT_LOG_PATH', './logs/audit.log'), 'excel_import_error', 'admin', {
-                    'filename': file.filename if 'file' in locals() and file else 'unknown',
-                    'error': str(e)
+                audit_payload.update({
+                    'trips_added': result.get('trips_added', 0),
+                    'employees_processed': result.get('employees_processed', 0),
+                    'warnings': result.get('warnings', []),
                 })
-            except Exception as audit_err:
-                logger.warning(f"Failed to write audit log: {audit_err}")
-            
-            # Provide user-friendly error message
-            error_message = str(e)
-            if 'PermissionError' in error_message or 'not writable' in error_message:
-                flash('Server configuration error: Upload directory is not writable. Please contact support.')
-            elif 'FileNotFoundError' in error_message or 'not found' in error_message:
-                flash('Error: Could not save or find the uploaded file. Please try again.')
-            elif 'ImportError' in error_message:
-                flash('Server error: Import module not available. Please contact support.')
-            else:
-                flash(f'Error processing file: {error_message}. Please check the file format and try again.')
-            
-            # Clean up uploaded file on error
+                try:
+                    write_audit(CONFIG.get('AUDIT_LOG_PATH', str(runtime_state.audit_log_file)),
+                                'excel_import_success', 'admin', audit_payload)
+                except Exception as audit_err:
+                    logger.warning("Failed to write audit log: %s", audit_err)
+
+                if result.get('warnings'):
+                    flash('Import completed with warnings. Review the summary below.', 'warning')
+                else:
+                    flash('Excel file imported successfully.', 'success')
+
+                response = render_template('import_excel.html', import_summary=result)
+                return make_response(response, 200)
+
+            error_message = result.get('error', 'Unknown error')
+            error_details = result.get('details')
+            status_code = 400 if error_details else 500
+
+            logger.error("Excel import failed (%s): %s | details=%s", filename, error_message, error_details)
             try:
-                if 'file_path' in locals() and file_path and os.path.exists(file_path):
-                    os.remove(file_path)
-            except Exception as cleanup_error:
-                logger.warning(f"Failed to cleanup uploaded file: {cleanup_error}")
-            
+                write_audit(CONFIG.get('AUDIT_LOG_PATH', str(runtime_state.audit_log_file)),
+                            'excel_import_failed', 'admin',
+                            {**audit_payload, 'error': error_message, 'details': error_details})
+            except Exception as audit_err:
+                logger.warning("Failed to write audit log: %s", audit_err)
+
+            user_message = error_message
+            if error_details:
+                row = error_details.get('row')
+                column = error_details.get('column')
+                if row or column:
+                    user_message += f" (Row {row or '?'} Column {column or '?'})"
+            flash(user_message, 'danger')
+            return make_response(render_template('import_excel.html', import_error=result), status_code)
+
+        except Exception as exc:
+            logger.error("Error processing Excel file '%s': %s", filename, exc)
+            logger.error(traceback.format_exc())
+            try:
+                write_audit(
+                    CONFIG.get('AUDIT_LOG_PATH', str(runtime_state.audit_log_file)),
+                    'excel_import_error',
+                    'admin',
+                    {
+                        'filename': filename or 'unknown',
+                        'error': str(exc),
+                    },
+                )
+            except Exception as audit_err:
+                logger.warning("Failed to write audit log: %s", audit_err)
+
+            flash('An unexpected error occurred while processing the Excel file. Please try again.', 'danger')
             return make_response(render_template('import_excel.html'), 500)
-    
+
+        finally:
+            if db_conn:
+                try:
+                    db_conn.close()
+                except Exception:
+                    pass
+            if uploaded_path and uploaded_path.exists():
+                try:
+                    uploaded_path.unlink()
+                except Exception as cleanup_err:
+                    logger.warning("Failed to delete uploaded file %s: %s", uploaded_path, cleanup_err)
+
     return render_template('import_excel.html')
 
 

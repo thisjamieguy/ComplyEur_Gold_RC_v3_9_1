@@ -271,12 +271,15 @@ def _legacy_create_app():
         return f"Method {request.method} not allowed for {request.url}", 405
 
     # Upload configuration
-    UPLOAD_FOLDER = 'uploads'
+    upload_dir = CONFIG.get('UPLOAD_DIR', 'uploads')
+    if not os.path.isabs(upload_dir):
+        base_dir = os.getenv('PERSISTENT_DIR') or os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        upload_dir = os.path.abspath(os.path.join(base_dir, upload_dir))
     ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
-    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+    app.config['UPLOAD_FOLDER'] = upload_dir
 
     # Ensure upload folder exists
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    os.makedirs(upload_dir, exist_ok=True)
 
     # Schengen country code mapping
     COUNTRY_CODE_MAPPING = {

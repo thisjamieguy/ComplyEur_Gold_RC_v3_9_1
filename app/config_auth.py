@@ -1,15 +1,22 @@
 import os
 from datetime import timedelta
 from dotenv import load_dotenv
+
 load_dotenv()
 
 
+def _require_env(var_name: str) -> str:
+    """Fetch a mandatory environment variable or raise a clear error."""
+    value = os.getenv(var_name)
+    if value is None or value.strip() == "":
+        raise RuntimeError(
+            f"{var_name} must be provided via environment for ComplyEur to start safely."
+        )
+    return value
+
+
 class Config:
-    _secret_key = os.getenv("SECRET_KEY")
-    if not _secret_key:
-        import secrets
-        _secret_key = secrets.token_hex(32)
-    SECRET_KEY = _secret_key
+    SECRET_KEY = _require_env("SECRET_KEY")
     SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI", "sqlite:///app.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

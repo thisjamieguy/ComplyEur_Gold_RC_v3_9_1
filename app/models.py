@@ -1,7 +1,8 @@
+import os
 import sqlite3
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from flask import g
+from flask import g, current_app
 
 
 def _apply_pragmas(conn: sqlite3.Connection) -> None:
@@ -262,23 +263,6 @@ def init_db():
     # Index for employee name sorting
     c.execute('CREATE INDEX IF NOT EXISTS idx_employees_name ON employees(name COLLATE NOCASE)')
 
-    # Ensure default admin exists (used by tests and first-run local dev)
-    try:
-        c.execute('SELECT COUNT(1) FROM admin WHERE id = 1')
-        row = c.fetchone()
-        if not row or row[0] == 0:
-            try:
-                # Hash default password 'admin123'
-                from .services.hashing import Hasher
-                hasher = Hasher()
-                default_hash = hasher.hash('admin123')
-            except Exception:
-                # Fallback: store as-is (tests rely on Hasher normally)
-                default_hash = 'admin123'
-            c.execute('INSERT INTO admin (id, password_hash) VALUES (1, ?)', (default_hash,))
-    except Exception:
-        pass
-    
     conn.commit()
     # Do not close persistent in-memory connection; keep schema alive for tests
     from flask import current_app
@@ -475,3 +459,35 @@ class Admin:
     def exists(cls) -> bool:
         """Check if admin exists"""
         return cls.get_password_hash() is not None
+
+
+def sync_admin_password_from_env() -> None:
+    """Ensure admin password hash comes from required environment variable."""
+    admin_hash = os.getenv('ADMIN_PASSWORD_HASH')
+    if admin_hash is None or admin_hash.strip() == '':
+        raise RuntimeError(
+            "ADMIN_PASSWORD_HASH environment variable is required for ComplyEur startup. "
+            "Provide a pre-hashed Argon2 or bcrypt password."
+        )
+    
+    db_path = current_app.config.get('DATABASE')
+    if not db_path:
+        raise RuntimeError("DATABASE path is not configured; cannot sync admin credentials.")
+    
+    conn = sqlite3.connect(db_path, check_same_thread=False)
+    try:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute('SELECT password_hash FROM admin WHERE id = 1')
+        row = cur.fetchone()
+        if not row or row['password_hash'] != admin_hash:
+            cur.execute(
+                'INSERT OR REPLACE INTO admin (id, password_hash) VALUES (1, ?)',
+                (admin_hash,)
+            )
+            conn.commit()
+            logger = getattr(current_app, 'logger', None)
+            if logger:
+                logger.info("Admin credentials synced from ADMIN_PASSWORD_HASH environment variable.")
+    finally:
+        conn.close()

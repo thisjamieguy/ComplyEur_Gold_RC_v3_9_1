@@ -17,21 +17,61 @@ echo "  PERSISTENT_DIR: ${PERSISTENT_DIR:-not set}"
 echo "  SECRET_KEY: ${SECRET_KEY:+[SET]}"
 echo ""
 
-# Ensure persistent directory exists and is writable
-if [ -n "$PERSISTENT_DIR" ]; then
-    echo "📁 Checking persistent directory: $PERSISTENT_DIR"
-    if [ ! -d "$PERSISTENT_DIR" ]; then
-        echo "❌ ERROR: Persistent directory does not exist: $PERSISTENT_DIR"
-        exit 1
-    fi
-    if [ ! -w "$PERSISTENT_DIR" ]; then
-        echo "❌ ERROR: Persistent directory is not writable: $PERSISTENT_DIR"
-        exit 1
-    fi
-    echo "✅ Persistent directory is ready"
-else
-    echo "⚠️  Warning: PERSISTENT_DIR not set (using local paths)"
+if [ -z "$PERSISTENT_DIR" ]; then
+    echo "❌ ERROR: PERSISTENT_DIR environment variable is required."
+    exit 1
 fi
+
+if [ -z "$DATABASE_PATH" ]; then
+    echo "❌ ERROR: DATABASE_PATH environment variable is required."
+    exit 1
+fi
+
+resolve_path() {
+    local path="$1"
+    path="${path#./}"
+    if [[ "$path" = /* ]]; then
+        printf "%s" "$path"
+    elif [ -n "$PERSISTENT_DIR" ]; then
+        printf "%s/%s" "$PERSISTENT_DIR" "$path"
+    else
+        printf "%s/%s" "$(pwd)" "$path"
+    fi
+}
+
+ensure_dir() {
+    local dir="$1"
+    if [ -z "$dir" ]; then
+        return
+    fi
+    mkdir -p "$dir" 2>/dev/null || true
+    if [ ! -d "$dir" ]; then
+        echo "❌ ERROR: Unable to create directory: $dir"
+        exit 1
+    fi
+    if [ ! -w "$dir" ]; then
+        echo "❌ ERROR: Directory not writable: $dir"
+        exit 1
+    fi
+}
+
+# Ensure persistent directory exists and is writable
+echo "📁 Checking persistent directory: $PERSISTENT_DIR"
+ensure_dir "$PERSISTENT_DIR"
+echo "✅ Persistent directory is ready"
+
+# Resolve DATABASE_PATH and ensure directory exists
+RESOLVED_DB_PATH=$(resolve_path "${DATABASE_PATH:-data/eu_tracker.db}")
+export DATABASE_PATH="$RESOLVED_DB_PATH"
+DB_DIR=$(dirname "$RESOLVED_DB_PATH")
+ensure_dir "$DB_DIR"
+
+# Prepare persistent subdirectories (logs, exports, uploads, backups)
+PERSISTENT_BASE="${PERSISTENT_DIR:-$DB_DIR}"
+ensure_dir "$PERSISTENT_BASE/logs"
+ensure_dir "$PERSISTENT_BASE/exports"
+ensure_dir "$PERSISTENT_BASE/uploads"
+ensure_dir "$PERSISTENT_BASE/backups"
 
 # Check if SECRET_KEY is set
 if [ -z "$SECRET_KEY" ]; then
@@ -40,6 +80,14 @@ if [ -z "$SECRET_KEY" ]; then
     exit 1
 fi
 echo "✅ SECRET_KEY is configured"
+
+# Check if ADMIN_PASSWORD_HASH is set
+if [ -z "$ADMIN_PASSWORD_HASH" ]; then
+    echo "❌ ERROR: ADMIN_PASSWORD_HASH environment variable is not set!"
+    echo "   Provide an Argon2/bcrypt hash via Render dashboard > Environment"
+    exit 1
+fi
+echo "✅ ADMIN_PASSWORD_HASH is configured"
 
 # Test Python environment
 echo ""
@@ -92,5 +140,6 @@ exec gunicorn wsgi:app \
     --timeout 120 \
     --access-logfile - \
     --error-logfile - \
+    --capture-output \
     --log-level info
 

@@ -4,6 +4,7 @@ Provides CSRF, rate limiting (when available), secure session configuration,
 security headers via Talisman, and SQLAlchemy initialisation for auth models.
 """
 
+import copy
 import os
 import logging
 from flask import Flask
@@ -11,6 +12,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
 from flask_talisman import Talisman
 from .config_auth import Config
+from config import load_config, get_session_lifetime, DEFAULTS as CONFIG_DEFAULTS
+from .runtime_env import build_runtime_state, require_env_vars
 
 try:
     from flask_limiter import Limiter
@@ -45,16 +48,16 @@ def create_app():
     """Create and configure the authentication Flask application instance."""
     import json
     import logging
-    
-    # Configure logging early
+
+    require_env_vars()
+    runtime_state = build_runtime_state(force_refresh=True)
     log_handlers = [logging.StreamHandler()]
     try:
-        logs_dir = os.path.join(os.path.dirname(__file__), '..', 'logs')
-        os.makedirs(logs_dir, exist_ok=True)
-        log_handlers.append(logging.FileHandler(os.path.join(logs_dir, 'app.log')))
+        log_handlers.append(logging.FileHandler(runtime_state.log_file))
     except Exception:
         pass
-    
+
+    # Configure logging early
     log_level_str = os.getenv('LOG_LEVEL', 'INFO').upper()
     log_level = getattr(logging, log_level_str, logging.INFO)
     logging.basicConfig(
@@ -69,10 +72,24 @@ def create_app():
     template_folder = os.path.join(app_dir, 'templates')
     static_folder = os.path.join(app_dir, 'static')
     
-    app = Flask(__name__, instance_relative_config=True, 
+    app = Flask(__name__, instance_relative_config=True,
                 static_folder=static_folder, template_folder=template_folder)
     app.config.from_object(Config)
     logger.info(f"Flask app created (template_folder: {template_folder})")
+    app.config['DATABASE'] = str(runtime_state.database_path)
+    app.config['SQLALCHEMY_DATABASE_URI'] = runtime_state.sqlalchemy_uri
+    
+    # Load runtime configuration (ensures directories exist, incl. uploads/logs/exports)
+    try:
+        CONFIG = load_config()
+    except Exception as e:
+        logger.warning("Failed to load settings.json; falling back to defaults: %s", e)
+        CONFIG = copy.deepcopy(CONFIG_DEFAULTS)
+    app.config['CONFIG'] = CONFIG
+    try:
+        app.permanent_session_lifetime = get_session_lifetime(CONFIG)
+    except Exception as e:
+        logger.warning("Failed to apply session lifetime from config: %s", e)
     
     # Load EU Entry Requirements data at startup
     EU_ENTRY_DATA = []
@@ -104,10 +121,9 @@ def create_app():
     app.config['COUNTRY_CODE_MAPPING'] = COUNTRY_CODE_MAPPING
     app.config['ALLOWED_EXTENSIONS'] = {'xlsx', 'xls'}
     
-    # Upload configuration
-    UPLOAD_FOLDER = 'uploads'
-    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    # Upload configuration using persistent storage
+    upload_dir = CONFIG.get('UPLOAD_DIR') or str(runtime_state.directories['uploads'])
+    app.config['UPLOAD_FOLDER'] = upload_dir
     
     # Ensure session is enabled and configured properly for CSRF
     app.config['SESSION_COOKIE_HTTPONLY'] = True
@@ -118,33 +134,6 @@ def create_app():
     # Force Flask to use sessions (needed for CSRF tokens)
     from datetime import timedelta
     app.permanent_session_lifetime = timedelta(hours=8)
-
-    # Fix database path and ensure directory exists BEFORE db.init_app
-    db_uri = app.config.get('SQLALCHEMY_DATABASE_URI', '')
-    if db_uri.startswith('sqlite:///'):
-        # SQLite URIs: sqlite:///path (absolute) or sqlite:////path (also absolute)
-        # sqlite:///./path should be relative but let's handle it explicitly
-        db_path = db_uri.replace('sqlite:///', '').replace('sqlite:////', '')
-        # Handle ./ prefix for relative paths
-        if db_path.startswith('./'):
-            db_path = db_path[2:]
-        if not os.path.isabs(db_path):
-            # Relative to project root
-            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-            db_path = os.path.join(project_root, db_path)
-        # Normalize path
-        db_path = os.path.normpath(os.path.abspath(db_path))
-        # Update config to use absolute path
-        app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
-        # Ensure parent directory exists
-        db_dir = os.path.dirname(db_path)
-        if db_dir and not os.path.exists(db_dir):
-            try:
-                os.makedirs(db_dir, exist_ok=True)
-                app.logger.info("Created database directory: %s", db_dir)
-            except Exception as e:
-                app.logger.error(f"Failed to create database directory {db_dir}: {e}")
-                raise
 
     # DB
     db.init_app(app)
@@ -236,23 +225,6 @@ def create_app():
     except Exception as e:
         logger.warning(f"Failed to initialize Flask-Compress: {e}")
 
-    # Load CONFIG from config module (matching __init__.py behavior)
-    try:
-        from config import load_config, get_session_lifetime
-        CONFIG = load_config()
-        app.config['CONFIG'] = CONFIG
-        app.permanent_session_lifetime = get_session_lifetime(CONFIG)
-        logger.info("Configuration loaded from config module")
-    except Exception as e:
-        logger.warning(f"Failed to load config from config module: {e}")
-        # Fallback to settings.json approach (already in app context block below)
-        app.config['CONFIG'] = {
-            'RETENTION_MONTHS': 36,
-            'SESSION_IDLE_TIMEOUT_MINUTES': 30,
-        }
-        from datetime import timedelta
-        app.permanent_session_lifetime = timedelta(minutes=30)
-
     # Make version and year available to all templates
     import time
     APP_VERSION = os.getenv('APP_VERSION', '1.7.7')
@@ -307,72 +279,9 @@ def create_app():
         models_auth.User = User
         db.create_all()
         
-        # Create default admin user if no users exist (for fresh deployments)
-        try:
-            user_count = User.query.count()
-            app.logger.info(f"Checking auth database - found {user_count} user(s)")
-            
-            if user_count == 0:
-                from .security import hash_password
-                app.logger.info("Creating default admin user...")
-                
-                # Hash the password
-                password_hash = hash_password('admin123')
-                app.logger.info(f"Password hashed successfully (length: {len(password_hash)})")
-                
-                # Create user
-                default_admin = User(
-                    username='admin',
-                    password_hash=password_hash,
-                    role='admin'
-                )
-                db.session.add(default_admin)
-                db.session.commit()
-                
-                # Verify it was created
-                verify_count = User.query.count()
-                app.logger.info(f"✅ Default admin user created! Database now has {verify_count} user(s)")
-                app.logger.info("✅ Login credentials: username=admin, password=admin123")
-                app.logger.warning("⚠️  SECURITY: Change the default password immediately after first login!")
-            else:
-                app.logger.info(f"Auth database already has {user_count} user(s) - skipping default user creation")
-                # List usernames for debugging
-                try:
-                    users = User.query.all()
-                    usernames = [u.username for u in users]
-                    app.logger.info(f"Existing users: {', '.join(usernames)}")
-                except Exception as e:
-                    app.logger.warning(f"Could not list users: {e}")
-        except Exception as e:
-            app.logger.error(f"ERROR creating default admin user: {e}")
-            import traceback
-            app.logger.error(traceback.format_exc())
-            # Don't fail startup if this fails
-        
         # Add DATABASE and CONFIG for main routes compatibility
-        db_path = os.getenv('DATABASE_PATH', 'data/eu_tracker.db')
-        if not os.path.isabs(db_path):
-            # On Render, use PERSISTENT_DIR if set, otherwise use project root
-            persistent_dir = os.getenv('PERSISTENT_DIR')
-            if persistent_dir:
-                # If PERSISTENT_DIR is set (e.g., /var/data), use it directly
-                # Extract just the filename from the path (e.g., 'eu_tracker.db' from 'data/eu_tracker.db')
-                db_filename = os.path.basename(db_path)
-                db_path = os.path.join(persistent_dir, db_filename)
-            else:
-                project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-                db_path = os.path.join(project_root, db_path)
-        
-        # Ensure database directory exists
-        db_dir = os.path.dirname(db_path)
-        if db_dir and not os.path.exists(db_dir):
-            try:
-                os.makedirs(db_dir, exist_ok=True)
-                app.logger.info(f"Created database directory: {db_dir}")
-            except Exception as e:
-                app.logger.warning(f"Could not create database directory {db_dir}: {e}")
-        
-        app.config['DATABASE'] = db_path
+        db_path = runtime_state.database_path
+        app.config['DATABASE'] = str(db_path)
         app.logger.info(f"Database path configured: {db_path}")
         
         # Initialize main database tables (including legacy admin table)
@@ -380,30 +289,20 @@ def create_app():
             from . import models
             app.logger.info("Initializing main database tables...")
             models.init_db()
+            try:
+                models.sync_admin_password_from_env()
+            except Exception as cred_exc:
+                app.logger.error("Admin credential bootstrap failed: %s", cred_exc)
+                raise
             app.logger.info("✅ Main database tables initialized")
         except Exception as e:
             app.logger.error(f"Failed to initialize main database: {e}")
             import traceback
             app.logger.error(traceback.format_exc())
         
-        # Load CONFIG from settings.json if available
-        try:
-            import json
-            settings_path = os.path.join(os.path.dirname(__file__), '..', 'settings.json')
-            if os.path.exists(settings_path):
-                with open(settings_path, 'r') as f:
-                    app.config['CONFIG'] = json.load(f)
-            else:
-                # Default config
-                app.config['CONFIG'] = {
-                    'RETENTION_MONTHS': 36,
-                    'SESSION_IDLE_TIMEOUT_MINUTES': 30,
-                }
-        except Exception:
-            app.config['CONFIG'] = {
-                'RETENTION_MONTHS': 36,
-                'SESSION_IDLE_TIMEOUT_MINUTES': 30,
-            }
+        # CONFIG already loaded earlier; ensure it's present
+        if 'CONFIG' not in app.config:
+            app.config['CONFIG'] = copy.deepcopy(CONFIG_DEFAULTS)
 
     # Blueprints - must be after models are initialized
     try:

@@ -35,6 +35,8 @@ services:
         value: "true"
       - key: SECRET_KEY
         sync: false
+      - key: ADMIN_PASSWORD_HASH
+        sync: false
     disks:
       - name: data
         mountPath: /var/data
