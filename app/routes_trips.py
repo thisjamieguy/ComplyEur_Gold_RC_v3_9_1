@@ -7,7 +7,7 @@ the existing calendar API and main routes.
 from flask import Blueprint, request, jsonify, current_app
 import sqlite3
 from datetime import date
-from .util_auth import login_required
+from .middleware.auth import login_required
 from .models import get_db
 
 trips_bp = Blueprint("trips", __name__)

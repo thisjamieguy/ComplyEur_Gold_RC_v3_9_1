@@ -4,22 +4,13 @@ Phase 5: Compliance & Monitoring
 Provides viewable audit trail with filtering and search
 """
 
-from flask import Blueprint, render_template, request, jsonify, session
-from functools import wraps
+from flask import Blueprint, render_template, request, jsonify
 from datetime import datetime, timedelta, date
 import os
 
+from .middleware.auth import login_required
+
 audit_bp = Blueprint('audit', __name__)
-
-
-def login_required(f):
-    """Require login for audit access"""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not session.get('logged_in'):
-            return jsonify({'error': 'Authentication required'}), 401
-        return f(*args, **kwargs)
-    return decorated_function
 
 
 @audit_bp.route('/admin/audit-trail')

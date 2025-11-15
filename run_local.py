@@ -7,7 +7,7 @@ Uses the same app factory as Render for consistency.
 import os
 
 # Use the same factory as Render (wsgi.py) to ensure identical behavior
-from app.__init__auth__ import create_app
+from app import create_app
 
 if __name__ == '__main__':
     # Create app using the same factory as production

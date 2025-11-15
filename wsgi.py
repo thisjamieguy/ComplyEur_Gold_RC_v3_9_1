@@ -20,7 +20,7 @@ logger.info(f"Persistent dir: {os.getenv('PERSISTENT_DIR', 'not set')}")
 logger.info("=" * 60)
 
 try:
-    from app.__init__auth__ import create_app
+    from app import create_app
     logger.info("Successfully imported create_app")
     
     app = create_app()
