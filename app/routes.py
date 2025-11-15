@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify, flash, make_response, send_file
+from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify, flash, make_response
 import hashlib
 import sqlite3
 import logging
@@ -29,30 +29,6 @@ try:
     logger.info("Successfully imported audit service")
 except Exception as e:
     logger.error(f"Failed to import audit service: {e}")
-    logger.error(traceback.format_exc())
-    raise
-
-try:
-    from .services.retention import purge_expired_trips, get_expired_trips, anonymize_employee
-    logger.info("Successfully imported retention service")
-except Exception as e:
-    logger.error(f"Failed to import retention service: {e}")
-    logger.error(traceback.format_exc())
-    raise
-
-try:
-    from .services.dsar import create_dsar_export, delete_employee_data, rectify_employee_name, get_employee_data
-    logger.info("Successfully imported dsar service")
-except Exception as e:
-    logger.error(f"Failed to import dsar service: {e}")
-    logger.error(traceback.format_exc())
-    raise
-
-try:
-    from .services.exports import export_trips_csv, export_employee_report_pdf, export_all_employees_report_pdf
-    logger.info("Successfully imported exports service")
-except Exception as e:
-    logger.error(f"Failed to import exports service: {e}")
     logger.error(traceback.format_exc())
     raise
 
@@ -90,14 +66,6 @@ try:
     logger.info("Successfully imported backup service")
 except Exception as e:
     logger.error(f"Failed to import backup service: {e}")
-    logger.error(traceback.format_exc())
-    raise
-
-try:
-    from .services import reports_service
-    logger.info("Successfully imported reports service")
-except Exception as e:
-    logger.error(f"Failed to import reports service: {e}")
     logger.error(traceback.format_exc())
     raise
 
@@ -1802,86 +1770,6 @@ def import_excel():
     return render_template('import_excel.html')
 
 
-@main_bp.route('/future_job_alerts')
-@login_required
-def future_job_alerts():
-    """Display future job alerts"""
-    from flask import current_app
-    CONFIG = current_app.config['CONFIG']
-
-    warning_threshold = CONFIG.get('FUTURE_JOB_WARNING_THRESHOLD', 80)
-    
-    # Use fixed compliance start date (October 12, 2025)
-    from .services.rolling90 import COMPLIANCE_START_DATE
-    compliance_start_date = COMPLIANCE_START_DATE
-
-    # Query params
-    risk_filter = request.args.get('risk', 'all')  # all | red | yellow | green
-    sort_by = request.args.get('sort', 'risk')     # risk | date | employee | days
-
-    db_path = current_app.config['DATABASE']
-    all_forecasts = reports_service.get_future_alerts(
-        db_path,
-        warning_threshold,
-        compliance_start_date,
-    )
-    summary = reports_service.summarise_future_alerts(all_forecasts)
-    filtered = reports_service.filter_and_sort_future_alerts(
-        all_forecasts,
-        risk_filter=risk_filter,
-        sort_by=sort_by,
-    )
-
-    return render_template(
-        'future_job_alerts.html',
-        forecasts=filtered,
-        red_count=summary['red'],
-        yellow_count=summary['yellow'],
-        green_count=summary['green'],
-        warning_threshold=warning_threshold,
-        risk_filter=risk_filter,
-        sort_by=sort_by
-    )
-
-@main_bp.route('/export_future_alerts')
-@login_required
-def export_future_alerts():
-    """Export future job alerts to CSV"""
-    from flask import current_app
-    CONFIG = current_app.config['CONFIG']
-    warning_threshold = CONFIG.get('FUTURE_JOB_WARNING_THRESHOLD', 80)
-    
-    # Use fixed compliance start date (October 12, 2025)
-    from .services.rolling90 import COMPLIANCE_START_DATE
-    compliance_start_date = COMPLIANCE_START_DATE
-
-    db_path = current_app.config['DATABASE']
-    csv_data = reports_service.generate_future_alerts_csv(
-        db_path,
-        warning_threshold,
-        compliance_start_date,
-    )
-    resp = make_response(csv_data)
-    resp.headers['Content-Type'] = 'text/csv'
-    resp.headers['Content-Disposition'] = 'attachment; filename=future_job_alerts.csv'
-    return resp
-
-@main_bp.route('/export/trips/csv')
-@login_required
-def export_trips_csv_route():
-    """Export trips to CSV for all employees."""
-    from flask import current_app
-    db_path = current_app.config['DATABASE']
-    try:
-        csv_data = export_trips_csv(db_path)
-        resp = make_response(csv_data)
-        resp.headers['Content-Type'] = 'text/csv'
-        resp.headers['Content-Disposition'] = 'attachment; filename=trips.csv'
-        return resp
-    except Exception as e:
-        logger.error(f"Error exporting trips CSV: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
-
 @main_bp.route('/what_if_scenario')
 @login_required
 def what_if_scenario():
@@ -1919,156 +1807,6 @@ def api_calculate_scenario():
     except Exception as e:
         logger.error(f"Scenario calculation error: {e}")
         return jsonify({'error': str(e)}), 500
-
-@main_bp.route('/admin_privacy_tools')
-@login_required
-def admin_privacy_tools():
-    """Display admin privacy tools"""
-    from flask import current_app
-    CONFIG = current_app.config['CONFIG']
-    retention_months = CONFIG.get('RETENTION_MONTHS', 36)
-    try:
-        db_path = current_app.config['DATABASE']
-        trips = get_expired_trips(db_path, retention_months)
-        expired_count = len(trips)
-    except Exception:
-        expired_count = 0
-    # last_purge tracking not persisted yet; show 'Never' via template default
-    return render_template(
-        'admin_privacy_tools.html',
-        retention_months=retention_months,
-        expired_count=expired_count,
-        last_purge=None
-    )
-
-# Alias path expected by some clients/tests
-@main_bp.route('/admin/privacy-tools')
-@login_required
-def admin_privacy_tools_alias():
-    return render_template('admin_privacy_tools.html')
-
-# Retention management endpoints
-@main_bp.route('/api/retention/preview')
-@login_required
-def retention_preview():
-    from flask import current_app
-    CONFIG = current_app.config['CONFIG']
-    retention_months = CONFIG.get('RETENTION_MONTHS', 36)
-    db_path = current_app.config['DATABASE']
-    try:
-        trips = get_expired_trips(db_path, retention_months)
-        employees_affected = len({t['employee_id'] for t in trips})
-        return jsonify({
-            'success': True,
-            'trips_count': len(trips),
-            'employees_affected': employees_affected
-        })
-    except Exception as e:
-        logger.error(f"Retention preview error: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@main_bp.route('/admin/retention/expired')
-@login_required
-def retention_expired():
-    from flask import current_app
-    CONFIG = current_app.config['CONFIG']
-    retention_months = CONFIG.get('RETENTION_MONTHS', 36)
-    db_path = current_app.config['DATABASE']
-    try:
-        trips = get_expired_trips(db_path, retention_months)
-    except Exception:
-        trips = []
-    return render_template('expired_trips.html', trips=trips, retention_months=retention_months)
-
-@main_bp.route('/admin/retention/purge', methods=['POST'])
-@login_required
-def retention_purge():
-    from flask import current_app
-    CONFIG = current_app.config['CONFIG']
-    db_path = current_app.config['DATABASE']
-    retention_months = CONFIG.get('RETENTION_MONTHS', 36)
-    try:
-        result = purge_expired_trips(db_path, retention_months)
-        write_audit(CONFIG['AUDIT_LOG_PATH'], 'retention_purge', 'admin', result)
-        return jsonify({'success': True, **result})
-    except Exception as e:
-        logger.error(f"Retention purge error: {e}")
-        write_audit(CONFIG['AUDIT_LOG_PATH'], 'retention_purge_error', 'admin', {'error': str(e)})
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-# DSAR endpoints
-@main_bp.route('/admin/dsar/export/<int:employee_id>')
-@login_required
-def dsar_export(employee_id: int):
-    from flask import current_app
-    CONFIG = current_app.config['CONFIG']
-    db_path = current_app.config['DATABASE']
-    try:
-        result = create_dsar_export(db_path, employee_id, CONFIG['DSAR_EXPORT_DIR'], CONFIG.get('RETENTION_MONTHS', 36))
-        if not result.get('success'):
-            return jsonify(result), 404
-        write_audit(CONFIG['AUDIT_LOG_PATH'], 'dsar_export', 'admin', {'employee_id': employee_id, 'file': result['filename']})
-        return send_file(result['file_path'], as_attachment=True, download_name=result['filename'])
-    except Exception as e:
-        logger.error(f"DSAR export error: {e}")
-        write_audit(CONFIG['AUDIT_LOG_PATH'], 'dsar_export_error', 'admin', {'employee_id': employee_id, 'error': str(e)})
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@main_bp.route('/admin/dsar/rectify/<int:employee_id>', methods=['POST'])
-@login_required
-def dsar_rectify(employee_id: int):
-    from flask import current_app
-    CONFIG = current_app.config['CONFIG']
-    db_path = current_app.config['DATABASE']
-    try:
-        payload = request.get_json(force=True) or {}
-        new_name = (payload.get('new_name') or '').strip()
-        result = rectify_employee_name(db_path, employee_id, new_name)
-        if result.get('success'):
-            write_audit(CONFIG['AUDIT_LOG_PATH'], 'dsar_rectify', 'admin', {'employee_id': employee_id, 'new_name': new_name})
-        else:
-            write_audit(CONFIG['AUDIT_LOG_PATH'], 'dsar_rectify_failed', 'admin', {'employee_id': employee_id, 'error': result.get('error')})
-        return jsonify(result)
-    except Exception as e:
-        logger.error(f"DSAR rectify error: {e}")
-        write_audit(CONFIG['AUDIT_LOG_PATH'], 'dsar_rectify_error', 'admin', {'employee_id': employee_id, 'error': str(e)})
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@main_bp.route('/admin/dsar/delete/<int:employee_id>', methods=['POST'])
-@login_required
-def dsar_delete(employee_id: int):
-    from flask import current_app
-    CONFIG = current_app.config['CONFIG']
-    db_path = current_app.config['DATABASE']
-    try:
-        result = delete_employee_data(db_path, employee_id)
-        if result.get('success'):
-            write_audit(CONFIG['AUDIT_LOG_PATH'], 'dsar_delete', 'admin', {'employee_id': employee_id, 'trips_deleted': result.get('trips_deleted', 0)})
-        else:
-            write_audit(CONFIG['AUDIT_LOG_PATH'], 'dsar_delete_failed', 'admin', {'employee_id': employee_id, 'error': result.get('error')})
-        return jsonify(result)
-    except Exception as e:
-        logger.error(f"DSAR delete error: {e}")
-        write_audit(CONFIG['AUDIT_LOG_PATH'], 'dsar_delete_error', 'admin', {'employee_id': employee_id, 'error': str(e)})
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@main_bp.route('/admin/dsar/anonymize/<int:employee_id>', methods=['POST'])
-@login_required
-def dsar_anonymize(employee_id: int):
-    from flask import current_app
-    CONFIG = current_app.config['CONFIG']
-    db_path = current_app.config['DATABASE']
-    try:
-        result = anonymize_employee(db_path, employee_id)
-        if result.get('success'):
-            write_audit(CONFIG['AUDIT_LOG_PATH'], 'dsar_anonymize', 'admin', {'employee_id': employee_id, 'new_name': result.get('new_name')})
-        else:
-            write_audit(CONFIG['AUDIT_LOG_PATH'], 'dsar_anonymize_failed', 'admin', {'employee_id': employee_id, 'error': result.get('error')})
-        return jsonify(result)
-    except Exception as e:
-        logger.error(f"DSAR anonymize error: {e}")
-        write_audit(CONFIG['AUDIT_LOG_PATH'], 'dsar_anonymize_error', 'admin', {'employee_id': employee_id, 'error': str(e)})
-        return jsonify({'success': False, 'error': str(e)}), 500
 
 @main_bp.route('/admin_settings', methods=['GET', 'POST'])
 @login_required
