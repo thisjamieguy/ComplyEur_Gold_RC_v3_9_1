@@ -1,4 +1,3 @@
-import sqlite3
 import csv
 import io
 from datetime import datetime, timedelta
@@ -9,6 +8,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
+from app.repositories import reports_repository
 from .rolling90 import presence_days, days_used_in_window
 
 
@@ -24,33 +24,7 @@ def export_trips_csv(db_path: str, employee_id: int = None) -> str:
     """Export trips to CSV format.
     If employee_id is provided, export only that employee's trips.
     Returns CSV as string."""
-    
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    c = conn.cursor()
-    
-    if employee_id:
-        c.execute('''
-            SELECT employees.name, trips.country, trips.entry_date, 
-                   trips.exit_date,
-                   CAST(julianday(trips.exit_date) - julianday(trips.entry_date) + 1 AS INTEGER) AS travel_days
-            FROM trips
-            JOIN employees ON trips.employee_id = employees.id
-            WHERE trips.employee_id = ?
-            ORDER BY trips.entry_date DESC
-        ''', (employee_id,))
-    else:
-        c.execute('''
-            SELECT employees.name, trips.country, trips.entry_date, 
-                   trips.exit_date,
-                   CAST(julianday(trips.exit_date) - julianday(trips.entry_date) + 1 AS INTEGER) AS travel_days
-            FROM trips
-            JOIN employees ON trips.employee_id = employees.id
-            ORDER BY employees.name, trips.entry_date DESC
-        ''')
-    
-    rows = c.fetchall()
-    conn.close()
+    rows = reports_repository.fetch_trips_for_csv(db_path, employee_id)
     
     # Create CSV
     output = io.StringIO()
@@ -77,27 +51,10 @@ def export_trips_csv(db_path: str, employee_id: int = None) -> str:
 def export_employee_report_pdf(db_path: str, employee_id: int) -> bytes:
     """Generate PDF report for an employee with trip history and compliance status.
     Returns PDF as bytes."""
-    
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    c = conn.cursor()
-    
-    # Get employee
-    c.execute('SELECT id, name FROM employees WHERE id = ?', (employee_id,))
-    emp = c.fetchone()
+    emp = reports_repository.fetch_employee(db_path, employee_id)
     if not emp:
-        conn.close()
         raise ValueError('Employee not found')
-    
-    # Get trips
-    c.execute('''
-        SELECT country, entry_date, exit_date, travel_days
-        FROM trips
-        WHERE employee_id = ?
-        ORDER BY entry_date DESC
-    ''', (employee_id,))
-    trips = [dict(row) for row in c.fetchall()]
-    conn.close()
+    trips = reports_repository.fetch_employee_trips(db_path, employee_id)
     
     # Calculate days used
     today = datetime.now().date()
@@ -191,36 +148,20 @@ def export_employee_report_pdf(db_path: str, employee_id: int) -> bytes:
 def export_all_employees_report_pdf(db_path: str) -> bytes:
     """Generate PDF report for all employees with summary.
     Returns PDF as bytes."""
-    
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    c = conn.cursor()
-    
-    c.execute('SELECT id, name FROM employees ORDER BY name')
-    employees = c.fetchall()
-    
+    employees = reports_repository.fetch_employees_with_trips(db_path)
     today = datetime.now().date()
     employee_data = []
     
     for emp in employees:
-        c.execute('''
-            SELECT country, entry_date, exit_date
-            FROM trips
-            WHERE employee_id = ?
-        ''', (emp['id'],))
-        trips = [dict(row) for row in c.fetchall()]
-        
+        trips = emp.get('trips', [])
         days_used = calculate_eu_days_from_trips(trips, today)
         trip_count = len(trips)
-        
         employee_data.append({
             'name': emp['name'],
             'days_used': days_used,
             'trip_count': trip_count,
             'status': 'Over Limit' if days_used > 90 else ('Warning' if days_used > 80 else 'Safe')
         })
-    
-    conn.close()
     
     # Create PDF
     buffer = io.BytesIO()

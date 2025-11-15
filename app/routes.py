@@ -93,6 +93,13 @@ except Exception as e:
     logger.error(traceback.format_exc())
     raise
 
+try:
+    from .services import reports_service
+    logger.info("Successfully imported reports service")
+except Exception as e:
+    logger.error(f"Failed to import reports service: {e}")
+    logger.error(traceback.format_exc())
+    raise
 import io
 import csv
 import zipfile
@@ -1899,54 +1906,12 @@ def export_future_alerts():
     from .services.rolling90 import COMPLIANCE_START_DATE
     compliance_start_date = COMPLIANCE_START_DATE
 
-    # Build the same forecast dataset (unfiltered export)
-    conn = get_db()
-    c = conn.cursor()
-    c.execute('SELECT id, name FROM employees ORDER BY name')
-    employees = c.fetchall()
-
-    rows = []
-    for emp in employees:
-        c.execute('SELECT entry_date, exit_date, country FROM trips WHERE employee_id = ?', (emp['id'],))
-        trips = [
-            {
-                'entry_date': t['entry_date'],
-                'exit_date': t['exit_date'],
-                'country': t['country']
-            }
-            for t in c.fetchall()
-        ]
-
-        forecasts = get_all_future_jobs_for_employee(emp['id'], trips, warning_threshold, compliance_start_date)
-        for f in forecasts:
-            rows.append({
-                'Employee': emp['name'],
-                'Risk Level': f['risk_level'],
-                'Job Start': f['job_start_date'].strftime('%d-%m-%Y'),
-                'Job End': f['job_end_date'].strftime('%d-%m-%Y'),
-                'Country': (f['job'].get('country') or f['job'].get('country_code', '')),
-                'Job Duration (days)': f['job_duration'],
-                'Days Used Before': f['days_used_before_job'],
-                'Days After Job': f['days_after_job'],
-                'Days Remaining': f['days_remaining_after_job'],
-                'Compliant From': f['compliant_from_date'].strftime('%d-%m-%Y') if f.get('compliant_from_date') else ''
-            })
-
-    conn.close()
-
-    # Write CSV
-    output = io.StringIO()
-    writer = csv.writer(output)
-    headers = [
-        'Employee', 'Risk Level', 'Job Start', 'Job End', 'Country',
-        'Job Duration (days)', 'Days Used Before', 'Days After Job',
-        'Days Remaining', 'Compliant From'
-    ]
-    writer.writerow(headers)
-    for r in rows:
-        writer.writerow([r[h] for h in headers])
-
-    csv_data = output.getvalue()
+    db_path = current_app.config['DATABASE']
+    csv_data = reports_service.generate_future_alerts_csv(
+        db_path,
+        warning_threshold,
+        compliance_start_date,
+    )
     resp = make_response(csv_data)
     resp.headers['Content-Type'] = 'text/csv'
     resp.headers['Content-Disposition'] = 'attachment; filename=future_job_alerts.csv'
