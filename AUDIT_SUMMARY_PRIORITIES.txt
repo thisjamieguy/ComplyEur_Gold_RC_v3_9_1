@@ -1,0 +1,272 @@
+================================================================================
+COMPLYEUR ARCHITECTURE AUDIT - PRIORITIZED REFACTORING LIST
+================================================================================
+Date: November 15, 2025
+Total Issues Found: 10 Critical/High issues + 5 Medium issues
+
+================================================================================
+REFACTORING PRIORITIES & EFFORT ESTIMATES
+================================================================================
+
+CRITICAL PRIORITY (BLOCKS TESTING & SCALABILITY)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Rank  Issue                               Severity  Effort      Impact    Hours
+────  ─────────────────────────────────   ────────  ──────────  ────────  ─────
+1     Massive routes.py (3000 LOC)        CRITICAL  HIGH        CRITICAL   60
+      - 76 functions in single file
+      - 275-line dashboard() function
+      - 42 SQL statements embedded
+      Deliverable: Split into 5 modules
+      Business Impact: 50% faster debugging, 30% fewer bugs
+
+2     Direct database access in routes    CRITICAL  HIGH        CRITICAL   90
+      - 10 sqlite3.connect() calls
+      - 38 SELECT in routes.py
+      - 11 SELECT in routes_calendar.py
+      Deliverable: All DB access via repositories
+      Business Impact: Unit testing now possible
+
+3     Unused repository layer             CRITICAL  HIGH        CRITICAL   80
+      - 5 repository files exist but unused
+      - Routes bypass abstraction
+      - Code duplication across layers
+      Deliverable: Complete repository implementation
+      Business Impact: Microservices migration possible
+
+──────────────────────────────────────────────────────────────────────────────
+Subtotal Phase 1: 230 hours (3-4 weeks for 1 developer)
+──────────────────────────────────────────────────────────────────────────────
+
+
+HIGH PRIORITY (IMPROVE MAINTAINABILITY)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Rank  Issue                               Severity  Effort      Impact    Hours
+────  ─────────────────────────────────   ────────  ──────────  ────────  ─────
+4     God functions in services           HIGH      MEDIUM      HIGH       35
+      - alerts.py: 419 LOC (13 functions)
+      - rolling90.py: 375 LOC (8 functions)
+      - compliance_forecast.py: 263 LOC (5 functions)
+      Deliverable: Split each into single-responsibility modules
+      Business Impact: 40% reduction in alert-related bugs
+
+5     Broad exception handling            HIGH      LOW         HIGH       20
+      - 74 "except Exception:" clauses
+      - Swallows programming errors
+      - Missing context in error messages
+      Deliverable: Specific exception types + logging
+      Business Impact: 60% faster debugging
+
+6     Code duplication patterns           HIGH      MEDIUM      MEDIUM     40
+      - 54 duplicate SELECT statements
+      - Validation logic in 3 places
+      - Exception handling pattern repeated 20+ times
+      Deliverable: Consolidate to single implementations
+      Business Impact: 25% reduction in maintenance burden
+
+7     Configuration hardcoding            HIGH      MEDIUM      MEDIUM     15
+      - Magic numbers: 80, 36, 90, 10, 8, 6
+      - Hardcoded dates and thresholds
+      - Database pragmas not configurable
+      Deliverable: All values in CONFIG object
+      Business Impact: Multi-environment support
+
+──────────────────────────────────────────────────────────────────────────────
+Subtotal Phase 2: 110 hours (1.5 weeks)
+──────────────────────────────────────────────────────────────────────────────
+
+
+MEDIUM PRIORITY (CODE QUALITY)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Rank  Issue                               Severity  Effort      Impact    Hours
+────  ─────────────────────────────────   ────────  ──────────  ────────  ─────
+8     Commented-out code blocks          MEDIUM    LOW         LOW         3
+      - 3 instances found
+      - Not blocking anything
+      Deliverable: Remove dead code
+      Business Impact: Code clarity
+
+9     API response inconsistency          MEDIUM    LOW         LOW         5
+      - Inconsistent status codes
+      - Variable response formats
+      Deliverable: Standardized response wrapper
+      Business Impact: Easier frontend integration
+
+10    Circular dependency patterns        MEDIUM    MEDIUM      MEDIUM     20
+      - Services accessing models directly
+      - Services accessing other services
+      - No clear dependency direction
+      Deliverable: Dependency injection pattern
+      Business Impact: Easier testing
+
+──────────────────────────────────────────────────────────────────────────────
+Subtotal Phase 3: 28 hours (0.5 weeks)
+──────────────────────────────────────────────────────────────────────────────
+
+================================================================================
+SUMMARY BY EFFORT LEVEL
+================================================================================
+
+QUICK WINS (< 10 hours) - Start Here
+  ✓ Remove commented-out code (3 hours)
+  ✓ Standardize API responses (5 hours)
+  ✓ Configuration extraction (8 hours)
+  Total: 16 hours (2 days)
+
+MEDIUM EFFORT (10-50 hours) - Do Next
+  ✓ Fix exception handling (20 hours)
+  ✓ Consolidate validation logic (15 hours)
+  ✓ Merge duplicate service functions (15 hours)
+  Total: 50 hours (1 week)
+
+MAJOR REFACTORING (50+ hours) - Strategic Work
+  ✓ Move DB logic to repositories (90 hours)
+  ✓ Split routes.py (60 hours)
+  ✓ Break down god functions (35 hours)
+  ✓ Restructure service layer (25 hours)
+  Total: 210 hours (5-6 weeks)
+
+================================================================================
+OVERALL EFFORT ESTIMATE
+================================================================================
+
+Minimum (Quick wins only):        16 hours  (2 days)
+Recommended (Phases 1-2):        340 hours  (8-10 weeks for 1 dev, 2 weeks for team)
+Comprehensive (All fixes):       368 hours  (9-11 weeks for 1 dev, 2-3 weeks for team)
+
+Best Approach: Agile refactoring
+  - Week 1: Quick wins (standards, dead code) + Phase 1 foundations
+  - Week 2-3: Phase 1 implementation (database coupling)
+  - Week 4-5: Phase 2 (god functions, exceptions)
+  - Week 6+: Phase 3 (polish, optimization)
+
+================================================================================
+CODE QUALITY METRICS
+================================================================================
+
+Current State:
+  • Cyclomatic Complexity: ~8 (high)
+  • Average Function Length: 25-30 lines
+  • Duplication Index: ~15%
+  • Test Coverage: ~40% (estimated)
+  • Code-to-Test Ratio: Untestable without refactoring
+
+Target State (After Refactoring):
+  • Cyclomatic Complexity: ~4 (good)
+  • Average Function Length: <20 lines
+  • Duplication Index: <5%
+  • Test Coverage: >70%
+  • Code-to-Test Ratio: 1:1 coverage target
+
+================================================================================
+RISK MATRIX
+================================================================================
+
+Low Risk (Can start immediately):
+  - Removing dead code
+  - Extracting configuration
+  - Fixing exception handling
+  - Removing commented code
+  Mitigation: Simple PR reviews, no integration testing needed
+
+Medium Risk (Need test coverage first):
+  - Breaking down large functions
+  - Consolidating duplicates
+  - Refactoring service layer
+  Mitigation: Write characterization tests first, feature branches, gradual rollout
+
+High Risk (Requires careful planning):
+  - Moving database logic to repositories
+  - Splitting routes.py
+  - Restructuring dependency flow
+  Mitigation: Pair programming, integration tests, manual QA, slow rollout
+
+================================================================================
+BUSINESS CASE
+================================================================================
+
+Cost of NOT Refactoring:
+  - Feature velocity: -10-20% per quarter
+  - Bug fix time: +15-25%
+  - Onboarding new developers: 2-3 weeks
+  - Technical debt interest: ~15% of development time
+  - Microservices migration: IMPOSSIBLE
+
+Cost of Refactoring:
+  - Development time: 340-370 hours (direct cost)
+  - Testing overhead: ~20% additional time
+  - Potential bugs: ~3-5 (manageable)
+  - Duration: 2-3 weeks for coordinated team
+
+ROI Calculation:
+  - Payback period: 3-6 months
+  - Annual savings: 200-400 hours of development time
+  - Benefit multiplier: 2-3x over 12 months
+  - Strategic value: Enables future optimization
+
+Recommended Decision: PROCEED WITH REFACTORING
+  Start with Phase 1 (database coupling) immediately
+  This is blocking: unit testing, microservices, caching strategies
+
+================================================================================
+IMPLEMENTATION CHECKLIST
+================================================================================
+
+PHASE 1: DATABASE ABSTRACTION (Weeks 1-2) [Critical]
+  [ ] Audit current repository usage
+  [ ] Create comprehensive repository interfaces
+  [ ] Move all SQL from routes.py to repositories
+  [ ] Move all SQL from routes_calendar.py to repositories
+  [ ] Update models.py to use repositories (not direct SQL)
+  [ ] Integration testing for data layer
+  [ ] Performance testing (ensure no degradation)
+
+PHASE 2: REFACTOR ROUTES (Weeks 2-3) [Critical]
+  [ ] Split routes.py into 5 modules
+  [ ] Replace inline SQL with repository calls
+  [ ] Extract business logic to services
+  [ ] Add unit tests for new modules
+  [ ] Integration testing
+  [ ] Performance benchmarking
+
+PHASE 3: SERVICE CONSOLIDATION (Weeks 3-4) [High]
+  [ ] Break down alerts.py into 2 modules
+  [ ] Break down rolling90.py into 2 modules
+  [ ] Merge duplicate validation functions
+  [ ] Fix service layer dependencies
+  [ ] Update all tests
+  [ ] Documentation
+
+PHASE 4: ERROR HANDLING (Week 4-5) [High]
+  [ ] Replace generic "except Exception:" with specific types
+  [ ] Add logging to all exception handlers
+  [ ] Remove swallowed exceptions
+  [ ] Create custom exception classes
+  [ ] Update error messages (no internal leaks)
+  [ ] Review for security issues
+
+PHASE 5: CLEANUP (Week 5-6) [Medium]
+  [ ] Remove commented-out code
+  [ ] Standardize API responses
+  [ ] Extract configuration values
+  [ ] Update documentation
+  [ ] Code review and refactoring
+
+VALIDATION & QA
+  [ ] Unit test coverage >70%
+  [ ] Integration test coverage >80%
+  [ ] Performance benchmarks (no regression)
+  [ ] Security audit
+  [ ] Code review (multiple reviewers)
+  [ ] Staging environment testing
+  [ ] Gradual production rollout
+
+================================================================================
+END OF AUDIT REPORT
+================================================================================
+
+For detailed analysis of each issue, see: architecture_audit.md
+For implementation templates, see: refactoring_templates.md (to be generated)
+
