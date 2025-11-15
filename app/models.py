@@ -309,7 +309,7 @@ class Employee:
         c.execute('INSERT INTO employees (name) VALUES (?)', (name,))
         employee_id = c.lastrowid
         conn.commit()
-        conn.close()
+        # Connection managed by Flask teardown handler - do not close manually
         return cls.get_by_id(employee_id)
     
     def delete(self):
@@ -319,7 +319,7 @@ class Employee:
         c.execute('DELETE FROM trips WHERE employee_id = ?', (self.id,))
         c.execute('DELETE FROM employees WHERE id = ?', (self.id,))
         conn.commit()
-        conn.close()
+        # Connection managed by Flask teardown handler - do not close manually
 
 class Trip:
     def __init__(
@@ -410,7 +410,7 @@ class Trip:
         return Trip(**dict(row)) if row else None
     
     @classmethod
-    def create(cls, employee_id: int, country: str, entry_date: str, 
+    def create(cls, employee_id: int, country: str, entry_date: str,
                exit_date: str, purpose: Optional[str] = None, is_private: bool = False) -> 'Trip':
         """Create new trip"""
         conn = get_db()
@@ -421,7 +421,7 @@ class Trip:
         ''', (employee_id, country, entry_date, exit_date, purpose, is_private))
         trip_id = c.lastrowid
         conn.commit()
-        conn.close()
+        # Connection managed by Flask teardown handler - do not close manually
         return cls.get_by_id(trip_id)
     
     def delete(self):
@@ -430,7 +430,7 @@ class Trip:
         c = conn.cursor()
         c.execute('DELETE FROM trips WHERE id = ?', (self.id,))
         conn.commit()
-        conn.close()
+        # Connection managed by Flask teardown handler - do not close manually
 
 class Admin:
     @classmethod
@@ -440,7 +440,7 @@ class Admin:
         c = conn.cursor()
         c.execute('SELECT password_hash FROM admin WHERE id = 1')
         row = c.fetchone()
-        conn.close()
+        # Connection managed by Flask teardown handler - do not close manually
         return row['password_hash'] if row else None
     
     @classmethod
@@ -453,7 +453,7 @@ class Admin:
             VALUES (1, ?)
         ''', (password_hash,))
         conn.commit()
-        conn.close()
+        # Connection managed by Flask teardown handler - do not close manually
     
     @classmethod
     def exists(cls) -> bool:

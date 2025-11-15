@@ -1,0 +1,454 @@
+{
+  "metadata": {
+    "generated_date": "2025-11-15",
+    "project_path": "/home/user/ComplyEur_Gold_RC_v3_9_1",
+    "analysis_type": "Template and Static Asset Audit"
+  },
+  "summary": {
+    "total_templates": 35,
+    "templates_rendered": 29,
+    "templates_inherited_or_included": 5,
+    "orphaned_templates": 2,
+    "broken_template_references": 1,
+    "broken_inheritance": 0,
+    "missing_static_assets": 2,
+    "total_static_files": 65
+  },
+  "issues": {
+    "broken_template_references": [
+      {
+        "template": "admin/audit_trail.html",
+        "severity": "HIGH",
+        "issue_type": "Missing Template File",
+        "description": "Template is referenced in render_template() calls but does not exist",
+        "references": [
+          {
+            "file": "app/routes_audit.py",
+            "line": 44,
+            "code": "return render_template('admin/audit_trail.html',"
+          },
+          {
+            "file": "app/routes_audit.py",
+            "line": 53,
+            "code": "return render_template('admin/audit_trail.html',"
+          }
+        ],
+        "resolution": [
+          "Create the missing template at /home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/admin/audit_trail.html",
+          "OR update routes_audit.py lines 44 and 53 to reference an existing template"
+        ]
+      }
+    ],
+    "broken_inheritance": [],
+    "missing_static_assets": [
+      {
+        "template": "entry_requirements.html",
+        "severity": "MEDIUM",
+        "issue_type": "Missing Static Asset",
+        "asset": "images/cityscapes/default.webp",
+        "template_file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/entry_requirements.html",
+        "occurrences": [
+          {
+            "line": 833,
+            "code": "src=\"{{ url_for('static', filename='images/cityscapes/default.webp') }}\""
+          },
+          {
+            "line": 839,
+            "code": "onerror=\"this.onerror=null; this.src='{{ url_for('static', filename='images/cityscapes/default.webp') }}';\""
+          }
+        ],
+        "resolution": [
+          "Create a default.webp file in /home/user/ComplyEur_Gold_RC_v3_9_1/app/static/images/cityscapes/",
+          "OR modify entry_requirements.html to reference an existing cityscapes image",
+          "OR remove the fallback onerror attribute if not needed"
+        ],
+        "available_alternatives": [
+          "austria_vienna.webp",
+          "belgium_brussels.webp",
+          "croatia_dubrovnik.webp",
+          "czech_prague.webp",
+          "denmark_copenhagen.webp",
+          "estonia_tallinn.webp",
+          "finland_helsinki.webp",
+          "france_paris.webp",
+          "germany_berlin.webp",
+          "greece_athens.webp",
+          "hungary_budapest.webp",
+          "iceland_reykjavik.webp",
+          "ireland_dublin.webp",
+          "italy_rome.webp",
+          "latvia_riga.webp",
+          "lithuania_vilnius.webp",
+          "luxembourg_luxembourgcity.webp",
+          "malta_valletta.webp",
+          "netherlands_amsterdam.webp",
+          "norway_oslo.webp",
+          "poland_warsaw.webp",
+          "portugal_lisbon.webp",
+          "slovakia_bratislava.webp",
+          "slovenia_ljubljana.webp",
+          "spain_madrid.webp",
+          "sweden_stockholm.webp",
+          "switzerland_zurich.webp",
+          "uk_london.webp"
+        ]
+      }
+    ],
+    "orphaned_templates": [
+      {
+        "template": "import_preview.html",
+        "severity": "LOW",
+        "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/import_preview.html",
+        "status": "Unused - not rendered, inherited, or included anywhere",
+        "recommendation": "Review if still needed. If not, remove to reduce codebase clutter."
+      },
+      {
+        "template": "test_overview.html",
+        "severity": "LOW",
+        "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/test_overview.html",
+        "status": "Unused - not rendered, inherited, or included anywhere",
+        "recommendation": "Review if still needed. If not, remove to reduce codebase clutter."
+      }
+    ]
+  },
+  "rendered_templates": [
+    {
+      "template": "403.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/403.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/__init__.py", "line": 550},
+        {"file": "app/__init__auth__.py", "line": 425},
+        {"file": "app/routes.py", "line": 2727}
+      ]
+    },
+    {
+      "template": "404.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/404.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/__init__.py", "line": 555},
+        {"file": "app/__init__auth__.py", "line": 431},
+        {"file": "app/routes.py", "line": 419},
+        {"file": "app/routes.py", "line": 2732}
+      ]
+    },
+    {
+      "template": "500.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/500.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/__init__.py", "line": 563},
+        {"file": "app/__init__auth__.py", "line": 457},
+        {"file": "app/routes.py", "line": 2994},
+        {"file": "app/routes.py", "line": 3000}
+      ]
+    },
+    {
+      "template": "admin_privacy_tools.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/admin_privacy_tools.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/routes.py", "line": 1937},
+        {"file": "app/routes.py", "line": 1948}
+      ]
+    },
+    {
+      "template": "admin_settings.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/admin_settings.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/routes.py", "line": 2159}
+      ]
+    },
+    {
+      "template": "auth_login.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/auth_login.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/routes_auth.py", "line": 233},
+        {"file": "app/routes_auth.py", "line": 248},
+        {"file": "app/routes_auth.py", "line": 266},
+        {"file": "app/routes_auth.py", "line": 284},
+        {"file": "app/routes_auth.py", "line": 297},
+        {"file": "app/routes_auth.py", "line": 314},
+        {"file": "app/routes_auth.py", "line": 341},
+        {"file": "app/routes_auth.py", "line": 356},
+        {"file": "app/routes_auth.py", "line": 376},
+        {"file": "app/routes_auth.py", "line": 419},
+        {"file": "app/routes_auth.py", "line": 457},
+        {"file": "app/routes_auth.py", "line": 469},
+        {"file": "app/routes_auth.py", "line": 483}
+      ]
+    },
+    {
+      "template": "auth_setup_2fa.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/auth_setup_2fa.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/routes_auth.py", "line": 536}
+      ]
+    },
+    {
+      "template": "bulk_add_trip.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/bulk_add_trip.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/routes.py", "line": 1511}
+      ]
+    },
+    {
+      "template": "calendar.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/calendar.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/routes.py", "line": 541},
+        {"file": "app/routes.py", "line": 579}
+      ]
+    },
+    {
+      "template": "cookie_policy.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/cookie_policy.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/routes.py", "line": 406}
+      ]
+    },
+    {
+      "template": "dashboard.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/dashboard.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/routes.py", "line": 1186},
+        {"file": "app/routes.py", "line": 1207}
+      ]
+    },
+    {
+      "template": "employee_detail.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/employee_detail.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/routes.py", "line": 1336}
+      ]
+    },
+    {
+      "template": "entry_requirements.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/entry_requirements.html",
+      "status": "OK (has missing static asset)",
+      "rendered_in": [
+        {"file": "app/routes.py", "line": 615}
+      ]
+    },
+    {
+      "template": "expired_trips.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/expired_trips.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/routes.py", "line": 1981}
+      ]
+    },
+    {
+      "template": "future_job_alerts.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/future_job_alerts.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/routes.py", "line": 1835}
+      ]
+    },
+    {
+      "template": "global_calendar.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/global_calendar.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/routes.py", "line": 2455},
+        {"file": "app/routes.py", "line": 2467}
+      ]
+    },
+    {
+      "template": "help.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/help.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/routes.py", "line": 606}
+      ]
+    },
+    {
+      "template": "home.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/home.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/routes.py", "line": 933}
+      ]
+    },
+    {
+      "template": "import_excel.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/import_excel.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/routes.py", "line": 1695},
+        {"file": "app/routes.py", "line": 1699},
+        {"file": "app/routes.py", "line": 1704},
+        {"file": "app/routes.py", "line": 1747},
+        {"file": "app/routes.py", "line": 1769},
+        {"file": "app/routes.py", "line": 1788},
+        {"file": "app/routes.py", "line": 1802}
+      ]
+    },
+    {
+      "template": "landing.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/landing.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/routes.py", "line": 282},
+        {"file": "app/routes.py", "line": 286}
+      ]
+    },
+    {
+      "template": "login.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/login.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/routes.py", "line": 694},
+        {"file": "app/routes.py", "line": 724},
+        {"file": "app/routes.py", "line": 725},
+        {"file": "app/routes.py", "line": 795},
+        {"file": "app/routes.py", "line": 826},
+        {"file": "app/routes.py", "line": 2680},
+        {"file": "app/routes.py", "line": 2719}
+      ]
+    },
+    {
+      "template": "privacy.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/privacy.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/routes.py", "line": 388}
+      ]
+    },
+    {
+      "template": "profile.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/profile.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/routes.py", "line": 846}
+      ]
+    },
+    {
+      "template": "reset_password.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/reset_password.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/routes.py", "line": 2682},
+        {"file": "app/routes.py", "line": 2684}
+      ]
+    },
+    {
+      "template": "setup.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/setup.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/routes.py", "line": 828},
+        {"file": "app/routes.py", "line": 830},
+        {"file": "app/routes.py", "line": 2708},
+        {"file": "app/routes.py", "line": 2711},
+        {"file": "app/routes.py", "line": 2721}
+      ]
+    },
+    {
+      "template": "signup.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/signup.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/routes.py", "line": 761},
+        {"file": "app/routes.py", "line": 771},
+        {"file": "app/routes.py", "line": 801},
+        {"file": "app/routes.py", "line": 803}
+      ]
+    },
+    {
+      "template": "test_summary.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/test_summary.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/routes.py", "line": 484}
+      ]
+    },
+    {
+      "template": "what_if_scenario.html",
+      "file": "/home/user/ComplyEur_Gold_RC_v3_9_1/app/templates/what_if_scenario.html",
+      "status": "OK",
+      "rendered_in": [
+        {"file": "app/routes.py", "line": 1894}
+      ]
+    }
+  ],
+  "template_hierarchy": {
+    "base.html": {
+      "extends": null,
+      "is_base": true,
+      "extended_by": [
+        "admin_privacy_tools.html",
+        "admin_settings.html",
+        "bulk_add_trip.html",
+        "calendar.html",
+        "cookie_policy.html",
+        "dashboard.html",
+        "employee_detail.html",
+        "entry_requirements.html",
+        "expired_trips.html",
+        "future_job_alerts.html",
+        "global_calendar.html",
+        "help.html",
+        "home.html",
+        "import_excel.html",
+        "import_preview.html",
+        "login.html",
+        "privacy.html",
+        "profile.html",
+        "reset_password.html",
+        "setup.html",
+        "signup.html",
+        "test_overview.html",
+        "test_summary.html",
+        "what_if_scenario.html"
+      ],
+      "includes": [
+        "settings_modal.html"
+      ]
+    },
+    "auth_base.html": {
+      "extends": null,
+      "is_base": true,
+      "extended_by": [
+        "auth_login.html",
+        "auth_setup_2fa.html"
+      ],
+      "includes": []
+    }
+  },
+  "static_assets": {
+    "total_files": 65,
+    "directories": {
+      "css": {
+        "count": 2,
+        "files": [
+          "bundle.css",
+          "bundle.min.css"
+        ]
+      },
+      "js": {
+        "count": 13,
+        "verified": true
+      },
+      "images": {
+        "count": 32,
+        "subdirectories": {
+          "cityscapes": {
+            "count": 28,
+            "note": "Missing default.webp (referenced in entry_requirements.html)"
+          }
+        }
+      }
+    }
+  }
+}

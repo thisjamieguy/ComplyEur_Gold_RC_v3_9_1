@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Trail - ComplyEur{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-3">Audit Trail Dashboard</h1>
+            <p class="text-muted">View and monitor system audit logs for compliance and security</p>
+        </div>
+    </div>
+
+    <!-- Integrity Status Alert -->
+    <div class="row mb-4">
+        <div class="col-12">
+            {% if integrity_valid %}
+            <div class="alert alert-success" role="alert">
+                <i class="bi bi-shield-check"></i>
+                <strong>Integrity Verified:</strong> All audit logs are intact and have not been tampered with.
+            </div>
+            {% else %}
+            <div class="alert alert-danger" role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <strong>Integrity Warning:</strong> Audit log integrity issues detected.
+                {% if integrity_errors %}
+                <ul class="mb-0 mt-2">
+                    {% for error in integrity_errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Statistics Summary -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Total Entries</h6>
+                    <h3 class="mb-0">{{ total_entries }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Integrity Status</h6>
+                    <h3 class="mb-0">
+                        {% if integrity_valid %}
+                        <span class="text-success">✓ Valid</span>
+                        {% else %}
+                        <span class="text-danger">✗ Invalid</span>
+                        {% endif %}
+                    </h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Monitoring</h6>
+                    <h3 class="mb-0"><span class="text-info">Active</span></h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-end">
+                    <button class="btn btn-primary btn-sm" onclick="location.reload()">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audit Entries Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Audit Events (Last 100)</h5>
+                </div>
+                <div class="card-body">
+                    {% if entries %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Action</th>
+                                    <th>Admin</th>
+                                    <th>Target</th>
+                                    <th>Status</th>
+                                    <th>IP Address</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in entries %}
+                                <tr>
+                                    <td class="font-monospace small">{{ entry.timestamp }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ entry.action }}</span>
+                                    </td>
+                                    <td class="text-muted">{{ entry.admin|default('system', true) }}</td>
+                                    <td>{{ entry.target|default('—', true) }}</td>
+                                    <td>
+                                        {% if entry.status == 'success' %}
+                                        <span class="badge bg-success">Success</span>
+                                        {% elif entry.status == 'failure' %}
+                                        <span class="badge bg-danger">Failed</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{{ entry.status|default('Unknown', true) }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="font-monospace small text-muted">{{ entry.ip|default('—', true) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle"></i> No audit entries available.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <a href="/dashboard" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+// Auto-refresh every 30 seconds for live monitoring
+let autoRefresh = setInterval(() => {
+    location.reload();
+}, 30000);
+
+// Clear auto-refresh on page unload
+window.addEventListener('beforeunload', () => {
+    clearInterval(autoRefresh);
+});
+</script>
+{% endblock %}

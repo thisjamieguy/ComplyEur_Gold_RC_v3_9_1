@@ -1,0 +1,157 @@
+================================================================================
+TEMPLATE ANALYSIS - QUICK FIX GUIDE
+================================================================================
+Project: ComplyEur Gold RC v3.9.1
+Analysis Date: 2025-11-15
+Report Files: 
+  - TEMPLATE_ANALYSIS_REPORT.md (detailed)
+  - TEMPLATE_ANALYSIS_REPORT.json (structured data)
+
+================================================================================
+CRITICAL ISSUES - FIX IMMEDIATELY
+================================================================================
+
+1. BROKEN TEMPLATE REFERENCE
+   ├─ Template: admin/audit_trail.html
+   ├─ Status: MISSING - Will cause 500 errors
+   ├─ Called from:
+   │  ├─ app/routes_audit.py:44
+   │  └─ app/routes_audit.py:53
+   └─ Fix Options:
+      A) Create the template at: app/templates/admin/audit_trail.html
+         - First create directory: app/templates/admin/
+         - Then create audit_trail.html inside
+      B) Update routes_audit.py to use an existing template
+
+2. MISSING STATIC ASSET
+   ├─ Template: entry_requirements.html (lines 833, 839)
+   ├─ Asset: images/cityscapes/default.webp
+   ├─ Status: MISSING - Will show broken image icon
+   └─ Fix Options:
+      A) Create default.webp in: app/static/images/cityscapes/
+      B) Use existing image, e.g., change to: france_paris.webp
+      C) Remove the onerror fallback if default not needed
+
+================================================================================
+ORPHANED TEMPLATES - CLEANUP
+================================================================================
+
+These templates are unused and can be removed:
+
+1. app/templates/import_preview.html
+   - Not rendered, inherited, or included anywhere
+   - Safe to delete
+
+2. app/templates/test_overview.html
+   - Not rendered, inherited, or included anywhere
+   - Safe to delete
+
+================================================================================
+STATIC ASSETS - AVAILABLE CITYSCAPES
+================================================================================
+
+Use these when fixing the default.webp reference:
+- austria_vienna.webp
+- belgium_brussels.webp
+- croatia_dubrovnik.webp
+- czech_prague.webp
+- denmark_copenhagen.webp
+- estonia_tallinn.webp
+- finland_helsinki.webp
+- france_paris.webp
+- germany_berlin.webp
+- greece_athens.webp
+- hungary_budapest.webp
+- iceland_reykjavik.webp
+- ireland_dublin.webp
+- italy_rome.webp
+- latvia_riga.webp
+- lithuania_vilnius.webp
+- luxembourg_luxembourgcity.webp
+- malta_valletta.webp
+- netherlands_amsterdam.webp
+- norway_oslo.webp
+- poland_warsaw.webp
+- portugal_lisbon.webp
+- slovakia_bratislava.webp
+- slovenia_ljubljana.webp
+- spain_madrid.webp
+- sweden_stockholm.webp
+- switzerland_zurich.webp
+- uk_london.webp
+
+================================================================================
+TESTING CHECKLIST
+================================================================================
+
+After fixes, test these in order:
+
+1. Fix admin/audit_trail.html
+   [ ] Create template or update reference
+   [ ] Visit audit trail page and verify no errors
+   [ ] Check browser console for errors
+
+2. Fix default.webp
+   [ ] Add image or update reference
+   [ ] Visit entry_requirements page
+   [ ] Verify image loads correctly
+   [ ] Check Network tab for 404 errors
+
+3. General Validation
+   [ ] Run Flask application
+   [ ] Test all main routes
+   [ ] Check browser console for 404 errors
+   [ ] Test responsive design on mobile
+
+4. Cleanup (Optional)
+   [ ] Remove import_preview.html
+   [ ] Remove test_overview.html
+   [ ] Verify app still works
+   [ ] Commit changes
+
+================================================================================
+DETAILED INFORMATION
+================================================================================
+
+For comprehensive details, see:
+- TEMPLATE_ANALYSIS_REPORT.md  (human-readable, full context)
+- TEMPLATE_ANALYSIS_REPORT.json (machine-readable, all data)
+
+Key Statistics:
+- Total templates: 35 (29 rendered + 5 inherited/included + 1 missing)
+- All inheritance valid: ✓ (base.html and auth_base.html verified)
+- Static assets: 65 files (mostly OK, except default.webp)
+- Routes with templates: app/routes.py, app/routes_auth.py, app/routes_audit.py
+
+================================================================================
+TEMPLATE USAGE BY ROUTE
+================================================================================
+
+Most Frequently Used:
+- login.html (7 references)
+- 404.html, 500.html (4 references each)
+- auth_login.html (13 references)
+- import_excel.html (7 references)
+
+Single-Use Templates:
+- Most other templates used only 1-2 times
+
+Error Pages:
+- 403.html ✓ (3 uses)
+- 404.html ✓ (4 uses)
+- 500.html ✓ (4 uses)
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+1. Read TEMPLATE_ANALYSIS_REPORT.md for full context
+2. Fix critical issue #1 (admin/audit_trail.html)
+3. Fix critical issue #2 (default.webp)
+4. Run tests to verify fixes
+5. Remove orphaned templates (optional but recommended)
+6. Commit changes to git
+
+Estimated time to fix: 15-30 minutes
+
+================================================================================
