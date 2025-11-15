@@ -34,66 +34,6 @@ from .utils.logger import get_auth_logger, redact_username
 from app.modules.auth import SessionManager, CaptchaManager
 
 
-def _try_legacy_login(username: str, password: str) -> bool:
-    """Attempt legacy admin login using sqlite admin table."""
-    logger = get_auth_logger()
-    from flask import current_app
-    import sqlite3
-
-    db_path = current_app.config.get('DATABASE')
-    if not db_path:
-        return False
-
-    try:
-        conn = sqlite3.connect(db_path)
-        conn.row_factory = sqlite3.Row
-        cur = conn.cursor()
-        cur.execute('SELECT password_hash FROM admin WHERE id = 1')
-        admin = cur.fetchone()
-        conn.close()
-    except Exception as exc:
-        logger.error(f"Legacy admin lookup failed: {exc}")
-        return False
-
-    if not admin:
-        return False
-
-    normalized = (username or "").strip().lower()
-    allowed = {
-        (current_app.config.get('ADMIN_USERNAME') or 'admin').strip().lower(),
-        'admin',
-        'administrator',
-        '',
-    }
-    admin_dict = dict(admin)
-    for key in ('email', 'company_name', 'full_name'):
-        value = admin_dict.get(key)
-        if value:
-            allowed.add(str(value).strip().lower())
-
-    if normalized and normalized not in allowed:
-        logger.info(f"LOGIN_LEGACY_USERNAME_MISMATCH uname={redact_username(username)}")
-        return False
-
-    stored = admin['password_hash'] or ''
-    matched = False
-    try:
-        matched = verify_password(stored, password)
-    except Exception:
-        matched = False
-    if not matched and stored == password:
-        matched = True
-
-    if matched:
-        SessionManager.set_user(1, 'admin')
-        session['logged_in'] = True
-        session['username'] = (username or 'admin').strip() or 'admin'
-        logger.info(f"LOGIN_SUCCESS_LEGACY uname={redact_username(username)}")
-        return True
-
-    return False
-
-
 def init_routes(database, csrf_protect, rate_limiter):
     global db, csrf, limiter
     db = database
@@ -103,6 +43,25 @@ def init_routes(database, csrf_protect, rate_limiter):
     if limiter is None:
         logger = get_auth_logger()
         logger.warning("Flask-Limiter not available; login rate limiting disabled")
+
+
+def _ensure_bootstrap_user():
+    """Create a default admin user from env vars if none exist."""
+    if not db:
+        return
+    try:
+        if models_auth.User.query.count():
+            return
+        admin_hash = os.getenv("ADMIN_PASSWORD_HASH")
+        if not admin_hash:
+            return
+        username = os.getenv("ADMIN_USERNAME", "admin").strip() or "admin"
+        user = models_auth.User(username=username, password_hash=admin_hash, role='admin')
+        db.session.add(user)
+        db.session.commit()
+        get_auth_logger().info("Bootstrapped default admin user for authentication.")
+    except Exception as exc:
+        get_auth_logger().warning("Failed to bootstrap auth user: %s", exc)
 
 
 def _should_require_captcha() -> bool:
@@ -196,16 +155,13 @@ def login():
         except (ImportError, AttributeError):
             # If SessionManager not available, use legacy session
             pass
-        session['logged_in'] = True
-        session['user_id'] = 1
-        session['username'] = 'admin'
-        session['last_activity'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
         session.permanent = True
         return redirect(url_for("main.dashboard"))
     
     # Rate limiting is handled via limiter.hit() calls inside the function
     # The decorator approach doesn't work when limiter is None at module load time
     logger = get_auth_logger()
+    _ensure_bootstrap_user()
     
     # Initialize session for CSRF token (Flask-WTF needs a session to store CSRF token)
     session.permanent = True
@@ -328,23 +284,8 @@ def login():
                 user = models_auth.User.query.filter_by(username=uname).first()
             except Exception as e:
                 logger.error(f"Database query failed: {e}")
-                # Fall back to old admin table if new auth system not available
                 pass
         
-        if not user:
-            if _try_legacy_login(uname, pwd):
-                return redirect(url_for("main.dashboard"))
-            if not db:
-                # No SQLAlchemy backend configured and legacy failed
-                flash("Invalid credentials.", "danger")
-                logger.info(f"LOGIN_FAIL_LEGACY uname={redact_username(uname)} ip={request.remote_addr}")
-                return render_template(
-                    "auth_login.html",
-                    form=form if FORMS_AVAILABLE else None,
-                    wtforms_enabled=FORMS_AVAILABLE,
-                    form_data=form_data,
-                )
-
         if not user or (db and (user.is_locked() or not verify_password(user.password_hash, pwd))):
             # failed path - increment failed_login_count for local CAPTCHA
             session["failed_login_count"] = session.get("failed_login_count", 0) + 1
@@ -365,10 +306,6 @@ def login():
                     db.session.commit()
                 except Exception as e:
                     logger.error(f"Failed to record failed attempt: {e}")
-            else:
-                if _try_legacy_login(uname, pwd):
-                    session["failed_login_count"] = 0  # Reset on success
-                    return redirect(url_for("main.dashboard"))
             logger.info(f"LOGIN_FAIL uname={redact_username(uname)} ip={request.remote_addr}")
             flash("Invalid credentials.", "danger")
             import random
@@ -396,10 +333,6 @@ def login():
         # Use new SessionManager (only if user exists)
         if user:
             SessionManager.set_user(user.id, getattr(user, 'role', 'admin'))
-            session['logged_in'] = True
-            session['username'] = getattr(user, 'username', uname)
-            session['user'] = getattr(user, 'username', uname)  # For util_auth compatibility
-            session['user_id'] = user.id
             session["failed_login_count"] = 0  # Reset failed count on success
             
             # Check for TOTP if enabled

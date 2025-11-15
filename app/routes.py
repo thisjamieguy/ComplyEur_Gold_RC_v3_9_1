@@ -4,7 +4,6 @@ import sqlite3
 import logging
 import traceback
 from datetime import datetime, timedelta, date
-from functools import wraps
 import os
 import re
 from pathlib import Path
@@ -102,6 +101,7 @@ import atexit
 import signal
 from dotenv import load_dotenv
 from .runtime_env import build_runtime_state
+from .middleware.auth import login_required, current_user
 
 # Load environment variables
 load_dotenv()
@@ -120,109 +120,10 @@ def redact_private_trip_data(trip):
         }
     return trip
 
-# Rate limiting for login attempts
+# Rate limiting for login attempts (legacy /dev route)
 LOGIN_ATTEMPTS = {}
 MAX_ATTEMPTS = 5
 ATTEMPT_WINDOW_SECONDS = 300  # 5 minutes
-
-def login_required(f):
-    """
-    Authentication decorator supporting both legacy (logged_in) and new (user_id) session systems.
-    Prioritizes new auth system (user_id) when present to avoid authentication loops.
-    """
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        # Temporary developer bypass to speed up manual QA when needed
-        try:
-            if os.getenv('EUTRACKER_BYPASS_LOGIN') == '1':
-                # Set both legacy and new auth system flags
-                session['logged_in'] = True
-                session['user_id'] = 1  # Set user_id for new auth system
-                session['username'] = 'admin'
-                session['last_activity'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
-                # Force session to be permanent so it persists
-                session.permanent = True
-                # Initialize SessionManager timestamps to prevent expiration checks
-                try:
-                    from app.modules.auth import SessionManager
-                    SessionManager.rotate_session_id()  # This sets issued_at and last_seen
-                    SessionManager.touch_session()  # Update last_seen
-                except (ImportError, AttributeError):
-                    # If SessionManager not available, continue without it
-                    pass
-                return f(*args, **kwargs)
-        except Exception:
-            pass
-        
-        # PRIORITY 1: New auth system (user_id) - handle first to avoid conflicts
-        if session.get('user_id'):
-            try:
-                from app.modules.auth import SessionManager
-                # SessionManager.is_expired() will auto-initialize missing timestamps if needed
-                if SessionManager.is_expired():
-                    SessionManager.clear_session()
-                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
-                        return jsonify({'error': 'Session expired', 'redirect': url_for('auth.login')}), 401
-                    return redirect(url_for('auth.login'))
-                SessionManager.touch_session()
-                session.permanent = True  # Ensure session persists
-                return f(*args, **kwargs)
-            except ImportError:
-                # If SessionManager not available, fall back to old system
-                logger.warning("SessionManager not available, falling back to legacy auth")
-                pass
-            except Exception as e:
-                logger.error(f"Error in SessionManager: {e}")
-                # Clear session on error and redirect to login
-                session.clear()
-                if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
-                    return jsonify({'error': 'Session error', 'redirect': url_for('auth.login')}), 401
-                return redirect(url_for('auth.login'))
-        
-        # PRIORITY 2: Legacy auth system (logged_in) - only if user_id not present
-        if session.get('logged_in'):
-            # Check session timeout for old system - compare in UTC to avoid timezone skew
-            if 'last_activity' in session:
-                try:
-                    last_activity_str = session['last_activity']
-                    # Parse to naive UTC
-                    if isinstance(last_activity_str, str):
-                        if 'Z' in last_activity_str:
-                            last_activity_str = last_activity_str.replace('Z', '')
-                        if '+' in last_activity_str:
-                            last_activity_str = last_activity_str.split('+')[0]
-                        if 'T' in last_activity_str:
-                            last_activity = datetime.strptime(last_activity_str, '%Y-%m-%dT%H:%M:%S')
-                        else:
-                            last_activity = datetime.fromisoformat(last_activity_str)
-                    else:
-                        last_activity = datetime.utcnow()
-
-                    # Ensure both datetimes are naive
-                    if getattr(last_activity, 'tzinfo', None):
-                        last_activity = last_activity.replace(tzinfo=None)
-
-                    if datetime.utcnow() - last_activity > timedelta(minutes=30):
-                        session.clear()
-                        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
-                            return jsonify({'error': 'Session expired', 'redirect': url_for('auth.login')}), 401
-                        return redirect(url_for('auth.login'))
-                except (ValueError, TypeError, AttributeError):
-                    # If datetime parsing fails, clear session
-                    session.clear()
-                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
-                        return jsonify({'error': 'Session invalid', 'redirect': url_for('auth.login')}), 401
-                    return redirect(url_for('auth.login'))
-            
-            # Update last activity for legacy system
-            session['last_activity'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
-            return f(*args, **kwargs)
-        
-        # No valid session found - require login
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
-            return jsonify({'error': 'Authentication required', 'redirect': url_for('auth.login')}), 401
-        return redirect(url_for('auth.login'))
-    return decorated_function
 
 def get_db():
     """Get database connection"""
@@ -230,6 +131,14 @@ def get_db():
     conn = sqlite3.connect(current_app.config['DATABASE'])
     conn.row_factory = sqlite3.Row
     return conn
+
+
+def _current_actor(default: str = 'admin') -> str:
+    """Return the username for audit logging."""
+    user = current_user()
+    if user and getattr(user, 'username', None):
+        return user.username  # type: ignore[attr-defined]
+    return default
 
 def verify_and_upgrade_password(stored_hash, password):
     """Verify password and upgrade hash if needed"""
@@ -696,9 +605,8 @@ def login_old():
                 c.execute('UPDATE admin SET password_hash = ? WHERE id = 1', (new_hash,))
                 conn.commit()
             conn.close()
-            session['logged_in'] = True
-            from datetime import timezone
-            session['last_activity'] = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+            from app.modules.auth import SessionManager
+            SessionManager.set_user(1, 'admin')
             write_audit(CONFIG['AUDIT_LOG_PATH'], 'login_success', 'admin', {'ip': ip})
             return redirect(url_for('main.home'))
         # failed
@@ -818,16 +726,19 @@ def setup():
 def logout():
     from flask import current_app
     CONFIG = current_app.config['CONFIG']
-    session.pop('logged_in', None)
-    write_audit(CONFIG['AUDIT_LOG_PATH'], 'logout', 'admin', {})
+    actor = _current_actor()
+    from app.modules.auth import SessionManager
+    SessionManager.clear_session()
+    write_audit(CONFIG['AUDIT_LOG_PATH'], 'logout', actor, {})
     return redirect(url_for('auth.login'))
 
 @main_bp.route('/profile')
 @login_required
 def profile():
     """Lightweight admin profile placeholder page."""
-    admin_name = session.get('username', 'Admin')
-    last_login = session.get('last_activity')
+    user = current_user()
+    admin_name = getattr(user, 'username', 'Admin') if user else 'Admin'
+    last_login = session.get('last_seen') or session.get('last_activity')
     return render_template('profile.html', admin_name=admin_name, last_login=last_login)
 
 @main_bp.route('/home')
@@ -1394,7 +1305,7 @@ def delete_employee(employee_id):
                 from flask import current_app
                 CONFIG = current_app.config.get('CONFIG', {})
                 audit_log_path = CONFIG.get('AUDIT_LOG_PATH', 'logs/audit.log')
-                write_audit(audit_log_path, 'employee_delete', session.get('username', 'admin'), {
+                write_audit(audit_log_path, 'employee_delete', _current_actor(), {
                     'employee_id': employee_id,
                     'trips_deleted': trips_deleted
                 })
@@ -2285,10 +2196,13 @@ def admin_settings():
 @main_bp.route('/api/test_session')
 def test_session():
     """Test endpoint to check session status"""
+    user = current_user()
     return jsonify({
-        'logged_in': session.get('logged_in', False),
-        'username': session.get('username', None),
-        'last_activity': session.get('last_activity', None)
+        'authenticated': bool(user),
+        'username': getattr(user, 'username', None) if user else None,
+        'user_id': getattr(user, 'id', None) if user else None,
+        'last_seen': session.get('last_seen'),
+        'issued_at': session.get('issued_at')
     })
 
 @main_bp.route('/api/test_calendar_data')
