@@ -100,6 +100,14 @@ except Exception as e:
     logger.error(f"Failed to import reports service: {e}")
     logger.error(traceback.format_exc())
     raise
+
+try:
+    from .services import scenario_service
+    logger.info("Successfully imported scenario service")
+except Exception as e:
+    logger.error(f"Failed to import scenario service: {e}")
+    logger.error(traceback.format_exc())
+    raise
 import io
 import csv
 import zipfile
@@ -1879,12 +1887,8 @@ def export_trips_csv_route():
 def what_if_scenario():
     """Display what-if scenario page"""
     from flask import current_app
-    # Provide employees for the select and country code mapping used in template
-    conn = get_db()
-    c = conn.cursor()
-    c.execute('SELECT id, name FROM employees ORDER BY name')
-    employees = c.fetchall()
-    conn.close()
+    db_path = current_app.config['DATABASE']
+    employees = scenario_service.list_employees(db_path)
     country_codes = current_app.config.get('COUNTRY_CODE_MAPPING', {})
     warning_threshold = current_app.config['CONFIG'].get('FUTURE_JOB_WARNING_THRESHOLD', 80)
     return render_template('what_if_scenario.html', employees=employees, country_codes=country_codes, warning_threshold=warning_threshold)
@@ -1902,48 +1906,15 @@ def api_calculate_scenario():
         if not (employee_id and start_date and end_date and country):
             return jsonify({'error': 'Missing required fields'}), 400
 
-        # Load employee trips
-        conn = get_db()
-        c = conn.cursor()
-        c.execute('SELECT entry_date, exit_date, country FROM trips WHERE employee_id = ?', (employee_id,))
-        trips = [
-            {'entry_date': r['entry_date'], 'exit_date': r['exit_date'], 'country': r['country']}
-            for r in c.fetchall()
-        ]
-        conn.close()
-
-        # Calculate scenario
-        from datetime import date as _date
-        scenario = calculate_what_if_scenario(
+        db_path = current_app.config['DATABASE']
+        resp = scenario_service.calculate_scenario(
+            db_path,
             employee_id,
-            trips,
-            _date.fromisoformat(start_date),
-            _date.fromisoformat(end_date),
+            start_date,
+            end_date,
             country,
             current_app.config['CONFIG'].get('FUTURE_JOB_WARNING_THRESHOLD', 80)
         )
-
-        # Shape response for the frontend
-        resp = {
-            'employee_name': '',
-            'job_duration': scenario['job_duration'],
-            'days_used_before': scenario['days_used_before_job'],
-            'days_after': scenario['days_after_job'],
-            'days_remaining': scenario['days_remaining_after_job'],
-            'risk_level': scenario['risk_level'],
-            'is_schengen': scenario['is_schengen'],
-            'compliant_from_date': scenario['compliant_from_date'].isoformat() if scenario.get('compliant_from_date') else None,
-        }
-
-        # Get employee name
-        conn = get_db()
-        c = conn.cursor()
-        c.execute('SELECT name FROM employees WHERE id = ?', (employee_id,))
-        row = c.fetchone()
-        conn.close()
-        if row:
-            resp['employee_name'] = row['name']
-
         return jsonify(resp)
     except Exception as e:
         logger.error(f"Scenario calculation error: {e}")
