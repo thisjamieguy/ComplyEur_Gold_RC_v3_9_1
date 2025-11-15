@@ -1811,84 +1811,25 @@ def future_job_alerts():
     risk_filter = request.args.get('risk', 'all')  # all | red | yellow | green
     sort_by = request.args.get('sort', 'risk')     # risk | date | employee | days
 
-    # Collect forecasts across all employees
-    # OPTIMIZATION V2: Batch fetch all trips instead of N queries (one per employee)
-    conn = get_db()
-    c = conn.cursor()
-    c.execute('SELECT id, name FROM employees ORDER BY name')
-    employees = c.fetchall()
-
-    all_forecasts = []
-    
-    if employees:
-        # Batch fetch all trips for all employees in a single query
-        employee_ids = [emp['id'] for emp in employees]
-        placeholders = ','.join('?' * len(employee_ids))
-        
-        c.execute(f'''
-            SELECT employee_id, entry_date, exit_date, country
-            FROM trips
-            WHERE employee_id IN ({placeholders})
-            ORDER BY employee_id, entry_date ASC
-        ''', employee_ids)
-        
-        all_trips_raw = c.fetchall()
-        
-        # Group trips by employee_id in Python (much faster than multiple DB queries)
-        trips_by_employee = {}
-        for trip in all_trips_raw:
-            emp_id = trip['employee_id']
-            if emp_id not in trips_by_employee:
-                trips_by_employee[emp_id] = []
-            trips_by_employee[emp_id].append({
-                'entry_date': trip['entry_date'],
-                'exit_date': trip['exit_date'],
-                'country': trip['country']
-            })
-        
-        # Process forecasts for each employee
-        for emp in employees:
-            trips = trips_by_employee.get(emp['id'], [])
-            
-            # Calculate future job forecasts for this employee
-            forecasts = get_all_future_jobs_for_employee(emp['id'], trips, warning_threshold, compliance_start_date)
-            for f in forecasts:
-                # Enrich with employee metadata for the template
-                f['employee_name'] = emp['name']
-                all_forecasts.append(f)
-    
-    # Connection managed by Flask teardown handler
-
-    # Counts before filtering
-    red_count = sum(1 for f in all_forecasts if f['risk_level'] == 'red')
-    yellow_count = sum(1 for f in all_forecasts if f['risk_level'] == 'yellow')
-    green_count = sum(1 for f in all_forecasts if f['risk_level'] == 'green')
-
-    # Apply risk filter
-    if risk_filter in {'red', 'yellow', 'green'}:
-        filtered = [f for f in all_forecasts if f['risk_level'] == risk_filter]
-    else:
-        filtered = list(all_forecasts)
-
-    # Sorting
-    if sort_by == 'date':
-        filtered.sort(key=lambda f: f['job_start_date'])
-    elif sort_by == 'employee':
-        filtered.sort(key=lambda f: f.get('employee_name', ''))
-    elif sort_by == 'days':
-        # Sort by projected days after job, descending
-        filtered.sort(key=lambda f: f.get('days_after_job', 0), reverse=True)
-    else:
-        # Default: risk order red > yellow > green
-        risk_order = {'red': 0, 'yellow': 1, 'green': 2}
-        filtered.sort(key=lambda f: risk_order.get(f['risk_level'], 3))
+    db_path = current_app.config['DATABASE']
+    all_forecasts = reports_service.get_future_alerts(
+        db_path,
+        warning_threshold,
+        compliance_start_date,
+    )
+    summary = reports_service.summarise_future_alerts(all_forecasts)
+    filtered = reports_service.filter_and_sort_future_alerts(
+        all_forecasts,
+        risk_filter=risk_filter,
+        sort_by=sort_by,
+    )
 
     return render_template(
         'future_job_alerts.html',
         forecasts=filtered,
-        red_count=red_count,
-        yellow_count=yellow_count,
-        green_count=green_count,
+        red_count=summary['red'],
+        yellow_count=summary['yellow'],
+        green_count=summary['green'],
         warning_threshold=warning_threshold,
         risk_filter=risk_filter,
         sort_by=sort_by
