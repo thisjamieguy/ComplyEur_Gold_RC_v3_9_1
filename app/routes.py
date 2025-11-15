@@ -93,6 +93,21 @@ except Exception as e:
     logger.error(traceback.format_exc())
     raise
 
+try:
+    from .services import reports_service
+    logger.info("Successfully imported reports service")
+except Exception as e:
+    logger.error(f"Failed to import reports service: {e}")
+    logger.error(traceback.format_exc())
+    raise
+
+try:
+    from .services import scenario_service
+    logger.info("Successfully imported scenario service")
+except Exception as e:
+    logger.error(f"Failed to import scenario service: {e}")
+    logger.error(traceback.format_exc())
+    raise
 import io
 import csv
 import zipfile
@@ -1804,84 +1819,25 @@ def future_job_alerts():
     risk_filter = request.args.get('risk', 'all')  # all | red | yellow | green
     sort_by = request.args.get('sort', 'risk')     # risk | date | employee | days
 
-    # Collect forecasts across all employees
-    # OPTIMIZATION V2: Batch fetch all trips instead of N queries (one per employee)
-    conn = get_db()
-    c = conn.cursor()
-    c.execute('SELECT id, name FROM employees ORDER BY name')
-    employees = c.fetchall()
-
-    all_forecasts = []
-    
-    if employees:
-        # Batch fetch all trips for all employees in a single query
-        employee_ids = [emp['id'] for emp in employees]
-        placeholders = ','.join('?' * len(employee_ids))
-        
-        c.execute(f'''
-            SELECT employee_id, entry_date, exit_date, country
-            FROM trips
-            WHERE employee_id IN ({placeholders})
-            ORDER BY employee_id, entry_date ASC
-        ''', employee_ids)
-        
-        all_trips_raw = c.fetchall()
-        
-        # Group trips by employee_id in Python (much faster than multiple DB queries)
-        trips_by_employee = {}
-        for trip in all_trips_raw:
-            emp_id = trip['employee_id']
-            if emp_id not in trips_by_employee:
-                trips_by_employee[emp_id] = []
-            trips_by_employee[emp_id].append({
-                'entry_date': trip['entry_date'],
-                'exit_date': trip['exit_date'],
-                'country': trip['country']
-            })
-        
-        # Process forecasts for each employee
-        for emp in employees:
-            trips = trips_by_employee.get(emp['id'], [])
-            
-            # Calculate future job forecasts for this employee
-            forecasts = get_all_future_jobs_for_employee(emp['id'], trips, warning_threshold, compliance_start_date)
-            for f in forecasts:
-                # Enrich with employee metadata for the template
-                f['employee_name'] = emp['name']
-                all_forecasts.append(f)
-    
-    # Connection managed by Flask teardown handler
-
-    # Counts before filtering
-    red_count = sum(1 for f in all_forecasts if f['risk_level'] == 'red')
-    yellow_count = sum(1 for f in all_forecasts if f['risk_level'] == 'yellow')
-    green_count = sum(1 for f in all_forecasts if f['risk_level'] == 'green')
-
-    # Apply risk filter
-    if risk_filter in {'red', 'yellow', 'green'}:
-        filtered = [f for f in all_forecasts if f['risk_level'] == risk_filter]
-    else:
-        filtered = list(all_forecasts)
-
-    # Sorting
-    if sort_by == 'date':
-        filtered.sort(key=lambda f: f['job_start_date'])
-    elif sort_by == 'employee':
-        filtered.sort(key=lambda f: f.get('employee_name', ''))
-    elif sort_by == 'days':
-        # Sort by projected days after job, descending
-        filtered.sort(key=lambda f: f.get('days_after_job', 0), reverse=True)
-    else:
-        # Default: risk order red > yellow > green
-        risk_order = {'red': 0, 'yellow': 1, 'green': 2}
-        filtered.sort(key=lambda f: risk_order.get(f['risk_level'], 3))
+    db_path = current_app.config['DATABASE']
+    all_forecasts = reports_service.get_future_alerts(
+        db_path,
+        warning_threshold,
+        compliance_start_date,
+    )
+    summary = reports_service.summarise_future_alerts(all_forecasts)
+    filtered = reports_service.filter_and_sort_future_alerts(
+        all_forecasts,
+        risk_filter=risk_filter,
+        sort_by=sort_by,
+    )
 
     return render_template(
         'future_job_alerts.html',
         forecasts=filtered,
-        red_count=red_count,
-        yellow_count=yellow_count,
-        green_count=green_count,
+        red_count=summary['red'],
+        yellow_count=summary['yellow'],
+        green_count=summary['green'],
         warning_threshold=warning_threshold,
         risk_filter=risk_filter,
         sort_by=sort_by
@@ -1899,54 +1855,12 @@ def export_future_alerts():
     from .services.rolling90 import COMPLIANCE_START_DATE
     compliance_start_date = COMPLIANCE_START_DATE
 
-    # Build the same forecast dataset (unfiltered export)
-    conn = get_db()
-    c = conn.cursor()
-    c.execute('SELECT id, name FROM employees ORDER BY name')
-    employees = c.fetchall()
-
-    rows = []
-    for emp in employees:
-        c.execute('SELECT entry_date, exit_date, country FROM trips WHERE employee_id = ?', (emp['id'],))
-        trips = [
-            {
-                'entry_date': t['entry_date'],
-                'exit_date': t['exit_date'],
-                'country': t['country']
-            }
-            for t in c.fetchall()
-        ]
-
-        forecasts = get_all_future_jobs_for_employee(emp['id'], trips, warning_threshold, compliance_start_date)
-        for f in forecasts:
-            rows.append({
-                'Employee': emp['name'],
-                'Risk Level': f['risk_level'],
-                'Job Start': f['job_start_date'].strftime('%d-%m-%Y'),
-                'Job End': f['job_end_date'].strftime('%d-%m-%Y'),
-                'Country': (f['job'].get('country') or f['job'].get('country_code', '')),
-                'Job Duration (days)': f['job_duration'],
-                'Days Used Before': f['days_used_before_job'],
-                'Days After Job': f['days_after_job'],
-                'Days Remaining': f['days_remaining_after_job'],
-                'Compliant From': f['compliant_from_date'].strftime('%d-%m-%Y') if f.get('compliant_from_date') else ''
-            })
-
-    conn.close()
-
-    # Write CSV
-    output = io.StringIO()
-    writer = csv.writer(output)
-    headers = [
-        'Employee', 'Risk Level', 'Job Start', 'Job End', 'Country',
-        'Job Duration (days)', 'Days Used Before', 'Days After Job',
-        'Days Remaining', 'Compliant From'
-    ]
-    writer.writerow(headers)
-    for r in rows:
-        writer.writerow([r[h] for h in headers])
-
-    csv_data = output.getvalue()
+    db_path = current_app.config['DATABASE']
+    csv_data = reports_service.generate_future_alerts_csv(
+        db_path,
+        warning_threshold,
+        compliance_start_date,
+    )
     resp = make_response(csv_data)
     resp.headers['Content-Type'] = 'text/csv'
     resp.headers['Content-Disposition'] = 'attachment; filename=future_job_alerts.csv'
@@ -1973,12 +1887,8 @@ def export_trips_csv_route():
 def what_if_scenario():
     """Display what-if scenario page"""
     from flask import current_app
-    # Provide employees for the select and country code mapping used in template
-    conn = get_db()
-    c = conn.cursor()
-    c.execute('SELECT id, name FROM employees ORDER BY name')
-    employees = c.fetchall()
-    conn.close()
+    db_path = current_app.config['DATABASE']
+    employees = scenario_service.list_employees(db_path)
     country_codes = current_app.config.get('COUNTRY_CODE_MAPPING', {})
     warning_threshold = current_app.config['CONFIG'].get('FUTURE_JOB_WARNING_THRESHOLD', 80)
     return render_template('what_if_scenario.html', employees=employees, country_codes=country_codes, warning_threshold=warning_threshold)
@@ -1996,48 +1906,15 @@ def api_calculate_scenario():
         if not (employee_id and start_date and end_date and country):
             return jsonify({'error': 'Missing required fields'}), 400
 
-        # Load employee trips
-        conn = get_db()
-        c = conn.cursor()
-        c.execute('SELECT entry_date, exit_date, country FROM trips WHERE employee_id = ?', (employee_id,))
-        trips = [
-            {'entry_date': r['entry_date'], 'exit_date': r['exit_date'], 'country': r['country']}
-            for r in c.fetchall()
-        ]
-        conn.close()
-
-        # Calculate scenario
-        from datetime import date as _date
-        scenario = calculate_what_if_scenario(
+        db_path = current_app.config['DATABASE']
+        resp = scenario_service.calculate_scenario(
+            db_path,
             employee_id,
-            trips,
-            _date.fromisoformat(start_date),
-            _date.fromisoformat(end_date),
+            start_date,
+            end_date,
             country,
             current_app.config['CONFIG'].get('FUTURE_JOB_WARNING_THRESHOLD', 80)
         )
-
-        # Shape response for the frontend
-        resp = {
-            'employee_name': '',
-            'job_duration': scenario['job_duration'],
-            'days_used_before': scenario['days_used_before_job'],
-            'days_after': scenario['days_after_job'],
-            'days_remaining': scenario['days_remaining_after_job'],
-            'risk_level': scenario['risk_level'],
-            'is_schengen': scenario['is_schengen'],
-            'compliant_from_date': scenario['compliant_from_date'].isoformat() if scenario.get('compliant_from_date') else None,
-        }
-
-        # Get employee name
-        conn = get_db()
-        c = conn.cursor()
-        c.execute('SELECT name FROM employees WHERE id = ?', (employee_id,))
-        row = c.fetchone()
-        conn.close()
-        if row:
-            resp['employee_name'] = row['name']
-
         return jsonify(resp)
     except Exception as e:
         logger.error(f"Scenario calculation error: {e}")
