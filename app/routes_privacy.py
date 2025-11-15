@@ -15,12 +15,15 @@ from flask import (
 
 from app.services.audit import write_audit
 from app.services.dsar import (
-    anonymize_employee,
     create_dsar_export,
     delete_employee_data,
     rectify_employee_name,
 )
-from app.services.retention import get_expired_trips, purge_expired_trips
+from app.services.retention import (
+    anonymize_employee,
+    get_expired_trips,
+    purge_expired_trips,
+)
 
 from .util_auth import login_required
 
@@ -215,4 +218,31 @@ def dsar_anonymize(employee_id: int):
             {"employee_id": employee_id, "error": str(exc)},
         )
         return jsonify({"success": False, "error": str(exc)}), 500
+
+
+@privacy_bp.route("/admin_privacy_tools")
+@login_required
+def admin_privacy_tools():
+    """Render the privacy tools dashboard card."""
+    config = _config()
+    retention_months = config.get("RETENTION_MONTHS", 36)
+    expired_count = 0
+    try:
+        trips = get_expired_trips(_db_path(), retention_months)
+        expired_count = len(trips)
+    except Exception:  # pragma: no cover - best-effort status
+        expired_count = 0
+    return render_template(
+        "admin_privacy_tools.html",
+        retention_months=retention_months,
+        expired_count=expired_count,
+        last_purge=None,
+    )
+
+
+@privacy_bp.route("/admin/privacy-tools")
+@login_required
+def admin_privacy_tools_alias():
+    """Alias endpoint retained for backwards compatibility."""
+    return admin_privacy_tools()
 

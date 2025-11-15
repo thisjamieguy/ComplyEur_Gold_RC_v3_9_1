@@ -33,14 +33,6 @@ except Exception as e:
     raise
 
 try:
-    from .services.exports import export_trips_csv, export_employee_report_pdf, export_all_employees_report_pdf
-    logger.info("Successfully imported exports service")
-except Exception as e:
-    logger.error(f"Failed to import exports service: {e}")
-    logger.error(traceback.format_exc())
-    raise
-
-try:
     from .services.rolling90 import presence_days, days_used_in_window, earliest_safe_entry, calculate_days_remaining, get_risk_level, days_until_compliant
     logger.info("Successfully imported rolling90 service")
 except Exception as e:
@@ -74,14 +66,6 @@ try:
     logger.info("Successfully imported backup service")
 except Exception as e:
     logger.error(f"Failed to import backup service: {e}")
-    logger.error(traceback.format_exc())
-    raise
-
-try:
-    from .services import reports_service
-    logger.info("Successfully imported reports service")
-except Exception as e:
-    logger.error(f"Failed to import reports service: {e}")
     logger.error(traceback.format_exc())
     raise
 
@@ -1786,86 +1770,6 @@ def import_excel():
     return render_template('import_excel.html')
 
 
-@main_bp.route('/future_job_alerts')
-@login_required
-def future_job_alerts():
-    """Display future job alerts"""
-    from flask import current_app
-    CONFIG = current_app.config['CONFIG']
-
-    warning_threshold = CONFIG.get('FUTURE_JOB_WARNING_THRESHOLD', 80)
-    
-    # Use fixed compliance start date (October 12, 2025)
-    from .services.rolling90 import COMPLIANCE_START_DATE
-    compliance_start_date = COMPLIANCE_START_DATE
-
-    # Query params
-    risk_filter = request.args.get('risk', 'all')  # all | red | yellow | green
-    sort_by = request.args.get('sort', 'risk')     # risk | date | employee | days
-
-    db_path = current_app.config['DATABASE']
-    all_forecasts = reports_service.get_future_alerts(
-        db_path,
-        warning_threshold,
-        compliance_start_date,
-    )
-    summary = reports_service.summarise_future_alerts(all_forecasts)
-    filtered = reports_service.filter_and_sort_future_alerts(
-        all_forecasts,
-        risk_filter=risk_filter,
-        sort_by=sort_by,
-    )
-
-    return render_template(
-        'future_job_alerts.html',
-        forecasts=filtered,
-        red_count=summary['red'],
-        yellow_count=summary['yellow'],
-        green_count=summary['green'],
-        warning_threshold=warning_threshold,
-        risk_filter=risk_filter,
-        sort_by=sort_by
-    )
-
-@main_bp.route('/export_future_alerts')
-@login_required
-def export_future_alerts():
-    """Export future job alerts to CSV"""
-    from flask import current_app
-    CONFIG = current_app.config['CONFIG']
-    warning_threshold = CONFIG.get('FUTURE_JOB_WARNING_THRESHOLD', 80)
-    
-    # Use fixed compliance start date (October 12, 2025)
-    from .services.rolling90 import COMPLIANCE_START_DATE
-    compliance_start_date = COMPLIANCE_START_DATE
-
-    db_path = current_app.config['DATABASE']
-    csv_data = reports_service.generate_future_alerts_csv(
-        db_path,
-        warning_threshold,
-        compliance_start_date,
-    )
-    resp = make_response(csv_data)
-    resp.headers['Content-Type'] = 'text/csv'
-    resp.headers['Content-Disposition'] = 'attachment; filename=future_job_alerts.csv'
-    return resp
-
-@main_bp.route('/export/trips/csv')
-@login_required
-def export_trips_csv_route():
-    """Export trips to CSV for all employees."""
-    from flask import current_app
-    db_path = current_app.config['DATABASE']
-    try:
-        csv_data = export_trips_csv(db_path)
-        resp = make_response(csv_data)
-        resp.headers['Content-Type'] = 'text/csv'
-        resp.headers['Content-Disposition'] = 'attachment; filename=trips.csv'
-        return resp
-    except Exception as e:
-        logger.error(f"Error exporting trips CSV: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
-
 @main_bp.route('/what_if_scenario')
 @login_required
 def what_if_scenario():
@@ -1903,33 +1807,6 @@ def api_calculate_scenario():
     except Exception as e:
         logger.error(f"Scenario calculation error: {e}")
         return jsonify({'error': str(e)}), 500
-
-@main_bp.route('/admin_privacy_tools')
-@login_required
-def admin_privacy_tools():
-    """Display admin privacy tools"""
-    from flask import current_app
-    CONFIG = current_app.config['CONFIG']
-    retention_months = CONFIG.get('RETENTION_MONTHS', 36)
-    try:
-        db_path = current_app.config['DATABASE']
-        trips = get_expired_trips(db_path, retention_months)
-        expired_count = len(trips)
-    except Exception:
-        expired_count = 0
-    # last_purge tracking not persisted yet; show 'Never' via template default
-    return render_template(
-        'admin_privacy_tools.html',
-        retention_months=retention_months,
-        expired_count=expired_count,
-        last_purge=None
-    )
-
-# Alias path expected by some clients/tests
-@main_bp.route('/admin/privacy-tools')
-@login_required
-def admin_privacy_tools_alias():
-    return render_template('admin_privacy_tools.html')
 
 @main_bp.route('/admin_settings', methods=['GET', 'POST'])
 @login_required
