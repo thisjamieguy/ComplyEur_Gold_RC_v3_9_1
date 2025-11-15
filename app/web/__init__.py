@@ -12,5 +12,6 @@ from . import exports  # noqa: E402,F401
 from . import calendar  # noqa: E402,F401
 from . import admin  # noqa: E402,F401
 from . import react_api  # noqa: E402,F401
+from . import error_handlers  # noqa: E402,F401
 
 __all__ = ['main_bp']
