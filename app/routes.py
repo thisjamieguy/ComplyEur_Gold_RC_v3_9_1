@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify, flash, make_response, send_file
+from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify, flash, make_response
 import hashlib
 import sqlite3
 import logging
@@ -29,22 +29,6 @@ try:
     logger.info("Successfully imported audit service")
 except Exception as e:
     logger.error(f"Failed to import audit service: {e}")
-    logger.error(traceback.format_exc())
-    raise
-
-try:
-    from .services.retention import purge_expired_trips, get_expired_trips, anonymize_employee
-    logger.info("Successfully imported retention service")
-except Exception as e:
-    logger.error(f"Failed to import retention service: {e}")
-    logger.error(traceback.format_exc())
-    raise
-
-try:
-    from .services.dsar import create_dsar_export, delete_employee_data, rectify_employee_name, get_employee_data
-    logger.info("Successfully imported dsar service")
-except Exception as e:
-    logger.error(f"Failed to import dsar service: {e}")
     logger.error(traceback.format_exc())
     raise
 
@@ -1946,129 +1930,6 @@ def admin_privacy_tools():
 @login_required
 def admin_privacy_tools_alias():
     return render_template('admin_privacy_tools.html')
-
-# Retention management endpoints
-@main_bp.route('/api/retention/preview')
-@login_required
-def retention_preview():
-    from flask import current_app
-    CONFIG = current_app.config['CONFIG']
-    retention_months = CONFIG.get('RETENTION_MONTHS', 36)
-    db_path = current_app.config['DATABASE']
-    try:
-        trips = get_expired_trips(db_path, retention_months)
-        employees_affected = len({t['employee_id'] for t in trips})
-        return jsonify({
-            'success': True,
-            'trips_count': len(trips),
-            'employees_affected': employees_affected
-        })
-    except Exception as e:
-        logger.error(f"Retention preview error: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@main_bp.route('/admin/retention/expired')
-@login_required
-def retention_expired():
-    from flask import current_app
-    CONFIG = current_app.config['CONFIG']
-    retention_months = CONFIG.get('RETENTION_MONTHS', 36)
-    db_path = current_app.config['DATABASE']
-    try:
-        trips = get_expired_trips(db_path, retention_months)
-    except Exception:
-        trips = []
-    return render_template('expired_trips.html', trips=trips, retention_months=retention_months)
-
-@main_bp.route('/admin/retention/purge', methods=['POST'])
-@login_required
-def retention_purge():
-    from flask import current_app
-    CONFIG = current_app.config['CONFIG']
-    db_path = current_app.config['DATABASE']
-    retention_months = CONFIG.get('RETENTION_MONTHS', 36)
-    try:
-        result = purge_expired_trips(db_path, retention_months)
-        write_audit(CONFIG['AUDIT_LOG_PATH'], 'retention_purge', 'admin', result)
-        return jsonify({'success': True, **result})
-    except Exception as e:
-        logger.error(f"Retention purge error: {e}")
-        write_audit(CONFIG['AUDIT_LOG_PATH'], 'retention_purge_error', 'admin', {'error': str(e)})
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-# DSAR endpoints
-@main_bp.route('/admin/dsar/export/<int:employee_id>')
-@login_required
-def dsar_export(employee_id: int):
-    from flask import current_app
-    CONFIG = current_app.config['CONFIG']
-    db_path = current_app.config['DATABASE']
-    try:
-        result = create_dsar_export(db_path, employee_id, CONFIG['DSAR_EXPORT_DIR'], CONFIG.get('RETENTION_MONTHS', 36))
-        if not result.get('success'):
-            return jsonify(result), 404
-        write_audit(CONFIG['AUDIT_LOG_PATH'], 'dsar_export', 'admin', {'employee_id': employee_id, 'file': result['filename']})
-        return send_file(result['file_path'], as_attachment=True, download_name=result['filename'])
-    except Exception as e:
-        logger.error(f"DSAR export error: {e}")
-        write_audit(CONFIG['AUDIT_LOG_PATH'], 'dsar_export_error', 'admin', {'employee_id': employee_id, 'error': str(e)})
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@main_bp.route('/admin/dsar/rectify/<int:employee_id>', methods=['POST'])
-@login_required
-def dsar_rectify(employee_id: int):
-    from flask import current_app
-    CONFIG = current_app.config['CONFIG']
-    db_path = current_app.config['DATABASE']
-    try:
-        payload = request.get_json(force=True) or {}
-        new_name = (payload.get('new_name') or '').strip()
-        result = rectify_employee_name(db_path, employee_id, new_name)
-        if result.get('success'):
-            write_audit(CONFIG['AUDIT_LOG_PATH'], 'dsar_rectify', 'admin', {'employee_id': employee_id, 'new_name': new_name})
-        else:
-            write_audit(CONFIG['AUDIT_LOG_PATH'], 'dsar_rectify_failed', 'admin', {'employee_id': employee_id, 'error': result.get('error')})
-        return jsonify(result)
-    except Exception as e:
-        logger.error(f"DSAR rectify error: {e}")
-        write_audit(CONFIG['AUDIT_LOG_PATH'], 'dsar_rectify_error', 'admin', {'employee_id': employee_id, 'error': str(e)})
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@main_bp.route('/admin/dsar/delete/<int:employee_id>', methods=['POST'])
-@login_required
-def dsar_delete(employee_id: int):
-    from flask import current_app
-    CONFIG = current_app.config['CONFIG']
-    db_path = current_app.config['DATABASE']
-    try:
-        result = delete_employee_data(db_path, employee_id)
-        if result.get('success'):
-            write_audit(CONFIG['AUDIT_LOG_PATH'], 'dsar_delete', 'admin', {'employee_id': employee_id, 'trips_deleted': result.get('trips_deleted', 0)})
-        else:
-            write_audit(CONFIG['AUDIT_LOG_PATH'], 'dsar_delete_failed', 'admin', {'employee_id': employee_id, 'error': result.get('error')})
-        return jsonify(result)
-    except Exception as e:
-        logger.error(f"DSAR delete error: {e}")
-        write_audit(CONFIG['AUDIT_LOG_PATH'], 'dsar_delete_error', 'admin', {'employee_id': employee_id, 'error': str(e)})
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@main_bp.route('/admin/dsar/anonymize/<int:employee_id>', methods=['POST'])
-@login_required
-def dsar_anonymize(employee_id: int):
-    from flask import current_app
-    CONFIG = current_app.config['CONFIG']
-    db_path = current_app.config['DATABASE']
-    try:
-        result = anonymize_employee(db_path, employee_id)
-        if result.get('success'):
-            write_audit(CONFIG['AUDIT_LOG_PATH'], 'dsar_anonymize', 'admin', {'employee_id': employee_id, 'new_name': result.get('new_name')})
-        else:
-            write_audit(CONFIG['AUDIT_LOG_PATH'], 'dsar_anonymize_failed', 'admin', {'employee_id': employee_id, 'error': result.get('error')})
-        return jsonify(result)
-    except Exception as e:
-        logger.error(f"DSAR anonymize error: {e}")
-        write_audit(CONFIG['AUDIT_LOG_PATH'], 'dsar_anonymize_error', 'admin', {'employee_id': employee_id, 'error': str(e)})
-        return jsonify({'success': False, 'error': str(e)}), 500
 
 @main_bp.route('/admin_settings', methods=['GET', 'POST'])
 @login_required

@@ -364,6 +364,13 @@ def create_app():
     except Exception as e:
         logger.warning(f"Failed to register audit blueprint: {e}")
 
+    try:
+        from .routes_privacy import privacy_bp
+        app.register_blueprint(privacy_bp)
+        logger.info("Privacy blueprint registered")
+    except Exception as e:
+        logger.warning(f"Failed to register privacy blueprint: {e}")
+
 
     # Jinja filters (match main app filters for consistency)
     @app.template_filter('format_date')
