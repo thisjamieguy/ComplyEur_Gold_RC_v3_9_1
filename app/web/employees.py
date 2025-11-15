@@ -79,3 +79,22 @@ def delete_employee(employee_id):
     finally:
         if 'conn' in locals():
             conn.close()
+
+
+@main_bp.route('/api/employees/search')
+@login_required
+def api_employees_search():
+    """Search employees by name for autocomplete fields."""
+    q = request.args.get('q', '').strip().lower()
+    conn = get_db()
+    c = conn.cursor()
+    try:
+        if q:
+            c.execute('SELECT id, name FROM employees WHERE LOWER(name) LIKE ?', (f'%{q}%',))
+        else:
+            c.execute('SELECT id, name FROM employees ORDER BY name LIMIT 20')
+        rows = [{'id': r['id'], 'name': r['name']} for r in c.fetchall()]
+    finally:
+        conn.close()
+    # Provide both 'employees' and 'results' for compatibility with existing JS
+    return jsonify({'employees': rows, 'results': rows})
