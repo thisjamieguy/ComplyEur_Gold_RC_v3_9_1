@@ -1,4 +1,3 @@
-import sqlite3
 import json
 import csv
 import zipfile
@@ -7,35 +6,16 @@ import os
 from datetime import datetime
 from typing import Dict, Optional
 
+from app.repositories import dsar_repository
+
 
 def get_employee_data(db_path: str, employee_id: int) -> Optional[Dict]:
     """Retrieve all data for an employee."""
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    c = conn.cursor()
-    
-    # Get employee
-    c.execute('SELECT id, name FROM employees WHERE id = ?', (employee_id,))
-    emp = c.fetchone()
-    if not emp:
-        conn.close()
+    employee = dsar_repository.fetch_employee(db_path, employee_id)
+    if not employee:
         return None
-    
-    # Get trips (including private trip data for DSAR)
-    c.execute('''
-        SELECT id, country, entry_date, exit_date, travel_days, created_at, is_private, purpose
-        FROM trips
-        WHERE employee_id = ?
-        ORDER BY entry_date ASC
-    ''', (employee_id,))
-    trips = [dict(row) for row in c.fetchall()]
-    
-    conn.close()
-    
-    return {
-        'employee': dict(emp),
-        'trips': trips
-    }
+    trips = dsar_repository.fetch_employee_trips(db_path, employee_id)
+    return {'employee': employee, 'trips': trips}
 
 
 def create_dsar_export(db_path: str, employee_id: int, export_dir: str, 
@@ -164,37 +144,14 @@ Total trips exported: {len(trips)}
 def delete_employee_data(db_path: str, employee_id: int) -> Dict:
     """Hard delete employee and all associated trips.
     Returns summary of deletion."""
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    c = conn.cursor()
-    
-    # Get employee info before deletion
-    c.execute('SELECT name FROM employees WHERE id = ?', (employee_id,))
-    emp = c.fetchone()
-    if not emp:
-        conn.close()
+    result = dsar_repository.delete_employee_and_trips(db_path, employee_id)
+    if not result:
         return {'success': False, 'error': 'Employee not found'}
-    
-    employee_name = emp['name']
-    
-    # Count trips
-    c.execute('SELECT COUNT(*) FROM trips WHERE employee_id = ?', (employee_id,))
-    trips_count = c.fetchone()[0]
-    
-    # Delete trips
-    c.execute('DELETE FROM trips WHERE employee_id = ?', (employee_id,))
-    
-    # Delete employee
-    c.execute('DELETE FROM employees WHERE id = ?', (employee_id,))
-    
-    conn.commit()
-    conn.close()
-    
     return {
         'success': True,
         'employee_id': employee_id,
-        'employee_name': employee_name,
-        'trips_deleted': trips_count
+        'employee_name': result['name'],
+        'trips_deleted': result['trips_deleted']
     }
 
 
@@ -203,23 +160,11 @@ def rectify_employee_name(db_path: str, employee_id: int, new_name: str) -> Dict
     if not new_name or not new_name.strip():
         return {'success': False, 'error': 'Name cannot be empty'}
     
-    conn = sqlite3.connect(db_path)
-    c = conn.cursor()
-    
-    # Check if employee exists
-    c.execute('SELECT name FROM employees WHERE id = ?', (employee_id,))
-    result = c.fetchone()
-    if not result:
-        conn.close()
+    old_name = dsar_repository.fetch_employee_name(db_path, employee_id)
+    if not old_name:
         return {'success': False, 'error': 'Employee not found'}
     
-    old_name = result[0]
-    
-    # Update name
-    c.execute('UPDATE employees SET name = ? WHERE id = ?', (new_name.strip(), employee_id))
-    conn.commit()
-    conn.close()
-    
+    dsar_repository.update_employee_name(db_path, employee_id, new_name.strip())
     return {
         'success': True,
         'employee_id': employee_id,
